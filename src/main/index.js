@@ -1,7 +1,25 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, protocol, net } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+const { Worker } = require('node:worker_threads')
+import { parse, stringify } from 'subtitle'
+import fs from 'fs'
+
 import icon from '../../resources/icon.png?asset'
+import ShotBoundaryWorker from './shotboundary?worker&url'
+import { selectFile } from './dialogs'
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'app',
+    privileges: {
+      secure: true,
+      supportFetchAPI: true,
+      bypassCSP: true,
+      stream: true
+    }
+  }
+])
 
 function createWindow() {
   // Create the browser window.
@@ -13,9 +31,14 @@ function createWindow() {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: true,
+      contextIsolation: true,
+      webSecurity: true
     }
   })
+  if (is.dev) {
+    mainWindow.webContents.openDevTools()
+  }
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -59,6 +82,15 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+
+  // using deprecated method until this bug is solved:
+  // https://github.com/electron/electron/issues/38749
+  // TODO access filter
+  protocol.registerFileProtocol('app', (request, callback) => {
+    console.log('request', request, callback)
+    const filePath = request.url.slice('app://'.length)
+    callback(filePath)
+  })
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -72,3 +104,24 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
+
+ipcMain.handle('open-video-dialog', () => selectFile([{ name: 'Movies', extensions: ['mp4'] }]))
+ipcMain.handle('load-subtitles', () => {
+  const file = selectFile([{ name: 'Subtitles', extensions: ['srt'] }])
+  if (file === undefined) return undefined
+
+  const vttPath = process.cwd() + '/subtitles.vtt'
+  fs.createReadStream(file)
+    .pipe(parse())
+    .pipe(stringify({ format: 'WebVTT' }))
+    .pipe(fs.createWriteStream(vttPath))
+  return vttPath
+})
+ipcMain.on('run-shotboundary-detection', (channel, path) => {
+  const worker = new Worker('./out/main' + ShotBoundaryWorker, {
+    type: 'module',
+    workerData: path
+  })
+  worker.on('error', (e) => console.log('Worker error', e))
+  worker.on('message', (data) => channel.sender.send('shotboundary-detected', data.e))
+})
