@@ -6,7 +6,7 @@
     >
     <v-menu :close-on-content-click="false">
       <template v-slot:activator="{ props }">
-        <v-btn v-tooltip="'Job list'" icon v-bind="props">
+        <v-btn v-tooltip="'Job list'" :disabled="!hasJobs" icon v-bind="props">
           <v-badge color="error" dot v-if="runningJobs">
             <v-icon>mdi-format-list-bulleted</v-icon>
           </v-badge>
@@ -83,6 +83,9 @@ export default {
     ...mapStores(useMainStore),
     runningJobs() {
       return Object.values(this.mainStore.jobs).some((j) => j.status === 'RUNNING')
+    },
+    hasJobs() {
+      return Object.keys(this.mainStore.jobs).length > 0
     }
   },
   methods: {
