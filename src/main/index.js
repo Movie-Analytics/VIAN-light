@@ -6,7 +6,7 @@ import { parse, stringify } from 'subtitle'
 import fs from 'fs'
 
 import icon from '../../resources/icon.png?asset'
-import ShotBoundaryWorker from './shotboundary?worker&url'
+import ShotBoundaryWorker from './shotboundary_worker?nodeWorker'
 import { selectFile } from './dialogs'
 
 protocol.registerSchemesAsPrivileged([
@@ -127,10 +127,11 @@ ipcMain.on('terminate-job', (channel, jobId) => {
 })
 
 ipcMain.on('run-shotboundary-detection', (channel, path) => {
-  const worker = new Worker('./out/main' + ShotBoundaryWorker, {
+  const worker = ShotBoundaryWorker({
     type: 'module',
     workerData: path
   })
+
   const job = {
     creation: Date.now(),
     type: 'shotboundary-detection',
@@ -140,11 +141,13 @@ ipcMain.on('run-shotboundary-detection', (channel, path) => {
   }
   jobs[job.id] = job
   sendJobsUpdate(channel)
+
   worker.on('error', (e) => {
     job.status = 'ERROR'
     console.log(e)
     sendJobsUpdate(channel)
   })
+
   worker.on('message', (data) => {
     job.status = 'DONE'
     sendJobsUpdate(channel)

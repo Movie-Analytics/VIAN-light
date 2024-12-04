@@ -3,9 +3,7 @@ const path = require('path')
 const jpeg = require('jpeg-js')
 const ort = require('onnxruntime-node')
 
-//import onnxPath from '../../resources/transnetv2.onnx?asset&asarUnpack'
-//const ffmpeg = require('./ffmpeg')
-import { generateThumbnails } from './ffmpeg'
+import onnxPath from '../../resources/transnetv2.onnx?asset&asarUnpack'
 
 async function fileToFrame(fileName) {
   var jpegData = fs.readFileSync(fileName)
@@ -86,39 +84,17 @@ function predictionsToScenes(predictions, threshold = 0.5) {
   return scenes
 }
 
-async function shots() {
-  console.log('shots')
+export async function shots(tmpPath) {
   try {
-    const session = await ort.InferenceSession.create('./resources/transnetv2.onnx') //onnxPath)
-    const frameFiles = fs.readdirSync('out___').map((f) => path.join('out___', f))
-    console.log('got files', frameFiles.length)
+    const session = await ort.InferenceSession.create(onnxPath) //'./resources/transnetv2.onnx')
+    const frameFiles = fs.readdirSync(tmpPath).map((f) => path.join(tmpPath, f))
+    console.log('Running inference with number of files:', frameFiles.length)
     const { singleFramePred, allFramesPred } = await runInference(frameFiles, session)
     const shotList = predictionsToScenes(singleFramePred, 0.5)
-    console.log('got shotlist', shotList)
+    console.log('Shots:', shotList)
     return shotList
   } catch (error) {
     console.error(`Error during inference: ${error}`)
     return []
   }
-}
-
-async function shotBoundaryDetection(videoPath) {
-  console.log('gen thumbnails')
-  await generateThumbnails(videoPath)
-  console.log('run shottie', videoPath)
-  return await shots()
-}
-//////////////////////////////////
-const { workerData, parentPort } = require('worker_threads')
-if (workerData !== null && workerData !== undefined) {
-  console.log('Running shotboundary detection for', workerData)
-  shotBoundaryDetection(workerData).then((e) => {
-    console.log('done')
-    parentPort.postMessage({ e })
-  })
-}
-async function onmessage(e) {
-  console.log('received message', e.data)
-  const shots = await shotBoundaryDetection(e.data)
-  postMessage(shots)
 }
