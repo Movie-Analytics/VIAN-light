@@ -17,7 +17,8 @@ export const useMainStore = defineStore('main', {
         data: [0, 10, 350, 600]
       }
     ],
-    fps: 25
+    fps: 25,
+    jobs: []
   }),
   getters: {
     videoFileSrc() {
@@ -44,6 +45,14 @@ export const useMainStore = defineStore('main', {
     async loadSubtitles() {
       this.subtitles = await window.electronAPI.loadSubtitles()
       return this.subtitles
+    },
+    initialize() {
+      window.electronAPI.onJobsUpdate((channel, data) => {
+        this.jobs = data
+      })
+    },
+    terminateJob(id) {
+      window.electronAPI.terminateJob(id)
     }
   }
 })

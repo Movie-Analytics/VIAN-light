@@ -105,7 +105,9 @@ app.on('window-all-closed', () => {
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
 
+const jobs = {}
 ipcMain.handle('open-video-dialog', () => selectFile([{ name: 'Movies', extensions: ['mp4'] }]))
+
 ipcMain.handle('load-subtitles', () => {
   const file = selectFile([{ name: 'Subtitles', extensions: ['srt'] }])
   if (file === undefined) return undefined
@@ -117,11 +119,39 @@ ipcMain.handle('load-subtitles', () => {
     .pipe(fs.createWriteStream(vttPath))
   return vttPath
 })
+
+ipcMain.on('terminate-job', (channel, jobId) => {
+  jobs[jobId].worker.terminate()
+  jobs[jobId].status = 'CANCELED'
+  sendJobsUpdate(channel)
+})
+
 ipcMain.on('run-shotboundary-detection', (channel, path) => {
   const worker = new Worker('./out/main' + ShotBoundaryWorker, {
     type: 'module',
     workerData: path
   })
-  worker.on('error', (e) => console.log('Worker error', e))
-  worker.on('message', (data) => channel.sender.send('shotboundary-detected', data.e))
+  const job = {
+    creation: Date.now(),
+    type: 'shotboundary-detection',
+    status: 'RUNNING',
+    worker: worker,
+    id: Object.keys(jobs).length
+  }
+  jobs[job.id] = job
+  sendJobsUpdate(channel)
+  worker.on('error', (e) => {
+    job.status = 'ERROR'
+    console.log(e)
+    sendJobsUpdate(channel)
+  })
+  worker.on('message', (data) => {
+    job.status = 'DONE'
+    sendJobsUpdate(channel)
+    channel.sender.send('shotboundary-detected', data.e)
+  })
 })
+
+function sendJobsUpdate(channel) {
+  channel.sender.send('jobs-update', JSON.parse(JSON.stringify(jobs)))
+}

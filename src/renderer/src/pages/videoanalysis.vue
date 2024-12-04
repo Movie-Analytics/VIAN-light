@@ -4,9 +4,36 @@
       >VIAN-lite
       <span class="text-medium-emphasis text-body-2">{{ mainStore.video }}</span></v-app-bar-title
     >
-    <v-btn icon>
-      <v-icon>mdi-format-list-bulleted</v-icon>
-    </v-btn>
+    <v-menu :close-on-content-click="false">
+      <template v-slot:activator="{ props }">
+        <v-btn v-tooltip="'Job list'" icon v-bind="props">
+          <v-badge color="error" dot v-if="runningJobs">
+            <v-icon>mdi-format-list-bulleted</v-icon>
+          </v-badge>
+          <v-icon v-else>mdi-format-list-bulleted</v-icon>
+        </v-btn>
+      </template>
+      <v-list>
+        <v-list-item v-for="(job, k, i) in mainStore.jobs" :key="i">
+          <v-list-item-title>{{ job.type }}</v-list-item-title>
+          <template #append>
+            <v-badge :color="statusToColor(job.status)" :content="job.status" inline></v-badge>
+          </template>
+          <template #prepend>
+            <v-btn
+              v-if="job.status === 'RUNNING'"
+              icon
+              variant="text"
+              class="me-2"
+              @click="mainStore.terminateJob(job.id)"
+            >
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </template>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+
     <v-menu>
       <template v-slot:activator="{ props }">
         <v-btn v-tooltip="'Analysis tools'" icon v-bind="props">
@@ -53,7 +80,10 @@ import { useMainStore } from '@renderer/stores/main'
 export default {
   components: { Timelines, VideoPlayer },
   computed: {
-    ...mapStores(useMainStore)
+    ...mapStores(useMainStore),
+    runningJobs() {
+      return Object.values(this.mainStore.jobs).some((j) => j.status === 'RUNNING')
+    }
   },
   methods: {
     homeClicked() {
@@ -64,6 +94,13 @@ export default {
     },
     loadSubtitles() {
       this.mainStore.loadSubtitles()
+    },
+    statusToColor(status) {
+      if (status === 'RUNNING') return 'yellow'
+      else if (status === 'ERROR') return 'error'
+      else if (status === 'DONE') return 'success'
+      else if (status === 'CANCELED') return 'black'
+      else return 'white'
     }
   }
 }
