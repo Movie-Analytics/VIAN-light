@@ -1,12 +1,13 @@
-import { app, shell, BrowserWindow, ipcMain, protocol, net } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, protocol } from 'electron'
 import { join } from 'path'
+import { tmpdir } from 'os'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-const { Worker } = require('node:worker_threads')
 import { parse, stringify } from 'subtitle'
 import fs from 'fs'
 
 import icon from '../../resources/icon.png?asset'
 import ShotBoundaryWorker from './shotboundary_worker?nodeWorker'
+import VideoInfoWorker from './videoinfo_worker?nodeWorker'
 import { selectFile } from './dialogs'
 
 protocol.registerSchemesAsPrivileged([
@@ -72,9 +73,6 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
-
   createWindow()
 
   app.on('activate', function () {
@@ -87,7 +85,6 @@ app.whenReady().then(() => {
   // https://github.com/electron/electron/issues/38749
   // TODO access filter
   protocol.registerFileProtocol('app', (request, callback) => {
-    console.log('request', request, callback)
     const filePath = request.url.slice('app://'.length)
     callback(filePath)
   })
@@ -112,7 +109,8 @@ ipcMain.handle('load-subtitles', () => {
   const file = selectFile([{ name: 'Subtitles', extensions: ['srt'] }])
   if (file === undefined) return undefined
 
-  const vttPath = process.cwd() + '/subtitles.vtt'
+  const tmpDir = fs.mkdtempSync(join(tmpdir(), 'vian-lite-'))
+  const vttPath = join(tmpDir, 'subtitles.vtt')
   fs.createReadStream(file)
     .pipe(parse())
     .pipe(stringify({ format: 'WebVTT' }))
@@ -124,6 +122,35 @@ ipcMain.on('terminate-job', (channel, jobId) => {
   jobs[jobId].worker.terminate()
   jobs[jobId].status = 'CANCELED'
   sendJobsUpdate(channel)
+})
+
+ipcMain.handle('load-store', (event, name, id) => {
+  const dataPath = join(app.getPath('userData'), 'vian-lite')
+  let path
+  if (name === 'meta') {
+    path = join(dataPath, 'meta.json')
+  } else {
+    path = join(dataPath, id, name + '.json')
+  }
+  if (!fs.existsSync(path)) return undefined
+  const content = fs.readFileSync(path, 'utf8')
+  return JSON.parse(content)
+})
+
+ipcMain.on('save-store', (channel, name, store) => {
+  const dataPath = join(app.getPath('userData'), 'vian-lite')
+  fs.mkdirSync(dataPath, { recursive: true })
+  console.log('Storage location:', dataPath)
+
+  const data = JSON.stringify(store)
+  if (name == 'meta') {
+    fs.writeFile(join(dataPath, 'meta.json'), data, 'utf8', (e) => console.log('Error saving:', e));
+  } else {
+    fs.mkdirSync(join(dataPath, store.id), { recursive: true })
+    fs.writeFile(join(dataPath, store.id, name + '.json'), data, 'utf8', (e) =>
+      console.log('Error saving:', e)
+    )
+  }
 })
 
 ipcMain.on('run-shotboundary-detection', (channel, path) => {
@@ -143,8 +170,8 @@ ipcMain.on('run-shotboundary-detection', (channel, path) => {
   sendJobsUpdate(channel)
 
   worker.on('error', (e) => {
-    job.status = 'ERROR'
     console.log(e)
+    job.status = 'ERROR'
     sendJobsUpdate(channel)
   })
 
@@ -152,6 +179,35 @@ ipcMain.on('run-shotboundary-detection', (channel, path) => {
     job.status = 'DONE'
     sendJobsUpdate(channel)
     channel.sender.send('shotboundary-detected', data.e)
+  })
+})
+
+ipcMain.on('get-video-info', (channel, path) => {
+  const worker = VideoInfoWorker({
+    type: 'module',
+    workerData: path
+  })
+
+  const job = {
+    creation: Date.now(),
+    type: 'video-info',
+    status: 'RUNNING',
+    worker: worker,
+    id: Object.keys(jobs).length
+  }
+  jobs[job.id] = job
+  sendJobsUpdate(channel)
+
+  worker.on('error', (e) => {
+    console.log(e)
+    job.status = 'ERROR'
+    sendJobsUpdate(channel)
+  })
+
+  worker.on('message', (data) => {
+    job.status = 'DONE'
+    sendJobsUpdate(channel)
+    channel.sender.send('video-info', data)
   })
 })
 

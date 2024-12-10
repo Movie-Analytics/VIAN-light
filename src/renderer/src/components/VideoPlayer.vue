@@ -1,11 +1,11 @@
 <template>
   <v-card>
-    <video @timeupdate="videoTimeUpdate" class="ma-2" ref="video" crossorigin="anonymous">
+    <video @durationchange="durationChange" @timeupdate="videoTimeUpdate" class="ma-2" ref="video" crossorigin="anonymous">
       <source :src="mainStore.videoFileSrc" type="video/mp4" />
       <track
-        v-if="mainStore.subtitleFileSrc !== undefined"
+        v-if="undoableStore.subtitleFileSrc !== undefined"
         kind="subtitles"
-        :src="mainStore.subtitleFileSrc"
+        :src="undoableStore.subtitleFileSrc"
         default
       />
     </video>
@@ -22,8 +22,8 @@
       <v-btn icon @click="forwardClicked">
         <v-icon>mdi-skip-forward</v-icon>
       </v-btn>
-      <v-btn v-if="mainStore.subtitleFileSrc !== undefined" icon @click="toggleSubtitles">
-        <v-icon v-if="subtitlesVisible">mdi-subtitles</v-icon>
+      <v-btn v-if="undoableStore.subtitleFileSrc !== undefined" icon @click="toggleSubtitles">
+        <v-icon v-if="undoableStore.subtitlesVisible">mdi-subtitles</v-icon>
         <v-icon v-else>mdi-subtitles-outline</v-icon>
       </v-btn>
     </div>
@@ -34,24 +34,26 @@
 import { mapStores } from 'pinia'
 
 import { useMainStore } from '@renderer/stores/main'
+import { useUndoableStore } from '@renderer/stores/undoable'
+import { useTempStore } from '@renderer/stores/temp'
 
 export default {
   data() {
     return {
       playingState: false,
-      time: 0,
-      sliderPosition: 0,
-      subtitlesVisible: true
+      sliderPosition: 0
     }
   },
   computed: {
     readableTime() {
-      const totalSeconds = Math.round(this.time)
+      const totalSeconds = Math.round(this.tempStore.playPosition || 0)
       const formattedMinutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0')
       const formattedSeconds = String(totalSeconds % 60).padStart(2, '0')
       return `${formattedMinutes}:${formattedSeconds}`
     },
-    ...mapStores(useMainStore)
+    ...mapStores(useMainStore),
+    ...mapStores(useTempStore),
+    ...mapStores(useUndoableStore)
   },
   methods: {
     sliderMoved(n) {
@@ -73,14 +75,17 @@ export default {
       }
     },
     videoTimeUpdate(event) {
-      this.time = event.target.currentTime
+      this.tempStore.playPosition = event.target.currentTime
       this.sliderPosition = (event.target.currentTime / event.target.duration) * 100
     },
+    durationChange(event) {
+      this.mainStore.videoDuration = event.target.duration
+    },
     toggleSubtitles() {
-      if (this.subtitlesVisible) this.$refs.video.textTracks[0].mode = 'hidden'
+      if (this.undoableStore.subtitlesVisible) this.$refs.video.textTracks[0].mode = 'hidden'
       else this.$refs.video.textTracks[0].mode = 'showing'
 
-      this.subtitlesVisible = !this.subtitlesVisible
+      this.undoableStore.subtitlesVisible = !this.undoableStore.subtitlesVisible
     }
   }
 }

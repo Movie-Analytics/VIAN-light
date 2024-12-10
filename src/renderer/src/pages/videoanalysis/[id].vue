@@ -4,17 +4,20 @@
       >VIAN-lite
       <span class="text-medium-emphasis text-body-2">{{ mainStore.video }}</span></v-app-bar-title
     >
+    <v-btn :disabled="!isUndoable" icon @click="undo">
+      <v-icon>mdi-undo</v-icon>
+    </v-btn>
     <v-menu :close-on-content-click="false">
-      <template v-slot:activator="{ props }">
+      <template #activator="{ props }">
         <v-btn v-tooltip="'Job list'" :disabled="!hasJobs" icon v-bind="props">
-          <v-badge color="error" dot v-if="runningJobs">
+          <v-badge v-if="runningJobs" color="error" dot>
             <v-icon>mdi-format-list-bulleted</v-icon>
           </v-badge>
           <v-icon v-else>mdi-format-list-bulleted</v-icon>
         </v-btn>
       </template>
       <v-list>
-        <v-list-item v-for="(job, k, i) in mainStore.jobs" :key="i">
+        <v-list-item v-for="(job, k, i) in tempStore.jobs" :key="i">
           <v-list-item-title>{{ job.type }}</v-list-item-title>
           <template #append>
             <v-badge :color="statusToColor(job.status)" :content="job.status" inline></v-badge>
@@ -25,7 +28,7 @@
               icon
               variant="text"
               class="me-2"
-              @click="mainStore.terminateJob(job.id)"
+              @click="tempStore.terminateJob(job.id)"
             >
               <v-icon>mdi-close</v-icon>
             </v-btn>
@@ -35,7 +38,7 @@
     </v-menu>
 
     <v-menu>
-      <template v-slot:activator="{ props }">
+      <template #activator="{ props }">
         <v-btn v-tooltip="'Analysis tools'" icon v-bind="props">
           <v-icon>mdi-tools</v-icon>
         </v-btn>
@@ -59,7 +62,9 @@
         <v-col>
           <video-player></video-player>
         </v-col>
-        <v-col>info...</v-col>
+        <v-col>
+          <p v-if="mainStore.fps">FPS: {{ mainStore.fps }}</p>
+        </v-col>
       </v-row>
       <v-row>
         <v-col>
@@ -76,27 +81,47 @@ import { mapStores } from 'pinia'
 import VideoPlayer from '@renderer/components/VideoPlayer.vue'
 import Timelines from '@renderer/components/Timelines.vue'
 import { useMainStore } from '@renderer/stores/main'
+import { useTempStore } from '@renderer/stores/temp'
+import { useUndoableStore } from '@renderer/stores/undoable'
+import { useUndoStore } from '@renderer/stores/undo'
 
 export default {
   components: { Timelines, VideoPlayer },
   computed: {
     ...mapStores(useMainStore),
+    ...mapStores(useTempStore),
+    ...mapStores(useUndoableStore),
+    ...mapStores(useUndoStore),
     runningJobs() {
-      return Object.values(this.mainStore.jobs).some((j) => j.status === 'RUNNING')
+      return Object.values(this.tempStore.jobs).some((j) => j.status === 'RUNNING')
     },
     hasJobs() {
-      return Object.keys(this.mainStore.jobs).length > 0
+      return Object.keys(this.tempStore.jobs).length > 0
+    },
+    isUndoable() {
+      return this.undoStore.isUndoable('undoable')
     }
+  },
+  created() {
+    this.mainStore.loadStore(this.$route.params.id)
+    this.undoableStore.loadStore(this.$route.params.id)
   },
   methods: {
     homeClicked() {
       this.$router.push('/')
+      this.mainStore.reset()
+      this.tempStore.reset()
+      this.undoableStore.reset()
+      this.undoStore.reset()
+    },
+    undo() {
+      this.undoableStore.undo()
     },
     shotBoundaryDetectionClicked() {
-      this.mainStore.runShotBoundaryDetection()
+      this.undoableStore.runShotBoundaryDetection()
     },
     loadSubtitles() {
-      this.mainStore.loadSubtitles()
+      this.undoableStore.loadSubtitles()
     },
     statusToColor(status) {
       if (status === 'RUNNING') return 'yellow'

@@ -1,58 +1,51 @@
 import { defineStore } from 'pinia'
+import { useUndoableStore } from './undoable'
 
 export const useMainStore = defineStore('main', {
   state: () => ({
-    video: undefined,
-    subtitles: undefined,
-    shotBoundaries: [],
-    timelines: [
-      {
-        type: 'shots',
-        name: 'shots',
-        data: [0, 100, 250, 500]
-      },
-      {
-        type: 'shots',
-        name: 'shots2',
-        data: [0, 10, 350, 600]
-      }
-    ],
-    fps: 25,
-    jobs: []
+    video: null,
+    fps: null,
+    videoDuration: null,
+    id: null
   }),
   getters: {
     videoFileSrc() {
-      if (this.video === undefined) return undefined
+      if (this.video === null) return undefined
       return 'app://' + this.video
-    },
-    subtitleFileSrc() {
-      if (this.subtitles === undefined) return undefined
-      return 'app://' + this.subtitles
     }
   },
   actions: {
-    async open_video() {
-      this.video = await window.electronAPI.openVideoDialog()
-      return this.video
-    },
-    async runShotBoundaryDetection() {
-      window.electronAPI.runShotBoundaryDetection(this.video)
-      window.electronAPI.onShotBoundaryDetection((channel, data) => {
-        this.shotBoundaries = data
-        this.timelines.push({ type: 'shots', name: 'Shots', data: data })
-      })
-    },
-    async loadSubtitles() {
-      this.subtitles = await window.electronAPI.loadSubtitles()
-      return this.subtitles
+    async openVideo(id, video) {
+      // TODO could become race condition
+      const undoableStore = useUndoableStore()
+      this.id = id
+      undoableStore.id = id
+      this.video = video
+      if (this.fps === null && this.video !== null) {
+        window.electronAPI.getVideoInfo(this.video)
+        window.electronAPI.onVideoInfo((channel, data) => {
+          this.fps = data.fps
+        })
+      }
     },
     initialize() {
-      window.electronAPI.onJobsUpdate((channel, data) => {
-        this.jobs = data
+      this.$subscribe((mutation, state) => {
+        if (this.id === null) return
+        const copyState = JSON.parse(JSON.stringify(state))
+        window.electronAPI.saveStore('main', copyState)
       })
     },
-    terminateJob(id) {
-      window.electronAPI.terminateJob(id)
+    async loadStore(projectId) {
+      const state = await window.electronAPI.loadStore('main', projectId)
+      if (state !== undefined) {
+        this.$patch(state)
+      }
+    },
+    reset() {
+      this.id = null
+      this.video = null
+      this.fps = null
+      this.videoDuration = null
     }
   }
 })
