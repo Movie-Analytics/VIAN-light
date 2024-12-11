@@ -7,6 +7,9 @@
     <v-btn :disabled="!isUndoable" icon @click="undo">
       <v-icon>mdi-undo</v-icon>
     </v-btn>
+    <v-btn :disabled="!isRedoable" icon @click="redo">
+      <v-icon>mdi-redo</v-icon>
+    </v-btn>
     <v-menu :close-on-content-click="false">
       <template #activator="{ props }">
         <v-btn v-tooltip="'Job list'" :disabled="!hasJobs" icon v-bind="props">
@@ -100,6 +103,9 @@ export default {
     },
     isUndoable() {
       return this.undoStore.isUndoable('undoable')
+    },
+    isRedoable() {
+      return this.undoStore.isRedoable('undoable')
     }
   },
   created() {
@@ -115,7 +121,10 @@ export default {
       this.undoStore.reset()
     },
     undo() {
-      this.undoableStore.undo()
+      this.undoableStore.undo('undoable')
+    },
+    redo() {
+      this.undoableStore.redo('undoable')
     },
     shotBoundaryDetectionClicked() {
       this.undoableStore.runShotBoundaryDetection()

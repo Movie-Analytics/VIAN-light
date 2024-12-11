@@ -46,6 +46,10 @@ export const useUndoableStore = defineStore('undoable', {
       const undoStore = useUndoStore()
       this.$patch(undoStore.undo('undoable'))
     },
+    redo() {
+      const undoStore = useUndoStore()
+      this.$patch(undoStore.redo('undoable'))
+    },
     reset() {
       this.id = null
       this.subtitles = null
