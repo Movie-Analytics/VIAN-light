@@ -48,10 +48,13 @@
       </template>
       <v-list>
         <v-list-item @click="shotBoundaryDetectionClicked">
-          <v-list-item-title>Shotboundary detection</v-list-item-title>
+          <v-list-item-title>Shotboundary Detection</v-list-item-title>
         </v-list-item>
         <v-list-item @click="loadSubtitles">
-          <v-list-item-title>Load subtitles</v-list-item-title>
+          <v-list-item-title>Load Subtitles</v-list-item-title>
+        </v-list-item>
+        <v-list-item @click="genScreenshotDialog = true">
+          <v-list-item-title>Generate Screenshots</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
@@ -62,7 +65,7 @@
   <v-main class="ma-3">
     <v-container>
       <v-row>
-        <v-col>
+        <v-col cols="6">
           <video-player></video-player>
         </v-col>
         <v-col>
@@ -75,6 +78,31 @@
         </v-col>
       </v-row>
     </v-container>
+    <v-dialog v-model="genScreenshotDialog" persistent max-width="400">
+      <v-card>
+        <v-card-title>Generate Screenshots</v-card-title>
+        <v-card-text>
+          <v-select
+            v-model="screenshotMode"
+            :items="screenshotModeItems"
+            item-title="title"
+            item-value="val"
+            label="Screenshot Mode"
+          ></v-select>
+          <v-text-field
+            v-model="screenshotInterval"
+            label="N"
+            type="number"
+            min="1"
+            max="100"
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="secondary" @click="genScreenshotDialog = false">Cancel</v-btn>
+          <v-btn color="primary" @click="generateScreenshots">Generate</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-main>
 </template>
 
@@ -90,6 +118,15 @@ import { useUndoStore } from '@renderer/stores/undo'
 
 export default {
   components: { Timelines, VideoPlayer },
+  data: () => ({
+    genScreenshotDialog: false,
+    screenshotMode: 'seconds',
+    screenshotModeItems: [
+      { title: 'every N seconds', val: 'seconds' },
+      { title: 'N per shot', val: 'shot' }
+    ],
+    screenshotInterval: 10
+  }),
   computed: {
     ...mapStores(useMainStore),
     ...mapStores(useTempStore),
@@ -131,6 +168,10 @@ export default {
     },
     loadSubtitles() {
       this.undoableStore.loadSubtitles()
+    },
+    generateScreenshots() {
+      console.log('generate screenshots')
+      this.genScreenshotDialog = false
     },
     statusToColor(status) {
       if (status === 'RUNNING') return 'yellow'
