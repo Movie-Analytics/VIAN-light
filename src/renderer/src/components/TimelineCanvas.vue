@@ -74,7 +74,7 @@ export default {
       this.draw()
     },
     resize() {
-      this.canvasWidth = this.$refs.canvas.parentElement.offsetWidth - 30
+      this.canvasWidth = this.$refs.canvas.parentElement.offsetWidth
       this.canvasHeight = this.undoableStore.timelines.length * 48 + 30
       d3.select(this.$refs.canvas).attr('width', this.canvasWidth).attr('height', this.canvasHeight)
       d3.select(this.$refs.hiddenCanvas)
@@ -96,9 +96,9 @@ export default {
           if (shot_i % 2 == 0) color = '#eeeeee'
           this.data.push({
             x: shot.start,
-            y: timeline_i * 45 + 30 + 2,
+            y: timeline_i * 48 + 30 + 2,
             width: shot.end - shot.start,
-            height: 42,
+            height: 44,
             fill: color,
             timeline: timeline.id,
             id: shot.id,
@@ -127,25 +127,21 @@ export default {
       // picking: selection happens via a hidden canvas that has the same
       // elements with each in a different color
       const hCanvas = d3.select(this.$refs.hiddenCanvas)
-      let colorI = 0
+      let colorI = 10
       this.hCtx = hCanvas.node().getContext('2d')
       this.elements.each((d) => {
         const color = '#' + colorI.toString(16).padStart(6, '0')
         d.hiddenColor = color
-        colorI = colorI + 300
-        //colorI++
+        colorI = colorI + 20
       })
 
       this.resize()
     },
     clickHandler(event) {
-      const rect = this.$refs.canvas.getBoundingClientRect()
-      const x = event.clientX - rect.left
-      const y = event.clientY - rect.top
-      const colorData = this.hCtx.getImageData(x, y, 1, 1).data
+      const coord = d3.pointer(event, this.$refs.canvas)
+      const colorData = this.hCtx.getImageData(coord[0], coord[1], 1, 1).data
       const color = this.rgbToHex(colorData[0], colorData[1], colorData[2])
       const entries = this.data.filter((d) => d.hiddenColor == color)
-      console.log('clickHandler', color, entries)
 
       if (entries.length == 0) {
         // no element was clicked -> set player position
