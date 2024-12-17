@@ -18,11 +18,10 @@ export const useUndoableStore = defineStore('undoable', {
   actions: {
     async initialize() {
       this.$subscribe((mutation, state) => {
-        if (state.id === null) return
+        if (state.id === null || mutation.events.key === 'id') return
         const copyState = JSON.parse(JSON.stringify(state))
         window.electronAPI.saveStore('undoable', copyState)
 
-        if (mutation.events.key === 'id') return
         const undoStore = useUndoStore()
         undoStore.push('undoable', copyState)
       })
@@ -61,7 +60,7 @@ export const useUndoableStore = defineStore('undoable', {
       const timeline = this.timelines.filter((t) => t.id === timelineId)[0]
       const index = timeline.data.map((s) => s.id).indexOf(segmentId)
       const segment = timeline.data[index]
-      timeline.data.splice(index+1, 0, {
+      timeline.data.splice(index + 1, 0, {
         start: position,
         end: segment.end,
         id: crypto.randomUUID()

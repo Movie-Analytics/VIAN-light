@@ -35,14 +35,14 @@ export const useUndoStore = defineStore('undo', {
       if (this.isUndoable(name)) {
         this.stack[name].index--
         this.stack[name].ignoreNext = true
-        return this.stack[name].entries[this.stack[name].index]
+        return JSON.parse(JSON.stringify(this.stack[name].entries[this.stack[name].index]))
       }
     },
     redo(name) {
       if (this.isRedoable(name)) {
         this.stack[name].index++
         this.stack[name].ignoreNext = true
-        return this.stack[name].entries[this.stack[name].index]
+        return JSON.parse(JSON.stringify(this.stack[name].entries[this.stack[name].index]))
       }
     },
     reset() {
