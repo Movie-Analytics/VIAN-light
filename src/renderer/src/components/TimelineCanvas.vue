@@ -162,7 +162,7 @@ export default {
         // click on selected element de-selects it
         entry.selected = false
         this.tempStore.selectedSegments = this.tempStore.selectedSegments.filter(
-          (s) => s.id === entry.id
+          (s) => s.id !== entry.id
         )
       } else {
         entry.selected = true
