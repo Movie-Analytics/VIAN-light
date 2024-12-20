@@ -176,7 +176,7 @@ ipcMain.on('run-shotboundary-detection', (channel, path) => {
   worker.on('message', (data) => {
     job.status = 'DONE'
     sendJobsUpdate(channel)
-    channel.sender.send('shotboundary-detected', data.e)
+    channel.sender.send('shotboundary-detected', data.shots)
   })
 })
 

@@ -1,24 +1,13 @@
 const { workerData, parentPort } = require('worker_threads')
-const fs = require('node:fs')
-const os = require('node:os')
-const path = require('node:path')
 
-import { generateThumbnails } from './ffmpeg'
-import { shots } from './shotboundary'
+import video_reader_p from '../../resources/video_reader.node?asset&asarUnpack'
+import onnxPath from '../../resources/transnetv2.onnx?asset&asarUnpack'
+const video_reader = require(video_reader_p)
 
-async function shotBoundaryDetection(videoPath, tmpPath) {
-  await generateThumbnails(videoPath, tmpPath)
-  return await shots(tmpPath)
-}
-
+console.log('Started worker to detect shot boundaries')
 if (workerData !== null && workerData !== undefined) {
-  console.log('Running shotboundary detection for', workerData)
-
-  const tmpPath = fs.mkdtempSync(path.join(os.tmpdir(), 'vian-lite-'))
-  console.log('Temporarily frames directory:', tmpPath)
-
-  shotBoundaryDetection(workerData, tmpPath).then((e) => {
-    parentPort.postMessage({ e })
-    fs.rmSync(tmpPath, { recursive: true, force: true })
-  })
+  const reader = new video_reader.VideoReader(workerData)
+  reader.open()
+  const shots = reader.detectShots(onnxPath)
+  parentPort.postMessage({ shots })
 }
