@@ -1,0 +1,53 @@
+name: Build electron
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    container: debian:oldstable
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: install build tools
+        run: apt-get update && apt-get install -y build-essential cmake
+      
+      - name: Download ffmpeg-libs
+        uses: dawidd6/action-download-artifact@v7
+        with:
+          name: ffmpeg-libs-linux.zip
+          path: ffmpeglibs
+          repo: elya5/ffmpeg-libs
+          check_artifacts: false
+          search_artifacts: false
+
+      - name: Debug
+        run: ls
+
+      - name: Download onnx
+        uses: dawidd6/action-download-artifact@v7
+        with:
+          pr: 8ebe9a3
+          name: onnxruntime-linux-x64-glibc2_17-MinSizeRel-1.20.1.zip
+          path: onnxlibs
+          repo: csukuangfj/onnxruntime-libs
+          check_artifacts: false
+          search_artifacts: false
+      
+      - name: Debug
+        run: ls
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build:linux
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vian-lite-linux
+          path: ${{ github.workspace }}/dist/*AppImage
+          retention-days: 90
+          overwrite: true
