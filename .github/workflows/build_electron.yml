@@ -21,8 +21,10 @@ jobs:
           version: 'tags/v1.20.1'
           file: onnxruntime-linux-x64-glibc2_17-MinSizeRel-1.20.1.zip
       
-      - name: Debug
-        run: ls
+      - name: Unzip
+        run: |
+          unzip onnxruntime*.zip
+          mv onnxruntime* onnxruntime
 
       - name: Download ffmpeg-libs
         uses: dawidd6/action-download-artifact@v7
@@ -31,7 +33,7 @@ jobs:
           path: ffmpeglibs
           repo: elya5/ffmpeg-build
           check_artifacts: false
-          search_artifacts: false
+          search_artifacts: true
 
       - name: Debug
         run: ls
