@@ -17,9 +17,9 @@ jobs:
       - name: Download ffmpeg-libs
         uses: dawidd6/action-download-artifact@v7
         with:
-          name: ffmpeg-libs-linux.zip
+          name: ffmpeg-libs-linux
           path: ffmpeglibs
-          repo: elya5/ffmpeg-libs
+          repo: elya5/ffmpeg-build
           check_artifacts: false
           search_artifacts: false
 
