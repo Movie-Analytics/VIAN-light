@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: install build tools
-        run: apt-get update && apt-get install -y build-essential cmake zip
+        run: apt-get update && apt-get install -y build-essential cmake zip node
       
       - name: Download onnx
         uses: dsaltares/fetch-gh-release-asset@master
@@ -39,7 +39,7 @@ jobs:
           search_artifacts: true
 
       - name: Debug
-        run: ls
+        run: ls ffmpeglibs
 
       - name: Install Dependencies
         run: npm install
