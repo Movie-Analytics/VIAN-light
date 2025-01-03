@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: install build tools
-        run: apt-get update && apt-get install -y build-essential cmake zip node
+        run: apt-get update && apt-get install -y build-essential cmake zip nodejs
       
       - name: Download onnx
         uses: dsaltares/fetch-gh-release-asset@master
