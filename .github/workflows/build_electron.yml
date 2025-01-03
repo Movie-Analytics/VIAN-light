@@ -49,8 +49,9 @@ jobs:
       - name: Debug
         run: |
           ls
-          ls -R
           ls ffmpeglibs
+          ls ffmpeglibs/lib
+          ls ffmpeglibs/include
 
       - name: Install Dependencies
         run: npm install
