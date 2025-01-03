@@ -3,42 +3,61 @@
     {
       "target_name": "video_reader",
       "sources": [
-        "example.cpp",
-        "example.h",
+        "video_reader.cpp",
+        "video_reader.h",
+        "ffmpeglibs/lib/libavcodec.a",
+        "ffmpeglibs/lib/libavdevice.a",
+        "ffmpeglibs/lib/libavfilter.a",
+        "ffmpeglibs/lib/libavformat.a",
+        "ffmpeglibs/lib/libavformat.a",
+        "ffmpeglibs/lib/libavutil.a",
+        "ffmpeglibs/lib/libswresample.a",
+        "ffmpeglibs/lib/libswscale.a",
+        "onnxlibs/lib/libonnxruntime.a",
       ],
-      'include_dirs': [
+      "include_dirs": [
         "<!@(node -p \"require('node-addon-api').include\")", 
-        "./ffmpeglibs", 
-        "./ffmpeglibs/include", 
-        "./onnxlibs2/include", 
-        "./onnxlibs2"
+        "ffmpeglibs/include", 
+        "onnxlibs/include", 
       ],
-      'dependencies': ["<!(node -p \"require('node-addon-api').gyp\")"],
-      'cflags!': [ '-fno-exceptions' ],
-      'cflags_cc!': [ '-fno-exceptions' ],
-      'cflags': [
-        '-fPIC',
-        '-fvisibility=hidden',
+      "dependencies": ["<!(node -p \"require('node-addon-api').gyp\")"],
+      "cflags": [
+        "-fPIC",
+        "-fexceptions"
       ],
-      'cflags_cc': [
-        '-fPIC',
-        '-fvisibility=hidden',
+      "cflags_cc": [
+        "-fPIC",
+        "-fexceptions"
       ],
       "libraries": [
-        "-L${PWD}/ffmpeglibs/lib",
-        "-Wl,-Bstatic",
-        "-lavcodec",
-        "-lavformat",
-        "-lavutil",
-        "-lswscale",
-        "-L${PWD}/onnxlibs2/lib",
-        "-Wl,-Bstatic",
-        "-lonnxruntime",
-        "-Wl,-Bdynamic",
+        "${PWD}/ffmpeglibs/lib/libavcodec.a",
+        "${PWD}/ffmpeglibs/lib/libavdevice.a",
+        "${PWD}/ffmpeglibs/lib/libavfilter.a",
+        "${PWD}/ffmpeglibs/lib/libavformat.a",
+        "${PWD}/ffmpeglibs/lib/libavformat.a",
+        "${PWD}/ffmpeglibs/lib/libavutil.a",
+        "${PWD}/ffmpeglibs/lib/libswresample.a",
+        "${PWD}/ffmpeglibs/lib/libswscale.a",
+        "${PWD}/onnxlibs/lib/libonnxruntime.a",
         "-lm",
         "-lstdc++",
-        '-lc',
+        "-lc",
       ],
+      "xcode_settings": {
+          "MACOSX_DEPLOYMENT_TARGET": "14",
+          "OTHER_CFLAGS": ["-fexceptions"],
+      }
+    },
+    {
+    "target_name": "copy_binary",
+    "type": "none",
+    "dependencies": [ "video_reader" ],
+    "copies": [
+        {
+          "destination": "resources",
+          "files": [ "<(PRODUCT_DIR)/video_reader.node" ]
+        }
+      ]
     }
-  ]
+  ],
 }
