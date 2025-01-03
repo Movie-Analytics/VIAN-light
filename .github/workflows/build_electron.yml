@@ -15,14 +15,11 @@ jobs:
         run: apt-get update && apt-get install -y build-essential cmake
       
       - name: Download onnx
-        uses: dawidd6/action-download-artifact@v7
+        uses: dsaltares/fetch-gh-release-asset@master
         with:
-          pr: 8ebe9a3
-          name: onnxruntime-linux-x64-glibc2_17-MinSizeRel-1.20.1.zip
-          path: onnxlibs
           repo: csukuangfj/onnxruntime-libs
-          check_artifacts: false
-          search_artifacts: false
+          version: 'tags/v1.20.1'
+          file: onnxruntime-linux-x64-glibc2_17-MinSizeRel-1.20.1.zip
       
       - name: Debug
         run: ls
