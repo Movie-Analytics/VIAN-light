@@ -14,18 +14,6 @@ jobs:
       - name: install build tools
         run: apt-get update && apt-get install -y build-essential cmake
       
-      - name: Download ffmpeg-libs
-        uses: dawidd6/action-download-artifact@v7
-        with:
-          name: ffmpeg-libs-linux
-          path: ffmpeglibs
-          repo: elya5/ffmpeg-build
-          check_artifacts: false
-          search_artifacts: false
-
-      - name: Debug
-        run: ls
-
       - name: Download onnx
         uses: dawidd6/action-download-artifact@v7
         with:
@@ -36,6 +24,18 @@ jobs:
           check_artifacts: false
           search_artifacts: false
       
+      - name: Debug
+        run: ls
+
+      - name: Download ffmpeg-libs
+        uses: dawidd6/action-download-artifact@v7
+        with:
+          name: ffmpeg-libs-linux
+          path: ffmpeglibs
+          repo: elya5/ffmpeg-build
+          check_artifacts: false
+          search_artifacts: false
+
       - name: Debug
         run: ls
 
