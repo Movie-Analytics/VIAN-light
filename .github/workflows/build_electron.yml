@@ -26,6 +26,8 @@ jobs:
           ls
           unzip onnxruntime*.zip
           ls
+          rm onnxruntime*zip
+          ls
           mv onnxruntime* onnxruntime
 
       - name: Download ffmpeg-libs
