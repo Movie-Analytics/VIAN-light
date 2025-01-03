@@ -32,6 +32,8 @@ jobs:
         uses: dawidd6/action-download-artifact@v7
         with:
           repo: elya5/ffmpeg-build
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          name: ffmpeg-libs-linux
           check_artifacts: true
           search_artifacts: true
 
