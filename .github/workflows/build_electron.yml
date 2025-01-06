@@ -56,10 +56,19 @@ jobs:
           ls onnxlibs
           echo "\n"
           ls onnxlibs/lib
+      
+      - name: Fetch transnetv2
+        run: |
+          git lfs install
+          git clone https://huggingface.co/elya5/transnetv2
+      
+      - name: Move model
+        run: |
+          mv transnetv2/transnetv2.onnx resources/
 
       - name: Install Dependencies
         run: npm install
-
+      
       - name: Build
         run: npm run build:linux
 
