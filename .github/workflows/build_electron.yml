@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Install build tools
-        run: apt-get update && apt-get install -y build-essential cmake zip python3 git
+        run: apt-get update && apt-get install -y build-essential cmake zip python3 git git-lfs
 
       - name: Install Node.js 22
         uses: actions/setup-node@v4
