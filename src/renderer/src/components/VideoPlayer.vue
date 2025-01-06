@@ -49,10 +49,15 @@ export default {
   },
   computed: {
     readableTime() {
-      const totalSeconds = Math.round(this.tempStore.playPosition || 0)
-      const formattedMinutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0')
-      const formattedSeconds = String(totalSeconds % 60).padStart(2, '0')
-      return `${formattedMinutes}:${formattedSeconds}`
+      let totalSeconds = Math.round(this.tempStore.playPosition || 0)
+      let formattedMinutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0')
+      let formattedSeconds = String(totalSeconds % 60).padStart(2, '0')
+      const currentTime = `${formattedMinutes}:${formattedSeconds}`
+
+      totalSeconds = Math.round(this.mainStore.videoDuration || 0)
+      formattedMinutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0')
+      formattedSeconds = String(totalSeconds % 60).padStart(2, '0')
+      return `${currentTime} / ${formattedMinutes}:${formattedSeconds}`
     },
     pictureInPictureEnabled() {
       return document !== undefined && document.pictureInPictureEnabled
