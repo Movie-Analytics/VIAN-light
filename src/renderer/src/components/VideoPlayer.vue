@@ -22,6 +22,9 @@
       <v-btn icon @click="forwardClicked">
         <v-icon>mdi-skip-forward</v-icon>
       </v-btn>
+      <v-btn v-if="pictureInPictureEnabled" icon @click="pictureInPictureClicked">
+        <v-icon>mdi-picture-in-picture-top-right</v-icon>
+      </v-btn>
       <v-btn v-if="undoableStore.subtitleFileSrc !== undefined" icon @click="toggleSubtitles">
         <v-icon v-if="undoableStore.subtitlesVisible">mdi-subtitles</v-icon>
         <v-icon v-else>mdi-subtitles-outline</v-icon>
@@ -51,6 +54,9 @@ export default {
       const formattedSeconds = String(totalSeconds % 60).padStart(2, '0')
       return `${formattedMinutes}:${formattedSeconds}`
     },
+    pictureInPictureEnabled() {
+      return document !== undefined && document.pictureInPictureEnabled
+    },
     ...mapStores(useMainStore),
     ...mapStores(useTempStore),
     ...mapStores(useUndoableStore)
@@ -73,6 +79,9 @@ export default {
         this.$refs.video.play()
         this.playingState = true
       }
+    },
+    pictureInPictureClicked() {
+      this.$refs.video.requestPictureInPicture()
     },
     videoTimeUpdate(event) {
       this.tempStore.playPosition = event.target.currentTime
