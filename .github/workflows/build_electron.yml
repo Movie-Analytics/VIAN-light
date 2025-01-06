@@ -43,14 +43,14 @@ jobs:
           check_artifacts: true
           search_artifacts: true
       
-      - name: Move ffmpeg-libs
-        run: mv ffmpeglibs/__w/ffmpeg-build/ffmpeg-build/installdir/* ffmpeglibs/
-
       - name: Debug
         run: |
           ls
+          echo "\n"
           ls ffmpeglibs
+          echo "\n"
           ls ffmpeglibs/lib
+          echo "\n"
           ls ffmpeglibs/include
 
       - name: Install Dependencies
