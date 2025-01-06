@@ -24,7 +24,7 @@ jobs:
         with:
           repo: csukuangfj/onnxruntime-libs
           version: 'tags/v1.20.1'
-          file: onnxruntime-linux-x64-glibc2_17-MinSizeRel-1.20.1.zip
+          file: onnxruntime-linux-x64-static_lib-1.20.1-glibc2_17.zip
       
       - name: Unzip
         run: |
