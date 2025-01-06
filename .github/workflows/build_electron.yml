@@ -52,6 +52,10 @@ jobs:
           ls ffmpeglibs/lib
           echo "\n"
           ls ffmpeglibs/include
+          echo "\n"
+          ls onnxlibs
+          echo "\n"
+          ls onnxlibs/lib
 
       - name: Install Dependencies
         run: npm install
