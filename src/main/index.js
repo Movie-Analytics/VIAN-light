@@ -144,10 +144,14 @@ ipcMain.on('save-store', (channel, name, store) => {
 
   const data = JSON.stringify(store)
   if (name == 'meta') {
-    fs.writeFile(join(dataPath, 'meta.json'), data, 'utf8')
+    fs.writeFile(join(dataPath, 'meta.json'), data, (err) => {
+      if (err) console.error('Error writing:', err)
+    })
   } else {
     fs.mkdirSync(join(dataPath, store.id), { recursive: true })
-    fs.writeFile(join(dataPath, store.id, name + '.json'), data, 'utf8')
+    fs.writeFile(join(dataPath, store.id, name + '.json'), data, (err) => {
+      if (err) console.error('Error writing:', err)
+    })
   }
 })
 
