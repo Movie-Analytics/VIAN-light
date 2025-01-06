@@ -43,20 +43,6 @@ jobs:
           check_artifacts: true
           search_artifacts: true
       
-      - name: Debug
-        run: |
-          ls
-          echo "\n"
-          ls ffmpeglibs
-          echo "\n"
-          ls ffmpeglibs/lib
-          echo "\n"
-          ls ffmpeglibs/include
-          echo "\n"
-          ls onnxlibs
-          echo "\n"
-          ls onnxlibs/lib
-      
       - name: Fetch transnetv2
         run: |
           git lfs install
@@ -78,3 +64,63 @@ jobs:
           path: ${{ github.workspace }}/dist/*AppImage
           retention-days: 90
           overwrite: true
+
+build-mac:
+  runs-on: macos-13
+  steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install build tools
+      run: |
+        brew install git-lfs
+
+    - name: Install Node.js 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+    - name: Download onnx
+      uses: dsaltares/fetch-gh-release-asset@master
+      with:
+        repo: csukuangfj/onnxruntime-libs
+        version: 'tags/v1.20.1'
+        file:  onnxruntime-osx-universal2-static_lib-1.20.1.zip
+
+    - name: Unzip
+      run: |
+        unzip onnxruntime*.zip
+        rm onnxruntime*zip
+        mv onnxruntime* onnxlibs
+
+    - name: Download ffmpeg-libs
+      uses: dawidd6/action-download-artifact@v7
+      with:
+        repo: elya5/ffmpeg-build
+        github_token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+        name: ffmpeg-libs-macos
+        path: ffmpeglibs
+        workflow: blank.yml
+        check_artifacts: true
+        search_artifacts: true
+
+    - name: Fetch transnetv2
+      run: |
+        git lfs install
+        git clone https://huggingface.co/elya5/transnetv2
+
+    - name: Move model
+      run: |
+        mv transnetv2/transnetv2.onnx resources/
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Build
+      run: npm run build:mac
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: vian-lite-macos
+        path: ${{ github.workspace }}/dist/*.dmg
+        retention-days: 90
+        overwrite: true
