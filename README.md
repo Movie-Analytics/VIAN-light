@@ -1,12 +1,13 @@
 # vian-lite
 
-An Electron application with Vue
-
-## Recommended IDE Setup
-
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
+A video annotation software built with Electron and Vue.js.
 
 ## Project Setup
+
+### Download libraries
+- Download the TransNetv2 onnx model [here](https://huggingface.co/elya5/transnetv2) and move it to resources
+- Download pre-compiled ffmpeg libraries [here](https://github.com/elya5/ffmpeg-build) and move it to `ffmpeglibs`.
+- Download pre-compiled onnxruntime [here](https://github.com/csukuangfj/onnxruntime-libs) and move it to `onnxlibs`.
 
 ### Install
 
