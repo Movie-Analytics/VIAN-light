@@ -1,6 +1,12 @@
 <template>
   <v-card>
-    <video @durationchange="durationChange" @timeupdate="videoTimeUpdate" class="ma-2" ref="video" crossorigin="anonymous">
+    <video
+      ref="video"
+      class="ma-2"
+      crossorigin="anonymous"
+      @durationchange="durationChange"
+      @timeupdate="videoTimeUpdate"
+    >
       <source :src="mainStore.videoFileSrc" type="video/mp4" />
       <track
         v-if="undoableStore.subtitleFileSrc !== undefined"
@@ -9,26 +15,34 @@
         default
       />
     </video>
-    <div>
-      <v-slider v-model="sliderPosition" @update:modelValue="sliderMoved" :step="0.1"></v-slider>
-      {{ readableTime }}
-      <v-btn icon @click="backwardClicked">
-        <v-icon>mdi-skip-backward</v-icon>
-      </v-btn>
-      <v-btn icon @click="playPauseClicked">
-        <v-icon v-if="playingState">mdi-pause</v-icon>
-        <v-icon v-else>mdi-play</v-icon>
-      </v-btn>
-      <v-btn icon @click="forwardClicked">
-        <v-icon>mdi-skip-forward</v-icon>
-      </v-btn>
-      <v-btn v-if="pictureInPictureEnabled" icon @click="pictureInPictureClicked">
-        <v-icon>mdi-picture-in-picture-top-right</v-icon>
-      </v-btn>
-      <v-btn v-if="undoableStore.subtitleFileSrc !== undefined" icon @click="toggleSubtitles">
-        <v-icon v-if="undoableStore.subtitlesVisible">mdi-subtitles</v-icon>
-        <v-icon v-else>mdi-subtitles-outline</v-icon>
-      </v-btn>
+    <div class="d-flex flex-wrap">
+      <v-slider
+        v-model="sliderPosition"
+        :step="0.1"
+        hide-details="true"
+        style="min-width: 300px"
+        @update:model-value="sliderMoved"
+      ></v-slider>
+      <div class="ma-2" style="min-width: 300px">
+        {{ readableTime }}
+        <v-btn icon @click="backwardClicked">
+          <v-icon>mdi-skip-backward</v-icon>
+        </v-btn>
+        <v-btn icon @click="playPauseClicked">
+          <v-icon v-if="playingState">mdi-pause</v-icon>
+          <v-icon v-else>mdi-play</v-icon>
+        </v-btn>
+        <v-btn icon @click="forwardClicked">
+          <v-icon>mdi-skip-forward</v-icon>
+        </v-btn>
+        <v-btn v-if="pictureInPictureEnabled" icon @click="pictureInPictureClicked">
+          <v-icon>mdi-picture-in-picture-top-right</v-icon>
+        </v-btn>
+        <v-btn v-if="undoableStore.subtitleFileSrc !== undefined" icon @click="toggleSubtitles">
+          <v-icon v-if="undoableStore.subtitlesVisible">mdi-subtitles</v-icon>
+          <v-icon v-else>mdi-subtitles-outline</v-icon>
+        </v-btn>
+      </div>
     </div>
   </v-card>
 </template>
