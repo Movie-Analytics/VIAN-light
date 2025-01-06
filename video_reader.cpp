@@ -4,6 +4,8 @@ using namespace std;
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <sstream>
+#include <iomanip>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
