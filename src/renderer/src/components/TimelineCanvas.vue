@@ -138,7 +138,7 @@ export default {
 
       this.zoom = d3
         .zoom()
-        .scaleExtent([1, 15])
+        .scaleExtent([1, this.mainStore.videoDuration * 0.15])
         .on('zoom', ({ transform }) => {
           this.transform = transform
           this.draw()
