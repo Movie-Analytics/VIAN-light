@@ -23,9 +23,6 @@ export const useMainStore = defineStore('main', {
       this.video = video
       if (this.fps === null && this.video !== null) {
         window.electronAPI.getVideoInfo(this.video)
-        window.electronAPI.onVideoInfo((channel, data) => {
-          this.fps = data.fps
-        })
       }
     },
     initialize() {
@@ -33,6 +30,10 @@ export const useMainStore = defineStore('main', {
         if (this.id === null) return
         const copyState = JSON.parse(JSON.stringify(state))
         window.electronAPI.saveStore('main', copyState)
+      })
+      // set up listener
+      window.electronAPI.onVideoInfo((channel, data) => {
+        this.fps = data.fps
       })
     },
     async loadStore(projectId) {

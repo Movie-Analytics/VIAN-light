@@ -72,7 +72,7 @@
         </v-col>
       </v-row>
     </v-card-text>
-    <v-dialog v-model="renameDialog" persistent>
+    <v-dialog v-model="renameDialog" persistent max-width="400">
       <v-card>
         <v-card-title>Rename Timeline</v-card-title>
         <v-card-text>
@@ -112,7 +112,11 @@ export default {
       return this.tempStore.selectedSegments.length > 0
     },
     segmentMergable() {
-      if (this.tempStore.selectedSegments.length <= 1) return false
+      if (
+        this.tempStore.selectedSegments.length <= 1 ||
+        this.tempStore.selectedSegments[0].type === 'screenshot'
+      )
+        return false
       const segments = this.tempStore.selectedSegments
       const timeline = this.undoableStore.timelines
         .filter((t) => t.id === segments[0].timeline)[0]
@@ -125,7 +129,8 @@ export default {
       const playFps = Math.round(this.tempStore.playPosition * this.mainStore.fps)
       return (
         this.tempStore.selectedSegments[0].x < playFps &&
-        this.tempStore.selectedSegments[0].x + this.tempStore.selectedSegments[0].width > playFps
+        this.tempStore.selectedSegments[0].x + this.tempStore.selectedSegments[0].width > playFps &&
+        this.tempStore.selectedSegments[0].type !== 'screenshot'
       )
     }
   },

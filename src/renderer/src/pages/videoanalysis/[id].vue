@@ -96,10 +96,19 @@
             min="1"
             max="100"
           ></v-text-field>
+          <v-select
+            v-if="screenshotMode == 'shot'"
+            v-model="screenshotShotTimeline"
+            :items="shotTimelines"
+            label="Shot Timeline"
+            item-title="name"
+            item-value="id"
+          >
+          </v-select>
         </v-card-text>
         <v-card-actions>
           <v-btn color="secondary" @click="genScreenshotDialog = false">Cancel</v-btn>
-          <v-btn color="primary" @click="generateScreenshots">Generate</v-btn>
+          <v-btn color="primary" @click="generateScreenshots" :disabled="genScreenshotButtonDisabled">Generate</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -125,7 +134,8 @@ export default {
       { title: 'every N seconds', val: 'seconds' },
       { title: 'N per shot', val: 'shot' }
     ],
-    screenshotInterval: 10
+    screenshotInterval: 10,
+    screenshotShotTimeline: undefined
   }),
   computed: {
     ...mapStores(useMainStore),
@@ -143,6 +153,12 @@ export default {
     },
     isRedoable() {
       return this.undoStore.isRedoable('undoable')
+    },
+    shotTimelines() {
+      return this.undoableStore.timelines.filter((t) => t.type === 'shots')
+    },
+    genScreenshotButtonDisabled () {
+      return this.screenshotMode === 'shot' && this.screenshotShotTimeline === undefined
     }
   },
   created() {
@@ -170,8 +186,33 @@ export default {
       this.undoableStore.loadSubtitles()
     },
     generateScreenshots() {
-      console.log('generate screenshots')
       this.genScreenshotDialog = false
+      let frames = []
+      if (this.screenshotMode == 'seconds') {
+        for (let i = 0; i <= this.mainStore.videoDuration; i++) {
+          if (i % this.screenshotInterval == 0) {
+            frames.push(Math.floor(i * this.mainStore.fps))
+          }
+        }
+      } else if (this.screenshotMode == 'shot') {
+        frames = this.shotTimelines
+          .filter((t) => t.id === this.screenshotShotTimeline)[0]
+          .data.map((shot) => {
+            const shotLength = shot.end - shot.start
+            const stepSize = Math.max(
+              1,
+              Math.floor(shotLength / (Number(this.screenshotInterval) + 1))
+            )
+            const shotFrames = []
+            for (let i = stepSize; i < shotLength; i += stepSize) {
+              shotFrames.push(shot.start + i)
+            }
+            return shotFrames
+          })
+          .flat(2)
+        frames = [...new Set(frames)]
+      }
+      this.undoableStore.generateScreenshots(frames)
     },
     statusToColor(status) {
       if (status === 'RUNNING') return 'yellow'

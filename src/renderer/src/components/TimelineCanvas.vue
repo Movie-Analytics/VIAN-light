@@ -25,7 +25,8 @@ export default {
       resizeoberserver: null,
       canvasWidth: 500,
       canvasHeight: 0,
-      zoom: null
+      zoom: null,
+      unloadedImages: 0
     }
   },
   computed: {
@@ -68,7 +69,7 @@ export default {
   },
   methods: {
     onCanvasResize() {
-      if (this.data.length === 0) return
+      if (this.ctx == undefined) return
 
       this.resize()
       this.draw()
@@ -92,18 +93,40 @@ export default {
 
       for (const [timeline_i, timeline] of this.undoableStore.timelines.entries()) {
         for (const [shot_i, shot] of timeline.data.entries()) {
-          let color = '#cccccc'
-          if (shot_i % 2 == 0) color = '#eeeeee'
-          this.data.push({
-            x: shot.start,
-            y: timeline_i * 48 + 30 + 2,
-            width: shot.end - shot.start,
-            height: 44,
-            fill: color,
-            timeline: timeline.id,
-            id: shot.id,
-            selected: false
-          })
+          if (timeline.type === 'shots') {
+            let color = '#cccccc'
+            if (shot_i % 2 == 0) color = '#eeeeee'
+            this.data.push({
+              x: shot.start,
+              y: timeline_i * 48 + 30 + 2,
+              width: shot.end - shot.start,
+              height: 44,
+              fill: color,
+              timeline: timeline.id,
+              id: shot.id,
+              selected: false,
+              type: 'shot'
+            })
+          } else if (timeline.type === 'screenshots') {
+            this.data.push({
+              x: shot.frame,
+              y: timeline_i * 48 + 30 + 2,
+              width: 44 * (16 / 9),
+              height: 44,
+              timeline: timeline.id,
+              id: shot.id,
+              selected: false,
+              type: 'screenshot',
+              uri: shot.thumbnail
+            })
+            // only re-draw after 200 new images were loaded
+            this.unloadedImages++
+            d3.image(shot.thumbnail).then((img) => {
+              this.tempStore.imageCache.set(shot.thumbnail, img)
+              this.unloadedImages--
+              if (this.unloadedImages % 200 == 0) this.draw()
+            })
+          }
         }
       }
 
@@ -207,32 +230,58 @@ export default {
         this.ctx.fillText(tickFormat(d), transScale(d), Y + tickSize + textMargin)
       })
     },
+    drawTimelines(rescale) {
+      if (this.elements === undefined) return
+      this.elements.each((d) => {
+        if (d.type === 'shot') {
+          this.ctx.fillStyle = d.fill
+          if (d.selected) this.ctx.fillStyle = 'yellow'
+          this.ctx.fillRect(rescale(d.x), d.y, rescale(d.x + d.width) - rescale(d.x), d.height)
+        } else if (d.type === 'screenshot' && this.tempStore.imageCache.has(d.uri)) {
+          if (d.selected) {
+            this.ctx.fillStyle = 'yellow'
+            this.ctx.fillRect(rescale(d.x), d.y, d.width, d.height)
+            this.ctx.globalAlpha = 0.5
+          }
+          this.ctx.drawImage(
+            this.tempStore.imageCache.get(d.uri),
+            rescale(d.x),
+            d.y,
+            d.width,
+            d.height
+          )
+          this.ctx.globalAlpha = 1.0
+        }
+      })
+
+      // draw hidden canvas
+      this.hCtx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
+      this.elements.each((d) => {
+        this.hCtx.fillStyle = d.hiddenColor
+        if (d.type === 'shot') {
+          this.hCtx.fillRect(rescale(d.x), d.y, rescale(d.x + d.width) - rescale(d.x), d.height)
+        } else if (d.type === 'screenshot' && this.tempStore.imageCache.has(d.uri)) {
+          this.hCtx.fillRect(rescale(d.x), d.y, d.width, d.height)
+        }
+      })
+    },
     draw() {
       this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
       const rescale = this.transform.rescaleX(this.scale)
-      this.elements.each((d) => {
-        this.ctx.fillStyle = d.fill
-        if (d.selected) this.ctx.fillStyle = 'yellow'
-        this.ctx.fillRect(rescale(d.x), d.y, rescale(d.x + d.width) - rescale(d.x), d.height)
-      })
+
+      this.drawTimelines(rescale)
 
       // draw current play position
       this.ctx.beginPath()
       this.ctx.strokeStyle = 'red'
       this.ctx.lineWidth = '2'
-      const playPosition = rescale(Math.round(this.tempStore.playPosition * this.mainStore.fps))
+      const playPosition = rescale(Math.floor(this.tempStore.playPosition * this.mainStore.fps))
       this.ctx.moveTo(playPosition, 0)
       this.ctx.lineTo(playPosition, this.canvasHeight)
       this.ctx.stroke()
 
       this.drawAxis()
 
-      // draw hidden canvas
-      this.hCtx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
-      this.elements.each((d) => {
-        this.hCtx.fillStyle = d.hiddenColor
-        this.hCtx.fillRect(rescale(d.x), d.y, rescale(d.x + d.width) - rescale(d.x), d.height)
-      })
     },
     rgbToHex(r, g, b) {
       return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1).toLowerCase()

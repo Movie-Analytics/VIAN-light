@@ -24,11 +24,18 @@ export const useUndoableStore = defineStore('undoable', {
 
         const undoStore = useUndoStore()
         undoStore.push('undoable', copyState)
+      // set up listeners
+      window.electronAPI.onScreenshotsGeneration((channel, data) => {
+        for (const screenshot of data) {
+          screenshot.id = crypto.randomUUID()
+        }
+        this.timelines.push({
+          type: 'screenshots',
+          name: 'Screenshots',
+          id: crypto.randomUUID(),
+          data: data
+        })
       })
-    },
-    async runShotBoundaryDetection() {
-      const mainStore = useMainStore()
-      window.electronAPI.runShotBoundaryDetection(mainStore.video)
       window.electronAPI.onShotBoundaryDetection((channel, data) => {
         this.timelines.push({
           type: 'shots',
@@ -37,6 +44,10 @@ export const useUndoableStore = defineStore('undoable', {
           data: data.map((shot) => ({ start: shot[0], end: shot[1], id: crypto.randomUUID() }))
         })
       })
+    },
+    async runShotBoundaryDetection() {
+      const mainStore = useMainStore()
+      window.electronAPI.runShotBoundaryDetection(mainStore.video)
     },
     async loadSubtitles() {
       this.subtitles = await window.electronAPI.loadSubtitles()
@@ -66,6 +77,10 @@ export const useUndoableStore = defineStore('undoable', {
         id: crypto.randomUUID()
       })
       segment.end = position - 1
+    },
+    generateScreenshots(frames) {
+      const mainStore = useMainStore()
+      window.electronAPI.runScreenshotsGeneration(mainStore.video, frames, this.id)
     },
     deleteTimeline(id) {
       this.timelines = this.timelines.filter((t) => t.id !== id)

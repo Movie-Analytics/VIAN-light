@@ -4,3 +4,6 @@ out
 .DS_Store
 *.log*
 .vscode
+build
+ffmpeglibs
+onnxlibs

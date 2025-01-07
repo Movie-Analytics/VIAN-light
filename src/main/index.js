@@ -7,7 +7,9 @@ import fs from 'fs'
 
 import icon from '../../resources/icon.png?asset'
 import ShotBoundaryWorker from './shotboundary_worker?nodeWorker'
-import VideoInfoWorker from './videoinfo_worker?nodeWorker'
+import ShotBoundaryWorker from './workers/shotboundary_worker?nodeWorker'
+import ScreenshotsGenerationWorker from './workers/screenshot_generation_worker?nodeWorker'
+import VideoInfoWorker from './workers/videoinfo_worker?nodeWorker'
 import { selectFile } from './dialogs'
 
 protocol.registerSchemesAsPrivileged([
@@ -181,6 +183,35 @@ ipcMain.on('run-shotboundary-detection', (channel, path) => {
     job.status = 'DONE'
     sendJobsUpdate(channel)
     channel.sender.send('shotboundary-detected', data.shots)
+  })
+})
+
+ipcMain.on('run-screenshots-generation', (channel, path, frames, videoId) => {
+  const dataPath = join(app.getPath('userData'), 'vian-lite', videoId, 'screenshots')
+  fs.mkdirSync(dataPath, { recursive: true })
+  const worker = ScreenshotsGenerationWorker({
+    workerData: { videoPath: path, frames: frames, directory: dataPath }
+  })
+  const job = {
+    creation: Date.now(),
+    type: 'screenshots-generation',
+    status: 'RUNNING',
+    worker: worker,
+    id: Object.keys(jobs).length
+  }
+  jobs[job.id] = job
+  sendJobsUpdate(channel)
+
+  worker.on('error', (e) => {
+    console.log(e)
+    job.status = 'ERROR'
+    sendJobsUpdate(channel)
+  })
+
+  worker.on('message', (data) => {
+    job.status = 'DONE'
+    sendJobsUpdate(channel)
+    channel.sender.send('screenshots-generated', data.data)
   })
 })
 

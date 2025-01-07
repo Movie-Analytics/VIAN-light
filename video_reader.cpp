@@ -328,9 +328,10 @@ int VideoReader::generateScreenshots(const std::string& directory, const std::ve
                 return -1;
             }
 
-            if (std::find(frameStamps.begin(), frameStamps.end(), codec_ctx->frame_num) != frameStamps.end()) {
+            if (std::find(frameStamps.begin(), frameStamps.end(), codec_ctx->frame_num -1) != frameStamps.end()) {
+                fprintf(stderr, "frame num %ld\n", codec_ctx->frame_num);
                 std::ostringstream path;
-                path << directory << '/' << std::setw(8) << std::setfill('0') << codec_ctx->frame_num << ".jpg";
+                path << directory << '/' << std::setw(8) << std::setfill('0') << codec_ctx->frame_num-1 << ".jpg";
 
                 if (saveFrameAsJpeg(codec_ctx->pix_fmt, frame, path.str()) < 0) {
                     av_packet_unref(&packet);
@@ -370,7 +371,7 @@ int VideoReader::generateScreenshots(const std::string& directory, const std::ve
                 frame2->color_range = AVCOL_RANGE_JPEG;
 
                 std::ostringstream path_mini;
-                path_mini << directory << '/' << std::setw(8) << std::setfill('0') << codec_ctx->frame_num << "_mini.jpg";
+                path_mini << directory << '/' << std::setw(8) << std::setfill('0') << codec_ctx->frame_num-1 << "_mini.jpg";
                 saveFrameAsJpeg(scaled_pix_fmt, frame2, path_mini.str());
 
                 av_free(frame2_buffer);
@@ -385,7 +386,6 @@ int VideoReader::generateScreenshots(const std::string& directory, const std::ve
 }
 
 int VideoReader::saveFrameAsJpeg(AVPixelFormat pix_fmt, AVFrame* pFrame, const std::string& path) {
-    cout << "save" << endl;
     int ret;
 
     const AVCodec* jpegCodec = avcodec_find_encoder(AV_CODEC_ID_MJPEG);
@@ -531,16 +531,12 @@ Napi::Object VideoReaderWrapper::Init(Napi::Env env, Napi::Object exports) {
 VideoReaderWrapper::VideoReaderWrapper(const Napi::CallbackInfo& info)
     : Napi::ObjectWrap<VideoReaderWrapper>(info),      videoReader(info[0].As<Napi::String>()), // Initialize VideoReader here
     finished(false) {
-        cout << "wrap 1" << endl;
     if (info.Length() < 1 || !info[0].IsString()) {
         Napi::TypeError::New(info.Env(), "File path is required").ThrowAsJavaScriptException();
     }
-    cout << "wrap 2" << endl;
 
     std::string filePath = info[0].As<Napi::String>();
-    cout << "wrap 3" << endl;
     videoReader = VideoReader(filePath);
-    cout << "wrap 4" << endl;
 }
 
 Napi::Value VideoReaderWrapper::Open(const Napi::CallbackInfo& info) {
