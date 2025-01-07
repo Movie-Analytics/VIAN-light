@@ -6,7 +6,7 @@ import { parse, stringify } from 'subtitle'
 import fs from 'fs'
 
 import icon from '../../resources/icon.png?asset'
-import ShotBoundaryWorker from './shotboundary_worker?nodeWorker'
+import CleanUpWorker from './workers/cleanup_worker?nodeWorker'
 import ShotBoundaryWorker from './workers/shotboundary_worker?nodeWorker'
 import ScreenshotsGenerationWorker from './workers/screenshot_generation_worker?nodeWorker'
 import VideoInfoWorker from './workers/videoinfo_worker?nodeWorker'
@@ -247,3 +247,16 @@ ipcMain.on('get-video-info', (channel, path) => {
 function sendJobsUpdate(channel) {
   channel.sender.send('jobs-update', JSON.parse(JSON.stringify(jobs)))
 }
+
+function cleanUp() {
+  const worker = CleanUpWorker({
+    type: 'module',
+    workerData: join(app.getPath('userData'), 'vian-lite')
+  })
+
+  worker.on('error', (e) => {
+    console.log(e)
+  })
+}
+
+cleanUp()
