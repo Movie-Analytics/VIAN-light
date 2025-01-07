@@ -107,12 +107,11 @@ app.on('window-all-closed', () => {
 const jobs = {}
 ipcMain.handle('open-video-dialog', () => selectFile([{ name: 'Movies', extensions: ['mp4'] }]))
 
-ipcMain.handle('load-subtitles', () => {
+ipcMain.handle('load-subtitles', (_event, projectId) => {
   const file = selectFile([{ name: 'Subtitles', extensions: ['srt'] }])
-  if (file === undefined) return undefined
+  if (file === undefined) return null
 
-  const tmpDir = fs.mkdtempSync(join(tmpdir(), 'vian-lite-'))
-  const vttPath = join(tmpDir, 'subtitles.vtt')
+  const vttPath = join(app.getPath('userData'), 'vian-lite', projectId, 'subtitles.vtt')
   fs.createReadStream(file)
     .pipe(parse())
     .pipe(stringify({ format: 'WebVTT' }))
@@ -126,7 +125,7 @@ ipcMain.on('terminate-job', (channel, jobId) => {
   sendJobsUpdate(channel)
 })
 
-ipcMain.handle('load-store', (event, name, id) => {
+ipcMain.handle('load-store', (_event, name, id) => {
   const dataPath = join(app.getPath('userData'), 'vian-lite')
   let path
   if (name === 'meta') {
@@ -139,7 +138,7 @@ ipcMain.handle('load-store', (event, name, id) => {
   return JSON.parse(content)
 })
 
-ipcMain.on('save-store', (channel, name, store) => {
+ipcMain.on('save-store', (_channel, name, store) => {
   const dataPath = join(app.getPath('userData'), 'vian-lite')
   fs.mkdirSync(dataPath, { recursive: true })
   console.log('Storage location:', dataPath)
@@ -158,11 +157,7 @@ ipcMain.on('save-store', (channel, name, store) => {
 })
 
 ipcMain.on('run-shotboundary-detection', (channel, path) => {
-  const worker = ShotBoundaryWorker({
-    type: 'module',
-    workerData: path
-  })
-
+  const worker = ShotBoundaryWorker({ workerData: path })
   const job = {
     creation: Date.now(),
     type: 'shotboundary-detection',
@@ -216,10 +211,7 @@ ipcMain.on('run-screenshots-generation', (channel, path, frames, videoId) => {
 })
 
 ipcMain.on('get-video-info', (channel, path) => {
-  const worker = VideoInfoWorker({
-    type: 'module',
-    workerData: path
-  })
+  const worker = VideoInfoWorker({ workerData: path })
 
   const job = {
     creation: Date.now(),

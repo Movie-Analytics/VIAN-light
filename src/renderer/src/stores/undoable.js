@@ -50,7 +50,7 @@ export const useUndoableStore = defineStore('undoable', {
       window.electronAPI.runShotBoundaryDetection(mainStore.video)
     },
     async loadSubtitles() {
-      this.subtitles = await window.electronAPI.loadSubtitles()
+      this.subtitles = await window.electronAPI.loadSubtitles(this.id)
       return this.subtitles
     },
     deleteSegments(timelineId, segmentIds) {
