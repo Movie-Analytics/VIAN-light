@@ -1,16 +1,21 @@
 import { app, shell, BrowserWindow, ipcMain, protocol } from 'electron'
 import { join } from 'path'
-import { tmpdir } from 'os'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { parse, stringify } from 'subtitle'
-import fs from 'fs'
 
 import icon from '../../resources/icon.png?asset'
-import CleanUpWorker from './workers/cleanup_worker?nodeWorker'
-import ShotBoundaryWorker from './workers/shotboundary_worker?nodeWorker'
-import ScreenshotsGenerationWorker from './workers/screenshot_generation_worker?nodeWorker'
-import VideoInfoWorker from './workers/videoinfo_worker?nodeWorker'
-import { selectFile } from './dialogs'
+import {
+  cleanUp,
+  exportScreenshots,
+  getVideoInfo,
+  loadStore,
+  loadSubtitles,
+  openVideoDialog,
+  runScreenshotsGeneration,
+  runShotBoundaryDetection,
+  saveStore,
+  selectFile,
+  terminateJob
+} from './api_functions'
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -104,151 +109,16 @@ app.on('window-all-closed', () => {
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
 
-const jobs = {}
-ipcMain.handle('open-video-dialog', () => selectFile([{ name: 'Movies', extensions: ['mp4'] }]))
-
-ipcMain.handle('load-subtitles', (_event, projectId) => {
-  const file = selectFile([{ name: 'Subtitles', extensions: ['srt'] }])
-  if (file === undefined) return null
-
-  const vttPath = join(app.getPath('userData'), 'vian-lite', projectId, 'subtitles.vtt')
-  fs.createReadStream(file)
-    .pipe(parse())
-    .pipe(stringify({ format: 'WebVTT' }))
-    .pipe(fs.createWriteStream(vttPath))
-  return vttPath
-})
-
-ipcMain.on('terminate-job', (channel, jobId) => {
-  jobs[jobId].worker.terminate()
-  jobs[jobId].status = 'CANCELED'
-  sendJobsUpdate(channel)
-})
-
-ipcMain.handle('load-store', (_event, name, id) => {
-  const dataPath = join(app.getPath('userData'), 'vian-lite')
-  let path
-  if (name === 'meta') {
-    path = join(dataPath, 'meta.json')
-  } else {
-    path = join(dataPath, id, name + '.json')
-  }
-  if (!fs.existsSync(path)) return undefined
-  const content = fs.readFileSync(path, 'utf8')
-  return JSON.parse(content)
-})
-
-ipcMain.on('save-store', (_channel, name, store) => {
-  const dataPath = join(app.getPath('userData'), 'vian-lite')
-  fs.mkdirSync(dataPath, { recursive: true })
-  console.log('Storage location:', dataPath)
-
-  const data = JSON.stringify(store)
-  if (name == 'meta') {
-    fs.writeFile(join(dataPath, 'meta.json'), data, (err) => {
-      if (err) console.error('Error writing:', err)
-    })
-  } else {
-    fs.mkdirSync(join(dataPath, store.id), { recursive: true })
-    fs.writeFile(join(dataPath, store.id, name + '.json'), data, (err) => {
-      if (err) console.error('Error writing:', err)
-    })
-  }
-})
-
-ipcMain.on('run-shotboundary-detection', (channel, path) => {
-  const worker = ShotBoundaryWorker({ workerData: path })
-  const job = {
-    creation: Date.now(),
-    type: 'shotboundary-detection',
-    status: 'RUNNING',
-    worker: worker,
-    id: Object.keys(jobs).length
-  }
-  jobs[job.id] = job
-  sendJobsUpdate(channel)
-
-  worker.on('error', (e) => {
-    console.log(e)
-    job.status = 'ERROR'
-    sendJobsUpdate(channel)
-  })
-
-  worker.on('message', (data) => {
-    job.status = 'DONE'
-    sendJobsUpdate(channel)
-    channel.sender.send('shotboundary-detected', data.shots)
-  })
-})
-
-ipcMain.on('run-screenshots-generation', (channel, path, frames, videoId) => {
-  const dataPath = join(app.getPath('userData'), 'vian-lite', videoId, 'screenshots')
-  fs.mkdirSync(dataPath, { recursive: true })
-  const worker = ScreenshotsGenerationWorker({
-    workerData: { videoPath: path, frames: frames, directory: dataPath }
-  })
-  const job = {
-    creation: Date.now(),
-    type: 'screenshots-generation',
-    status: 'RUNNING',
-    worker: worker,
-    id: Object.keys(jobs).length
-  }
-  jobs[job.id] = job
-  sendJobsUpdate(channel)
-
-  worker.on('error', (e) => {
-    console.log(e)
-    job.status = 'ERROR'
-    sendJobsUpdate(channel)
-  })
-
-  worker.on('message', (data) => {
-    job.status = 'DONE'
-    sendJobsUpdate(channel)
-    channel.sender.send('screenshots-generated', data.data)
-  })
-})
-
-ipcMain.on('get-video-info', (channel, path) => {
-  const worker = VideoInfoWorker({ workerData: path })
-
-  const job = {
-    creation: Date.now(),
-    type: 'video-info',
-    status: 'RUNNING',
-    worker: worker,
-    id: Object.keys(jobs).length
-  }
-  jobs[job.id] = job
-  sendJobsUpdate(channel)
-
-  worker.on('error', (e) => {
-    console.log(e)
-    job.status = 'ERROR'
-    sendJobsUpdate(channel)
-  })
-
-  worker.on('message', (data) => {
-    job.status = 'DONE'
-    sendJobsUpdate(channel)
-    channel.sender.send('video-info', data)
-  })
-})
-
-function sendJobsUpdate(channel) {
-  channel.sender.send('jobs-update', JSON.parse(JSON.stringify(jobs)))
-}
-
-function cleanUp() {
-  const worker = CleanUpWorker({
-    type: 'module',
-    workerData: join(app.getPath('userData'), 'vian-lite')
-  })
-
-  worker.on('error', (e) => {
-    console.log(e)
-  })
-}
+ipcMain.handle('open-video-dialog', () => openVideoDialog())
+ipcMain.handle('load-subtitles', (_event, projectId) => loadSubtitles(projectId))
+ipcMain.on('terminate-job', (channel, jobId) => terminateJob(channel, jobId))
+ipcMain.handle('load-store', (_event, name, id) => loadStore(name, id))
+ipcMain.on('save-store', (_channel, name, store) => saveStore(name, store))
+ipcMain.on('run-shotboundary-detection', (channel, path) => runShotBoundaryDetection(channel, path))
+ipcMain.on('run-screenshots-generation', (channel, path, frames, videoId) =>
+  runScreenshotsGeneration(channel, path, frames, videoId)
+)
+ipcMain.on('get-video-info', (channel, path) => getVideoInfo(channel, path))
+ipcMain.on('export-screenshots', (channel, projectId) => exportScreenshots(channel, projectId))
 
 cleanUp()

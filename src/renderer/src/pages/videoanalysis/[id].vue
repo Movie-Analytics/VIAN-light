@@ -56,6 +56,9 @@
         <v-list-item @click="genScreenshotDialog = true">
           <v-list-item-title>Generate Screenshots</v-list-item-title>
         </v-list-item>
+        <v-list-item @click="exportScreenshots">
+          <v-list-item-title>Export Screenshots</v-list-item-title>
+        </v-list-item>
       </v-list>
     </v-menu>
     <v-btn v-tooltip="'Home'" icon @click="homeClicked">
@@ -184,6 +187,9 @@ export default {
     },
     loadSubtitles() {
       this.undoableStore.loadSubtitles()
+    },
+    exportScreenshots() {
+      window.electronAPI.exportScreenshots(this.mainStore.id)
     },
     generateScreenshots() {
       this.genScreenshotDialog = false
