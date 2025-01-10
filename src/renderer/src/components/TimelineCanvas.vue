@@ -39,19 +39,16 @@ export default {
       deep: true,
       handler() {
         this.drawSetup()
-        this.draw()
       }
     },
     'mainStore.videoDuration'() {
       if (this.mainStore.videoDuration && this.mainStore.fps) {
         this.drawSetup()
-        this.draw()
       }
     },
     'mainStore.fps'() {
       if (this.mainStore.videoDuration && this.mainStore.fps) {
         this.drawSetup()
-        this.draw()
       }
     },
     'tempStore.playPosition'() {
