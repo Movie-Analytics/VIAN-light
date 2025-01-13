@@ -102,6 +102,14 @@ export const useUndoableStore = defineStore('undoable', {
         this.$patch(state)
       }
     },
+    addNewTimeline() {
+      this.timelines.push({
+        type: 'shots',
+        name: 'Shots',
+        id: crypto.randomUUID(),
+        data: []
+      })
+    },
     undo() {
       const undoStore = useUndoStore()
       this.$patch(undoStore.undo('undoable'))

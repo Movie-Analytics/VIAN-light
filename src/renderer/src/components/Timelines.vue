@@ -3,6 +3,9 @@
     <v-card-title>Timelines</v-card-title>
     <v-card-text>
       <v-row>
+        <v-btn density="compact" variant="text" icon @click="addTimeline">
+          <v-icon>mdi-plus</v-icon>
+        </v-btn>
         <v-btn
           density="compact"
           variant="text"
@@ -174,6 +177,9 @@ export default {
       this.timelineName = ''
       this.renameDialog = true
       this.renameTimelineId = id
+    },
+    addTimeline() {
+      this.undoableStore.addNewTimeline()
     }
   }
 }
