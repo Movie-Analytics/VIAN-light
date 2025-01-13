@@ -187,6 +187,9 @@ export default {
           (s) => s.id !== entry.id
         )
       } else {
+        if (!event.ctrlKey) {
+          this.tempStore.selectedSegments.map((s) => (s.selected = false))
+        }
         entry.selected = true
         this.tempStore.selectedSegments.push(entry)
       }
