@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 export const useTempStore = defineStore('temp', {
   state: () => ({
     playPosition: 0,
+    playJumpPosition: null,
     jobs: [],
     selectedSegments: [],
     imageCache: new Map()

@@ -80,6 +80,16 @@ export default {
     ...mapStores(useTempStore),
     ...mapStores(useUndoableStore)
   },
+  watch: {
+    'tempStore.playJumpPosition'(newValue) {
+      // use a proxy value because updating currentTime based on playPosition
+      // directly is prone to timing issues
+      if (newValue !== null) {
+        this.$refs.video.currentTime = newValue
+        this.tempStore.playJumpPosition = null
+      }
+    }
+  },
   methods: {
     sliderMoved(n) {
       this.$refs.video.currentTime = (this.$refs.video.duration / 100) * n

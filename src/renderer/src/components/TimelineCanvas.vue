@@ -163,12 +163,14 @@ export default {
       const color = this.rgbToHex(colorData[0], colorData[1], colorData[2])
       const entries = this.data.filter((d) => d.hiddenColor == color)
 
-      if (entries.length == 0) {
+      if (entries.length == 0 && coord[1] < 40) {
         // no element was clicked -> set player position
-        // TODO
-        console.log('Miss')
+        const timePosition =
+          this.transform.rescaleX(this.scale).invert(coord[0]) / this.mainStore.fps
+        this.tempStore.playJumpPosition = timePosition
         return
       }
+      if (entries.length == 0) return
       const entry = entries[0]
       if (
         this.tempStore.selectedSegments.length > 0 &&
