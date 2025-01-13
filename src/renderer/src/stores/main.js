@@ -42,6 +42,17 @@ export const useMainStore = defineStore('main', {
         this.$patch(state)
       }
     },
+    timeReadableSec(t, subsec = false) {
+      const formattedHours = String(Math.floor(t / 60 / 60)).padStart(2, '0')
+      const formattedMinutes = String(Math.floor(t / 60)).padStart(2, '0')
+      let formattedSeconds
+      if (subsec) {
+        formattedSeconds = String((t % 60).toFixed(2)).padStart(2, '0')
+      } else {
+        formattedSeconds = String(Math.round(t % 60)).padStart(2, '0')
+      }
+      return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`
+    },
     reset() {
       this.id = null
       this.video = null

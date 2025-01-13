@@ -63,15 +63,9 @@ export default {
   },
   computed: {
     readableTime() {
-      let totalSeconds = Math.round(this.tempStore.playPosition || 0)
-      let formattedMinutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0')
-      let formattedSeconds = String(totalSeconds % 60).padStart(2, '0')
-      const currentTime = `${formattedMinutes}:${formattedSeconds}`
-
-      totalSeconds = Math.round(this.mainStore.videoDuration || 0)
-      formattedMinutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0')
-      formattedSeconds = String(totalSeconds % 60).padStart(2, '0')
-      return `${currentTime} / ${formattedMinutes}:${formattedSeconds}`
+      const currentTime = this.mainStore.timeReadableSec(this.tempStore.playPosition)
+      const totalTime = this.mainStore.timeReadableSec(this.mainStore.videoDuration)
+      return `${currentTime} / ${totalTime}`
     },
     pictureInPictureEnabled() {
       return document !== undefined && document.pictureInPictureEnabled
