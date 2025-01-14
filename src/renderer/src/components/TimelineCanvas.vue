@@ -202,11 +202,7 @@ export default {
       const textMargin = 3
       const ticks = transScale.ticks(6)
       const tickFormat = (d) => {
-        const sec = Math.round(d / this.mainStore.fps)
-        const hours = String(Math.floor(sec / 3600)).padStart(2, '0')
-        const minutes = String(Math.floor((sec - hours * 3600) / 60)).padStart(2, '0')
-        const seconds = String(sec - minutes * 60).padStart(2, '0')
-        return `${hours}:${minutes}:${seconds}`
+        return this.mainStore.timeReadableSec(Math.round(d / this.mainStore.fps))
       }
 
       this.ctx.strokeStyle = 'black'
