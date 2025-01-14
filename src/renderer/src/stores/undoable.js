@@ -88,6 +88,9 @@ export const useUndoableStore = defineStore('undoable', {
     duplicateTimeline(id) {
       const timeline = this.timelines.filter((t) => t.id === id)[0]
       const newTimeline = JSON.parse(JSON.stringify(timeline))
+      newTimeline.data.forEach((d) => {
+        d.id = crypto.randomUUID()
+      })
       newTimeline.id = crypto.randomUUID()
       newTimeline.name += ' (copy)'
       this.timelines.push(newTimeline)
