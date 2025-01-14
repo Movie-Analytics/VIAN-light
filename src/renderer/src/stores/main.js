@@ -44,7 +44,7 @@ export const useMainStore = defineStore('main', {
     },
     timeReadableSec(t, subsec = false) {
       const formattedHours = String(Math.floor(t / 60 / 60)).padStart(2, '0')
-      const formattedMinutes = String(Math.floor(t / 60)).padStart(2, '0')
+      const formattedMinutes = String(Math.floor(t / 60) % 60).padStart(2, '0')
       let formattedSeconds
       if (subsec) {
         formattedSeconds = String((t % 60).toFixed(2)).padStart(2, '0')
