@@ -3,9 +3,6 @@
     <v-card-title>Timelines</v-card-title>
     <v-card-text>
       <v-row>
-        <v-btn density="compact" variant="text" icon @click="addTimeline">
-          <v-icon>mdi-plus</v-icon>
-        </v-btn>
         <v-btn
           density="compact"
           variant="text"
@@ -67,6 +64,9 @@
                   </v-menu>
                 </v-list-item-action>
               </template>
+            </v-list-item>
+            <v-list-item @click="addTimeline">
+              <v-icon>mdi-playlist-plus</v-icon>
             </v-list-item>
           </v-list>
         </v-col>
