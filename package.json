@@ -21,6 +21,7 @@
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
     "@mdi/font": "^7.4.47",
+    "archiver": "^7.0.1",
     "d3": "^7.9.0",
     "node-addon-api": "^8.2.2",
     "subtitle": "^4.2.1",
