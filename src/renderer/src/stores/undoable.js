@@ -78,6 +78,28 @@ export const useUndoableStore = defineStore('undoable', {
       })
       segment.end = position - 1
     },
+    addShotToNth(n, start, end) {
+      const data = this.timelines[n].data.slice()
+      data.push({
+        start: Math.round(start),
+        end: Math.round(end),
+        id: crypto.randomUUID()
+      })
+      data.sort((a, b) => a.start - b.start)
+      this.timelines[n].data = data
+    },
+    changeShotBoundaries(shotId, start, end) {
+      for (const timeline of this.timelines) {
+        if (timeline.type !== 'shots') continue
+        for (const shot of timeline.data) {
+          if (shot.id === shotId) {
+            shot.start = start
+            shot.end = end
+            return
+          }
+        }
+      }
+    },
     generateScreenshots(frames) {
       const mainStore = useMainStore()
       window.electronAPI.runScreenshotsGeneration(mainStore.video, frames, this.id)

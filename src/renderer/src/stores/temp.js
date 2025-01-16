@@ -6,7 +6,8 @@ export const useTempStore = defineStore('temp', {
     playJumpPosition: null,
     jobs: [],
     selectedSegments: [],
-    imageCache: new Map()
+    imageCache: new Map(),
+    tmpShot: null
   }),
   actions: {
     terminateJob(id) {

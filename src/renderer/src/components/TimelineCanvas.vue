@@ -60,6 +60,10 @@ export default {
     this.resizeoberserver.observe(this.$refs.canvas)
 
     d3.select(this.$refs.canvas).on('click', (e) => this.clickHandler(e))
+    d3.select(this.$refs.canvas).on('mousedown', (e) => this.mousedown(e))
+    d3.select(this.$refs.canvas).on('mouseleave', (e) => this.mouseleave(e))
+    d3.select(this.$refs.canvas).on('mousemove', (e) => this.mousemove(e))
+    d3.select(this.$refs.canvas).on('mouseup', (e) => this.mouseup(e))
   },
   beforeUnmount() {
     this.resizeoberserver.unobserve(this.$refs.canvas)
@@ -150,8 +154,11 @@ export default {
       let colorI = 10
       this.hCtx = hCanvas.node().getContext('2d')
       this.elements.each((d) => {
-        const color = '#' + colorI.toString(16).padStart(6, '0')
-        d.hiddenColor = color
+        d.hiddenColor = '#' + colorI.toString(16).padStart(6, '0')
+        colorI = colorI + 20
+        d.hiddenLeftHandle = '#' + colorI.toString(16).padStart(6, '0')
+        colorI = colorI + 20
+        d.hiddenRightHandle = '#' + colorI.toString(16).padStart(6, '0')
         colorI = colorI + 20
       })
 
@@ -164,36 +171,114 @@ export default {
       const entries = this.data.filter((d) => d.hiddenColor == color)
 
       if (entries.length == 0 && coord[1] < 40) {
-        // no element was clicked -> set player position
+        // set player position
         const timePosition =
           this.transform.rescaleX(this.scale).invert(coord[0]) / this.mainStore.fps
         this.tempStore.playJumpPosition = timePosition
         return
+      } else if (entries.length > 0) {
+        // select shots
+        const entry = entries[0]
+        if (
+          this.tempStore.selectedSegments.length > 0 &&
+          this.tempStore.selectedSegments[0].timeline !== entry.timeline
+        ) {
+          // only allow selection from the same timeline
+          entry.selected = true
+          this.tempStore.selectedSegments.map((s) => (s.selected = false))
+          this.tempStore.selectedSegments = [entry]
+        } else if (entry.selected) {
+          // click on selected element de-selects it
+          entry.selected = false
+          this.tempStore.selectedSegments = this.tempStore.selectedSegments.filter(
+            (s) => s.id !== entry.id
+          )
+        } else if (!event.ctrlKey) {
+          this.tempStore.selectedSegments.map((s) => (s.selected = false))
+          this.tempStore.selectedSegments = [entry]
+          entry.selected = true
+        } else {
+          entry.selected = true
+          this.tempStore.selectedSegments.push(entry)
+        }
+        this.draw()
       }
+    },
+    mousedown(e) {
+      this.tempStore.tmpShot = null
+      if (e.altKey | e.shiftKey) e.stopImmediatePropagation()
+      // new timeline segment
+      if (e.altKey) {
+        const coord = d3.pointer(e, this.$refs.canvas)
+        if (coord[1] < 40) return
+        const nTimeline = Math.floor((coord[1] - 32) / 48)
+        if (this.undoableStore.timelines[nTimeline].type !== 'shots') return
+        const height = nTimeline * 48 + 32
+        const start = this.transform.rescaleX(this.scale).invert(coord[0])
+        this.tempStore.tmpShot = {
+          origin: start,
+          start: start,
+          y: height,
+          end: start,
+          height: 44,
+          originalShot: null
+        }
+        return
+      }
+      // move boundary of existing segment
+      const coord = d3.pointer(e, this.$refs.canvas)
+      const colorData = this.hCtx.getImageData(coord[0], coord[1], 1, 1).data
+      const color = this.rgbToHex(colorData[0], colorData[1], colorData[2])
+      if (color === '#000000') return
+      const entries = this.data.filter(
+        (d) => d.hiddenLeftHandle === color || d.hiddenRightHandle === color
+      )
       if (entries.length == 0) return
+      e.stopImmediatePropagation()
       const entry = entries[0]
-      if (
-        this.tempStore.selectedSegments.length > 0 &&
-        this.tempStore.selectedSegments[0].timeline !== entry.timeline
-      ) {
-        // only allow selection from the same timeline
-        entry.selected = true
-        this.tempStore.selectedSegments.map((s) => (s.selected = false))
-        this.tempStore.selectedSegments = [entry]
-      } else if (entry.selected) {
-        // click on selected element de-selects it
-        entry.selected = false
-        this.tempStore.selectedSegments = this.tempStore.selectedSegments.filter(
-          (s) => s.id !== entry.id
+      this.tempStore.tmpShot = {
+        origin: entry.hiddenLeftHandle === color ? entry.x + entry.width : entry.x,
+        start: entry.start,
+        y: entry.y,
+        end: entry.x + entry.width,
+        height: 44,
+        originalShot: entry
+      }
+    },
+    mousemove(e) {
+      if (e.buttons !== 1 || this.tempStore.tmpShot === null) return
+      if (e.altKey || e.shiftKey) e.stopImmediatePropagation()
+
+      const coord = d3.pointer(e, this.$refs.canvas)
+      const xNew = Math.round(this.transform.rescaleX(this.scale).invert(coord[0]))
+
+      this.tempStore.tmpShot.start = Math.min(this.tempStore.tmpShot.origin, xNew)
+      this.tempStore.tmpShot.end = Math.max(this.tempStore.tmpShot.origin, xNew)
+
+      this.tempStore.playJumpPosition = xNew / this.mainStore.fps
+    },
+    mouseleave() {
+      this.tempStore.tmpShot = null
+      this.draw()
+    },
+    mouseup(e) {
+      if (this.tempStore.tmpShot === null) return
+      e.stopImmediatePropagation()
+      const coord = d3.pointer(e, this.$refs.canvas)
+      if (this.tempStore.tmpShot.originalShot === null) {
+        this.undoableStore.addShotToNth(
+          Math.floor((coord[1] - 32) / 48),
+          this.tempStore.tmpShot.start,
+          this.tempStore.tmpShot.end,
         )
       } else {
-        if (!event.ctrlKey) {
-          this.tempStore.selectedSegments.map((s) => (s.selected = false))
-        }
-        entry.selected = true
-        this.tempStore.selectedSegments.push(entry)
+        this.undoableStore.changeShotBoundaries(
+          this.tempStore.tmpShot.originalShot.id,
+          this.tempStore.tmpShot.start,
+          this.tempStore.tmpShot.end
+        )
       }
-      this.draw()
+      this.tempStore.tmpShot = null
     },
     drawAxis() {
       const transScale = this.transform.rescaleX(this.scale)
@@ -230,53 +315,71 @@ export default {
     },
     drawTimelines(rescale) {
       if (this.elements === undefined) return
-      this.elements.each((d) => {
-        if (d.type === 'shot') {
-          this.ctx.fillStyle = d.fill
-          if (d.selected) this.ctx.fillStyle = 'yellow'
-          this.ctx.fillRect(rescale(d.x), d.y, rescale(d.x + d.width) - rescale(d.x), d.height)
-        } else if (d.type === 'screenshot' && this.tempStore.imageCache.has(d.uri)) {
-          if (d.selected) {
-            this.ctx.fillStyle = 'yellow'
-            this.ctx.fillRect(rescale(d.x), d.y, d.width, d.height)
-            this.ctx.globalAlpha = 0.5
-          }
-          this.ctx.drawImage(
-            this.tempStore.imageCache.get(d.uri),
-            rescale(d.x),
-            d.y,
-            d.width,
-            d.height
-          )
-          this.ctx.globalAlpha = 1.0
-        }
-      })
+      const hCtx = this.hCtx
+      const ctx = this.ctx
+      hCtx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
 
-      // draw hidden canvas
-      this.hCtx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
       this.elements.each((d) => {
-        this.hCtx.fillStyle = d.hiddenColor
+        hCtx.fillStyle = d.hiddenColor
+
+        const x = Math.round(rescale(d.x))
+        const xwidth = Math.round(rescale(d.x + d.width))
         if (d.type === 'shot') {
-          this.hCtx.fillRect(rescale(d.x), d.y, rescale(d.x + d.width) - rescale(d.x), d.height)
-        } else if (d.type === 'screenshot' && this.tempStore.imageCache.has(d.uri)) {
-          this.hCtx.fillRect(rescale(d.x), d.y, d.width, d.height)
+          ctx.fillStyle = d.selected ? 'yellow' : d.fill
+          ctx.fillRect(x, d.y, xwidth-x, d.height)
+          hCtx.fillRect(x, d.y, xwidth-x, d.height)
+
+          // draw handles for grabbing
+          ctx.globalAlpha = 0.1
+          ctx.fillStyle = 'black'
+          const resizeWidth = Math.round(rescale(d.x + Math.min(d.width * 0.2, 20)) - x)
+          ctx.fillRect(x, d.y, resizeWidth, 20)
+          ctx.fillRect(xwidth - resizeWidth, d.y, resizeWidth, 20)
+          hCtx.fillStyle = d.hiddenLeftHandle
+          hCtx.fillRect(x, d.y, resizeWidth, 20)
+          hCtx.fillStyle = d.hiddenRightHandle
+          hCtx.fillRect(xwidth - resizeWidth, d.y, resizeWidth, 20)
+          ctx.globalAlpha = 1.0
+        } else if (d.type === 'screenshot') {
+          const image = this.tempStore.imageCache.get(d.uri)
+          if (!image) return
+          if (d.selected) {
+            ctx.fillStyle = 'yellow'
+            ctx.fillRect(x, d.y, d.width, d.height)
+            ctx.globalAlpha = 0.5
+          }
+          ctx.drawImage(this.tempStore.imageCache.get(d.uri), x, d.y, d.width, d.height)
+          ctx.globalAlpha = 1.0
+          hCtx.fillRect(x, d.y, d.width, d.height)
         }
       })
     },
+    drawTmpShot(rescale) {
+      if (this.tempStore.tmpShot === null) return
+      this.ctx.fillStyle = 'yellow'
+      this.ctx.fillRect(
+        rescale(this.tempStore.tmpShot.start),
+        this.tempStore.tmpShot.y,
+        rescale(this.tempStore.tmpShot.end) - rescale(this.tempStore.tmpShot.start),
+        this.tempStore.tmpShot.height
+      )
+    },
     draw() {
-      this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
+      const ctx = this.ctx
+      ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
       const rescale = this.transform.rescaleX(this.scale)
 
       this.drawTimelines(rescale)
+      this.drawTmpShot(rescale)
 
       // draw current play position
-      this.ctx.beginPath()
-      this.ctx.strokeStyle = 'red'
-      this.ctx.lineWidth = '2'
-      const playPosition = rescale(Math.floor(this.tempStore.playPosition * this.mainStore.fps))
-      this.ctx.moveTo(playPosition, 0)
-      this.ctx.lineTo(playPosition, this.canvasHeight)
-      this.ctx.stroke()
+      ctx.beginPath()
+      ctx.strokeStyle = 'red'
+      ctx.lineWidth = '2'
+      const playPosition = Math.round(rescale(this.tempStore.playPosition * this.mainStore.fps))
+      ctx.moveTo(playPosition, 0)
+      ctx.lineTo(playPosition, this.canvasHeight)
+      ctx.stroke()
 
       this.drawAxis()
 
