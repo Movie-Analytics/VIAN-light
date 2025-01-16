@@ -24,6 +24,8 @@ export const useUndoableStore = defineStore('undoable', {
 
         const undoStore = useUndoStore()
         undoStore.push('undoable', copyState)
+      })
+
       // set up listeners
       window.electronAPI.onScreenshotsGeneration((channel, data) => {
         for (const screenshot of data) {
