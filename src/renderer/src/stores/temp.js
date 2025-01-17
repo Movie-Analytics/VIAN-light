@@ -7,7 +7,8 @@ export const useTempStore = defineStore('temp', {
     jobs: [],
     selectedSegments: [],
     imageCache: new Map(),
-    tmpShot: null
+    tmpShot: null,
+    muted: false
   }),
   actions: {
     terminateJob(id) {
@@ -15,9 +16,12 @@ export const useTempStore = defineStore('temp', {
     },
     reset() {
       this.playPosition = 0
+      this.playJumpPosition = null
       this.jobs = []
       this.selectedSegments = []
       this.imageCache = new Map()
+      this.tmpShot = null
+      this.muted = false
     },
     initialize() {
       window.electronAPI.onJobsUpdate((channel, data) => {

@@ -38,6 +38,10 @@
         <v-btn v-if="pictureInPictureEnabled" icon @click="pictureInPictureClicked">
           <v-icon>mdi-picture-in-picture-top-right</v-icon>
         </v-btn>
+        <v-btn icon @click="muteClicked">
+          <v-icon v-if="tempStore.muted">mdi-volume-high</v-icon>
+          <v-icon v-else>mdi-volume-mute</v-icon>
+        </v-btn>
         <v-btn v-if="undoableStore.subtitleFileSrc !== undefined" icon @click="toggleSubtitles">
           <v-icon v-if="undoableStore.subtitlesVisible">mdi-subtitles</v-icon>
           <v-icon v-else>mdi-subtitles-outline</v-icon>
@@ -118,6 +122,10 @@ export default {
       else this.$refs.video.textTracks[0].mode = 'showing'
 
       this.undoableStore.subtitlesVisible = !this.undoableStore.subtitlesVisible
+    },
+    muteClicked() {
+      this.$refs.video.muted = !this.tempStore.muted
+      this.tempStore.muted = !this.tempStore.muted
     }
   }
 }
