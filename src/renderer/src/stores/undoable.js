@@ -127,6 +127,8 @@ export const useUndoableStore = defineStore('undoable', {
       const state = await window.electronAPI.loadStore('undoable', projectId)
       if (state !== undefined) {
         this.$patch(state)
+      } else {
+        this.id = projectId
       }
     },
     addNewTimeline() {
