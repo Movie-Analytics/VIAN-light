@@ -310,11 +310,26 @@ std::vector<std::vector<int>> VideoReader::DetectShots(const std::string& onnx_m
     return shots;
 }
 
-
-int VideoReader::generateScreenshots(const std::string& directory, const std::vector<int>& frameStamps) {
-    cout << "gen" << endl;
+int VideoReader::generateScreenshot(const std::string& directory, int frame_num) {
     AVPacket packet;
     int response;
+    int64_t target_jump;
+    int64_t target;
+    int frame_num_jump;
+
+
+    frame_num_jump = frame_num - 100;
+    if (frame_num_jump < 0) {
+        frame_num_jump = 0;
+    }
+    target = av_rescale_q((frame_num+1) / av_q2d(format_ctx->streams[video_stream_index]->r_frame_rate) * AV_TIME_BASE,
+                                   AV_TIME_BASE_Q,
+                                   format_ctx->streams[video_stream_index]->time_base);
+    target_jump = av_rescale_q(frame_num_jump / av_q2d(format_ctx->streams[video_stream_index]->r_frame_rate) * AV_TIME_BASE,
+                                   AV_TIME_BASE_Q,
+                                   format_ctx->streams[video_stream_index]->time_base);
+    response = av_seek_frame(format_ctx, video_stream_index, target_jump, AVSEEK_FLAG_BACKWARD);
+    avcodec_flush_buffers(codec_ctx);
 
     while (av_read_frame(format_ctx, &packet) >= 0) {
         if (packet.stream_index == video_stream_index) {
@@ -333,55 +348,94 @@ int VideoReader::generateScreenshots(const std::string& directory, const std::ve
                 return -1;
             }
 
+            if (packet.pts == target) {
+                response = saveFrame(directory, frame_num);
+                av_packet_unref(&packet);
+                return response;
+            }
+            av_packet_unref(&packet);
+        }
+        av_packet_unref(&packet);
+    }
+    return 0;
+}
+
+int VideoReader::saveFrame(const std::string& directory, int frame_num) {
+    std::ostringstream path;
+    path << directory << '/' << std::setw(8) << std::setfill('0') << frame_num << ".jpg";
+
+    if (saveFrameAsJpeg(codec_ctx->pix_fmt, frame, path.str()) < 0) {
+        return -1;
+    }
+
+    // Generate a mini thumbnail
+    AVPixelFormat scaled_pix_fmt = AV_PIX_FMT_YUV420P;
+    SwsContext* sws_ctx = sws_getContext(
+        frame->width, frame->height, static_cast<AVPixelFormat>(frame->format),
+        48, 27, scaled_pix_fmt,
+        SWS_BICUBIC, nullptr, nullptr, nullptr
+    );
+
+    if (!sws_ctx) {
+        return -1;
+    }
+
+    AVFrame* frame2 = av_frame_alloc();
+    frame2->width = 48;
+    frame2->height = 27;
+    frame2->format = scaled_pix_fmt;
+    int num_bytes = av_image_get_buffer_size(scaled_pix_fmt, 48, 27, 1);
+    uint8_t* frame2_buffer = (uint8_t*)av_malloc(num_bytes);
+
+    if (!frame2 || !frame2_buffer) {
+        av_free(frame2_buffer);
+        av_frame_free(&frame2);
+        sws_freeContext(sws_ctx);
+        return -1;
+    }
+
+    av_image_fill_arrays(frame2->data, frame2->linesize, frame2_buffer, scaled_pix_fmt, 48, 27, 1);
+    sws_scale(sws_ctx, frame->data, frame->linesize, 0, frame->height, frame2->data, frame2->linesize);
+    frame2->color_range = AVCOL_RANGE_JPEG;
+
+    std::ostringstream path_mini;
+    path_mini << directory << '/' << std::setw(8) << std::setfill('0') << frame_num << "_mini.jpg";
+    saveFrameAsJpeg(scaled_pix_fmt, frame2, path_mini.str());
+
+    av_free(frame2_buffer);
+    av_frame_free(&frame2);
+    sws_freeContext(sws_ctx);
+    return 0;
+}
+
+int VideoReader::generateScreenshots(const std::string& directory, const std::vector<int>& frameStamps) {
+    AVPacket packet;
+    int response;
+    uint n_frames_extracted = 0;
+
+    while (av_read_frame(format_ctx, &packet) >= 0 && n_frames_extracted < frameStamps.size()) {
+        if (packet.stream_index == video_stream_index) {
+            fprintf(stderr, "frame num %" PRId64 "\n", codec_ctx->frame_num);
+            response = avcodec_send_packet(codec_ctx, &packet);
+            if (response < 0) {
+                av_packet_unref(&packet);
+                return -1;
+            }
+
+            response = avcodec_receive_frame(codec_ctx, frame);
+            if (response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
+                av_packet_unref(&packet);
+                continue;
+            } else if (response < 0) {
+                av_packet_unref(&packet);
+                return -1;
+            }
+
             if (std::find(frameStamps.begin(), frameStamps.end(), codec_ctx->frame_num -1) != frameStamps.end()) {
                 fprintf(stderr, "frame num %" PRId64 "\n", codec_ctx->frame_num);
-                std::ostringstream path;
-                path << directory << '/' << std::setw(8) << std::setfill('0') << codec_ctx->frame_num-1 << ".jpg";
+                n_frames_extracted++;
 
-                if (saveFrameAsJpeg(codec_ctx->pix_fmt, frame, path.str()) < 0) {
-                    av_packet_unref(&packet);
-                    return -1;
-                }
-
-                // Generate a mini thumbnail
-                AVPixelFormat scaled_pix_fmt = AV_PIX_FMT_YUV420P;
-                SwsContext* sws_ctx = sws_getContext(
-                    frame->width, frame->height, static_cast<AVPixelFormat>(frame->format),
-                    48, 27, scaled_pix_fmt,
-                    SWS_BICUBIC, nullptr, nullptr, nullptr
-                );
-
-                if (!sws_ctx) {
-                    av_packet_unref(&packet);
-                    return -1;
-                }
-
-                AVFrame* frame2 = av_frame_alloc();
-                frame2->width = 48;
-                frame2->height = 27;
-                frame2->format = scaled_pix_fmt;
-                int num_bytes = av_image_get_buffer_size(scaled_pix_fmt, 48, 27, 1);
-                uint8_t* frame2_buffer = (uint8_t*)av_malloc(num_bytes);
-
-                if (!frame2 || !frame2_buffer) {
-                    av_free(frame2_buffer);
-                    av_frame_free(&frame2);
-                    sws_freeContext(sws_ctx);
-                    av_packet_unref(&packet);
-                    return -1;
-                }
-
-                av_image_fill_arrays(frame2->data, frame2->linesize, frame2_buffer, scaled_pix_fmt, 48, 27, 1);
-                sws_scale(sws_ctx, frame->data, frame->linesize, 0, frame->height, frame2->data, frame2->linesize);
-                frame2->color_range = AVCOL_RANGE_JPEG;
-
-                std::ostringstream path_mini;
-                path_mini << directory << '/' << std::setw(8) << std::setfill('0') << codec_ctx->frame_num-1 << "_mini.jpg";
-                saveFrameAsJpeg(scaled_pix_fmt, frame2, path_mini.str());
-
-                av_free(frame2_buffer);
-                av_frame_free(&frame2);
-                sws_freeContext(sws_ctx);
+                saveFrame(directory, codec_ctx->frame_num-1);
             }
             av_packet_unref(&packet);
         }
@@ -473,7 +527,26 @@ Napi::Value VideoReaderWrapper::GenerateScreenshots(const Napi::CallbackInfo& in
     }
 
     int result = videoReader.generateScreenshots(directory, frameStamps);
-    cout << "wrap2" << endl;
+    if (result < 0) {
+        Napi::Error::New(env, "Failed to generate screenshots").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    return Napi::Boolean::New(env, true);
+}
+
+Napi::Value VideoReaderWrapper::GenerateScreenshot(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+
+    if (info.Length() < 2 || !info[0].IsString() || !info[1].IsNumber()) {
+        Napi::TypeError::New(env, "Directory path and frame number are required").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    std::string directory = info[0].As<Napi::String>();
+    Napi::Number frame_num = info[1].As<Napi::Number>();
+
+    int result = videoReader.generateScreenshot(directory, frame_num);
     if (result < 0) {
         Napi::Error::New(env, "Failed to generate screenshots").ThrowAsJavaScriptException();
         return env.Null();
@@ -517,6 +590,7 @@ Napi::Object VideoReaderWrapper::Init(Napi::Env env, Napi::Object exports) {
         InstanceMethod<&VideoReaderWrapper::ReadNextFrame>("readNextFrame"),
         InstanceMethod<&VideoReaderWrapper::DetectShots>("detectShots"),
         InstanceMethod<&VideoReaderWrapper::GenerateScreenshots>("generateScreenshots"),
+        InstanceMethod<&VideoReaderWrapper::GenerateScreenshot>("generateScreenshot"),
         InstanceMethod<&VideoReaderWrapper::Done>("done"),
     });
     cout << "Wrapper init" << endl;

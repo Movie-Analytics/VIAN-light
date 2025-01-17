@@ -10,7 +10,7 @@ async function exportScreenshots(storePath, location) {
   const store = JSON.parse(fs.readFileSync(storePath, 'utf8'))
 
   store.timelines.forEach((t) => {
-    if (t.type !== 'screenshots') return
+    if (!t.type.startsWith('screenshots')) return
     const timelinePath = path.join(tmpPath, `${t.name}-${t.id}`)
     fs.mkdirSync(timelinePath)
     t.data.forEach((s) => {

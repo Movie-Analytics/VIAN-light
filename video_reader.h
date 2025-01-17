@@ -25,6 +25,8 @@ public:
     std::vector<std::vector<int>> DetectShots(const std::string& onnx_model_path);
     int saveFrameAsJpeg(AVPixelFormat pix_fmt, AVFrame* pFrame, const std::string& path);
     int generateScreenshots(const std::string& directory, const std::vector<int>& frameStamps);
+    int generateScreenshot(const std::string& directory, int frame);
+    int saveFrame(const std::string& directory, int frame);
 
 private:
     std::string file_path;
@@ -54,6 +56,7 @@ private:
     Napi::Value Done(const Napi::CallbackInfo& info);
     Napi::Value DetectShots(const Napi::CallbackInfo& info);
     Napi::Value GenerateScreenshots(const Napi::CallbackInfo& info);
+    Napi::Value GenerateScreenshot(const Napi::CallbackInfo& info);
 };
 
 #endif

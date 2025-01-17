@@ -11,9 +11,9 @@ import {
   loadSubtitles,
   openVideoDialog,
   runScreenshotsGeneration,
+  runScreenshotGeneration,
   runShotBoundaryDetection,
   saveStore,
-  selectFile,
   terminateJob
 } from './api_functions'
 
@@ -117,6 +117,9 @@ ipcMain.on('save-store', (_channel, name, store) => saveStore(name, store))
 ipcMain.on('run-shotboundary-detection', (channel, path) => runShotBoundaryDetection(channel, path))
 ipcMain.on('run-screenshots-generation', (channel, path, frames, videoId) =>
   runScreenshotsGeneration(channel, path, frames, videoId)
+)
+ipcMain.on('run-screenshot-generation', (channel, path, frame, videoId) =>
+  runScreenshotGeneration(channel, path, frame, videoId)
 )
 ipcMain.on('get-video-info', (channel, path) => getVideoInfo(channel, path))
 ipcMain.on('export-screenshots', (channel, projectId) => exportScreenshots(channel, projectId))

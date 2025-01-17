@@ -6,6 +6,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onShotBoundaryDetection: (cb) => ipcRenderer.on('shotboundary-detected', cb),
   runScreenshotsGeneration: (v, f, i) => ipcRenderer.send('run-screenshots-generation', v, f, i),
   onScreenshotsGeneration: (cb) => ipcRenderer.on('screenshots-generated', cb),
+  runScreenshotGeneration: (v, f, i) => ipcRenderer.send('run-screenshot-generation', v, f, i),
+  onScreenshotGeneration: (cb) => ipcRenderer.on('screenshot-generated', cb),
   loadSubtitles: (p) => ipcRenderer.invoke('load-subtitles', p),
   onJobsUpdate: (cb) => ipcRenderer.on('jobs-update', cb),
   terminateJob: (arg) => ipcRenderer.send('terminate-job', arg),

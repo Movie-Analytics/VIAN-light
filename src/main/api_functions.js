@@ -5,7 +5,8 @@ import path from 'path'
 import fs from 'fs'
 import CleanUpWorker from './workers/cleanup_worker?nodeWorker'
 import ShotBoundaryWorker from './workers/shotboundary_worker?nodeWorker'
-import ScreenshotsGenerationWorker from './workers/screenshot_generation_worker?nodeWorker'
+import ScreenshotsGenerationWorker from './workers/screenshots_generation_worker?nodeWorker'
+import ScreenshotGenerationWorker from './workers/screenshot_generation_worker?nodeWorker'
 import VideoInfoWorker from './workers/videoinfo_worker?nodeWorker'
 import ExportScreenshotWorker from './workers/export_screenshots_worker?nodeWorker'
 
@@ -127,6 +128,36 @@ export function runScreenshotsGeneration(channel, videoPath, frames, videoId) {
     job.status = 'DONE'
     sendJobsUpdate(channel)
     channel.sender.send('screenshots-generated', data.data)
+  })
+}
+
+export function runScreenshotGeneration(channel, videoPath, frame, videoId) {
+  const dataPath = path.join(app.getPath('userData'), 'vian-lite', videoId, 'screenshots')
+  fs.mkdirSync(dataPath, { recursive: true })
+  const worker = ScreenshotGenerationWorker({
+    workerData: { videoPath: videoPath, frame: frame, directory: dataPath }
+  })
+  const job = {
+    creation: Date.now(),
+    type: 'screenshot-generation',
+    status: 'RUNNING',
+    worker: worker,
+    id: Object.keys(jobs).length
+  }
+  jobs[job.id] = job
+  sendJobsUpdate(channel)
+
+  worker.on('error', (e) => {
+    console.log(e)
+    job.status = 'ERROR'
+    sendJobsUpdate(channel)
+  })
+
+  worker.on('message', (data) => {
+    job.status = 'DONE'
+    console.log('done')
+    sendJobsUpdate(channel)
+    channel.sender.send('screenshot-generated', data.data)
   })
 }
 

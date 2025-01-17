@@ -38,6 +38,19 @@ export const useUndoableStore = defineStore('undoable', {
           data: data
         })
       })
+      window.electronAPI.onScreenshotGeneration((channel, data) => {
+        data.id = crypto.randomUUID()
+        if (this.timelines.filter((t) => t.type === 'screenshots-manual').length > 0) {
+          this.timelines.filter((t) => t.type === 'screenshots-manual')[0].data.push(data)
+        } else {
+          this.timelines.push({
+            type: 'screenshots-manual',
+            name: 'Manual Screenshots',
+            id: crypto.randomUUID(),
+            data: [data]
+          })
+        }
+      })
       window.electronAPI.onShotBoundaryDetection((channel, data) => {
         this.timelines.push({
           type: 'shots',
@@ -105,6 +118,10 @@ export const useUndoableStore = defineStore('undoable', {
     generateScreenshots(frames) {
       const mainStore = useMainStore()
       window.electronAPI.runScreenshotsGeneration(mainStore.video, frames, this.id)
+    },
+    generateScreenshot(frame) {
+      const mainStore = useMainStore()
+      window.electronAPI.runScreenshotGeneration(mainStore.video, frame, this.id)
     },
     deleteTimeline(id) {
       this.timelines = this.timelines.filter((t) => t.id !== id)
