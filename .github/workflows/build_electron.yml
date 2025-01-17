@@ -10,7 +10,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install build tools
         run: apt-get update && apt-get install -y build-essential cmake zip python3 git git-lfs
 
@@ -18,14 +18,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      
+
       - name: Download onnx
         uses: dsaltares/fetch-gh-release-asset@master
         with:
           repo: csukuangfj/onnxruntime-libs
           version: 'tags/v1.20.1'
           file: onnxruntime-linux-x64-static_lib-1.20.1-glibc2_17.zip
-      
+
       - name: Unzip
         run: |
           unzip onnxruntime*.zip
@@ -42,18 +42,18 @@ jobs:
           workflow: blank.yml
           check_artifacts: true
           search_artifacts: true
-      
+
       - name: Fetch transnetv2
         run: |
           git lfs install
           git clone https://huggingface.co/elya5/transnetv2
-      
+
       - name: Move model
         run: mv transnetv2/transnetv2.onnx resources/
 
       - name: Install Dependencies
         run: npm install
-      
+
       - name: Build
         run: npm run build:linux
 
@@ -68,7 +68,7 @@ jobs:
     runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install Node.js 22
         uses: actions/setup-node@v4
         with:
@@ -134,12 +134,21 @@ jobs:
         with:
           repo: csukuangfj/onnxruntime-libs
           version: 'tags/v1.20.1'
-          file:  onnxruntime-win-x64-static_lib-1.20.1.tar.bz2 
+          file:  onnxruntime-win-x64-static_lib-1.20.1.tar.bz2
+
+      - name: Install 7-Zip
+        shell: powershell
+        run: |
+          Invoke-WebRequest -Uri "https://7-zip.org/a/7z2301-x64.exe" -OutFile "7z-installer.exe"
+          Start-Process -FilePath "7z-installer.exe" -Args "/S" -Wait
+          echo "C:\Program Files\7-Zip" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Extract onnx
         run: |
-          tar -xf onnxruntime*.tar.bz2
+          7z x onnxruntime*.tar.bz2
           Remove-Item onnxruntime*.tar.bz2
+          7z x onnxruntime*.tar
+          Remove-Item onnxruntime*.tar
           Rename-Item -Path onnxruntime* -NewName onnxlibs
         shell: pwsh
 
