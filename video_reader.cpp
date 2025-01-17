@@ -49,7 +49,7 @@ bool VideoReader::Open() {
         return false;
     }
 
-    for (uint i = 0; i < format_ctx->nb_streams; i++) {
+    for (uint32_t i = 0; i < format_ctx->nb_streams; i++) {
       fprintf(stderr, "open stream %i %d %d %d %d %d %d %d\n", i, format_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_UNKNOWN,
                                               format_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO,
                                               format_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO,
@@ -135,7 +135,7 @@ std::vector<uint8_t>& VideoReader::ReadNextFrame(std::vector<uint8_t>& out_frame
                 finished = true;
                 return out_frame_data;
             }
-            fprintf(stderr, "frame num %ld\n", codec_ctx->frame_num);
+            fprintf(stderr, "frame num%" PRId64 "\n", codec_ctx->frame_num);
 
             // TODO get cache sws context?
             SwsContext* sws_ctx = sws_getContext(
@@ -177,7 +177,7 @@ bool VideoReader::Done() const {
 std::vector<std::vector<int>> VideoReader::DetectShots(const std::string& onnx_model_path) {
     std::vector<std::vector<int>> shots;
     std::vector<float> allPredictions;
-    
+
     finished = false;
 
     try {
@@ -185,7 +185,12 @@ std::vector<std::vector<int>> VideoReader::DetectShots(const std::string& onnx_m
         Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "shot_detection");
         Ort::SessionOptions session_options;
         session_options.SetIntraOpNumThreads(1);
-        Ort::Session session(env, onnx_model_path.c_str(), session_options);
+        #ifdef _WIN32
+            std::wstring wide_path(onnx_model_path.begin(), onnx_model_path.end());
+            Ort::Session session(env, wide_path.c_str(), session_options);
+        #else
+            Ort::Session session(env, onnx_model_path.c_str(), session_options);
+        #endif
 
         // Inference parameters
         const int inputWidth = 48;
@@ -198,7 +203,7 @@ std::vector<std::vector<int>> VideoReader::DetectShots(const std::string& onnx_m
         // Sliding window management
         std::vector<std::vector<uint8_t>> frameWindow;
         unsigned long frameCounter = 1;
-        
+
         // Initial padding setup
         std::vector<uint8_t> frameData;
         ReadNextFrame(frameData);
@@ -247,7 +252,7 @@ std::vector<std::vector<int>> VideoReader::DetectShots(const std::string& onnx_m
                 std::vector<const char*> outputNames = {"534"};
 
                 // Run inference
-                auto outputTensors = session.Run(Ort::RunOptions{nullptr}, 
+                auto outputTensors = session.Run(Ort::RunOptions{nullptr},
                                                 inputNames.data(), &inputTensor, 1,
                                                 outputNames.data(), 1);
 
@@ -256,8 +261,8 @@ std::vector<std::vector<int>> VideoReader::DetectShots(const std::string& onnx_m
                 std::vector<float> windowPredictions(rawResult + 25, rawResult + 75);
 
                 // Append to overall predictions
-                allPredictions.insert(allPredictions.end(), 
-                                    windowPredictions.begin(), 
+                allPredictions.insert(allPredictions.end(),
+                                    windowPredictions.begin(),
                                     windowPredictions.end());
 
                 // Slide the window
@@ -276,15 +281,15 @@ std::vector<std::vector<int>> VideoReader::DetectShots(const std::string& onnx_m
         int prevState = 0;
         for (size_t i = 0; i < binaryPredictions.size(); ++i) {
             int currState = binaryPredictions[i];
-            
+
             if (prevState == 1 && currState == 0) {
                 start = i;
             }
-            
+
             if (prevState == 0 && currState == 1 && i != 0) {
                 shots.push_back({start, static_cast<int>(i)});
             }
-            
+
             prevState = currState;
         }
 
@@ -329,7 +334,7 @@ int VideoReader::generateScreenshots(const std::string& directory, const std::ve
             }
 
             if (std::find(frameStamps.begin(), frameStamps.end(), codec_ctx->frame_num -1) != frameStamps.end()) {
-                fprintf(stderr, "frame num %ld\n", codec_ctx->frame_num);
+                fprintf(stderr, "frame num %" PRId64 "\n", codec_ctx->frame_num);
                 std::ostringstream path;
                 path << directory << '/' << std::setw(8) << std::setfill('0') << codec_ctx->frame_num-1 << ".jpg";
 
@@ -447,7 +452,6 @@ int VideoReader::saveFrameAsJpeg(AVPixelFormat pix_fmt, AVFrame* pFrame, const s
 Napi::Value VideoReaderWrapper::GenerateScreenshots(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
 
-    cout << "wrap" << endl;
     if (info.Length() < 2 || !info[0].IsString() || !info[1].IsArray()) {
         Napi::TypeError::New(env, "Directory path and frame stamps array are required").ThrowAsJavaScriptException();
         return env.Null();
@@ -455,7 +459,7 @@ Napi::Value VideoReaderWrapper::GenerateScreenshots(const Napi::CallbackInfo& in
 
     std::string directory = info[0].As<Napi::String>();
     Napi::Array frameStampsArray = info[1].As<Napi::Array>();
-    
+
     std::vector<int> frameStamps;
     for (size_t i = 0; i < frameStampsArray.Length(); ++i) {
         Napi::Value elem = frameStampsArray[i];
@@ -467,7 +471,6 @@ Napi::Value VideoReaderWrapper::GenerateScreenshots(const Napi::CallbackInfo& in
 
         frameStamps.push_back(elem.As<Napi::Number>());
     }
-    cout << "wrap1" << endl;
 
     int result = videoReader.generateScreenshots(directory, frameStamps);
     cout << "wrap2" << endl;
@@ -516,15 +519,12 @@ Napi::Object VideoReaderWrapper::Init(Napi::Env env, Napi::Object exports) {
         InstanceMethod<&VideoReaderWrapper::GenerateScreenshots>("generateScreenshots"),
         InstanceMethod<&VideoReaderWrapper::Done>("done"),
     });
-    cout << "init 1" << endl;
+    cout << "Wrapper init" << endl;
 
     constructor = new Napi::FunctionReference();
     *constructor = Napi::Persistent(func);
-    cout << "init 2" << endl;
     exports.Set("VideoReader", func);
-    cout << "init 3" << endl;
     env.SetInstanceData<Napi::FunctionReference>(constructor);
-    cout << "init 4" << endl;
     return exports;
 }
 

@@ -118,3 +118,59 @@ jobs:
           path: ${{ github.workspace }}/dist/*.dmg
           retention-days: 90
           overwrite: true
+
+  build-windows:
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Download onnx
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          repo: csukuangfj/onnxruntime-libs
+          version: 'tags/v1.20.1'
+          file:  onnxruntime-win-x64-static_lib-1.20.1.tar.bz2 
+
+      - name: Extract onnx
+        run: |
+          tar -xf onnxruntime*.tar.bz2
+          Remove-Item onnxruntime*.tar.bz2
+          Rename-Item -Path onnxruntime* -NewName onnxlibs
+        shell: pwsh
+
+      - name: Download ffmpeg-libs
+        uses: dawidd6/action-download-artifact@v7
+        with:
+          repo: elya5/ffmpeg-build
+          github_token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+          name: ffmpeg-libs-win
+          path: ffmpeglibs
+          workflow: blank.yml
+          check_artifacts: true
+          search_artifacts: true
+
+      - name: Fetch transnetv2
+        run: |
+          git lfs install
+          git clone https://huggingface.co/elya5/transnetv2
+
+      - name: Move model
+        run: move transnetv2\transnetv2.onnx resources\
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build:windows
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vian-lite-win
+          path: ${{ github.workspace }}/dist/*.exe
+          retention-days: 90
+          overwrite: true
