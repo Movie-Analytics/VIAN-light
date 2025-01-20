@@ -56,7 +56,7 @@
         <v-list-item @click="genScreenshotDialog = true">
           <v-list-item-title>Generate Screenshots</v-list-item-title>
         </v-list-item>
-        <v-list-item @click="exportScreenshots">
+        <v-list-item @click="exportScreenshotsDialog = true">
           <v-list-item-title>Export Screenshots</v-list-item-title>
         </v-list-item>
       </v-list>
@@ -108,12 +108,31 @@
           </v-select>
         </v-card-text>
         <v-card-actions>
-          <v-btn color="secondary" @click="genScreenshotDialog = false">Cancel</v-btn>
+          <v-btn color="warning" @click="genScreenshotDialog = false">Cancel</v-btn>
           <v-btn
             color="primary"
             :disabled="genScreenshotButtonDisabled"
             @click="generateScreenshots"
             >Generate</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="exportScreenshotsDialog" persistent max-width="500">
+      <v-card>
+        <v-card-title>Export Screenshots</v-card-title>
+        <v-card-text>
+          You can either export all screenshots at once or select them individually in a timeline
+          and only export those.
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="warning" @click="exportScreenshotsDialog = false">Cancel</v-btn>
+          <v-btn color="primary" @click="exportScreenshots(false)">Export all</v-btn>
+          <v-btn
+            color="secondary"
+            :disabled="exportScreenshotsIndividualDisabled"
+            @click="exportScreenshots(true)"
+            >Export individually</v-btn
           >
         </v-card-actions>
       </v-card>
@@ -137,7 +156,8 @@ export default {
     genScreenshotDialog: false,
     screenshotPerShot: false,
     screenshotInterval: 10,
-    screenshotShotTimeline: undefined
+    screenshotShotTimeline: undefined,
+    exportScreenshotsDialog: false
   }),
   computed: {
     ...mapStores(useMainStore),
@@ -161,6 +181,13 @@ export default {
     },
     genScreenshotButtonDisabled() {
       return this.screenshotPerShot && this.screenshotShotTimeline === undefined
+    },
+    exportScreenshotsIndividualDisabled() {
+      console.log('computed export ind.', this.tempStore.selectedSegments)
+      return (
+        this.tempStore.selectedSegments.length == 0 ||
+        this.tempStore.selectedSegments[0].type !== 'screenshot'
+      )
     },
     }
   },
@@ -188,8 +215,14 @@ export default {
     loadSubtitles() {
       this.undoableStore.loadSubtitles()
     },
-    exportScreenshots() {
-      window.electronAPI.exportScreenshots(this.mainStore.id)
+    exportScreenshots(individually) {
+      if (individually) {
+        const frames = this.tempStore.selectedSegments.map((s) => s.x)
+        window.electronAPI.exportScreenshots(this.mainStore.id, frames)
+      } else {
+        window.electronAPI.exportScreenshots(this.mainStore.id)
+      }
+      this.exportScreenshotsDialog = false
     },
     generateScreenshots() {
       this.genScreenshotDialog = false

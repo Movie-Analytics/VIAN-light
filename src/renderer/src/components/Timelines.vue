@@ -82,7 +82,7 @@
           <v-text-field v-model="timelineName" label="New Timeline Name"></v-text-field>
         </v-card-text>
         <v-card-actions>
-          <v-btn color="secondary" @click="renameDialog = false">Cancel</v-btn>
+          <v-btn color="warning" @click="renameDialog = false">Cancel</v-btn>
           <v-btn color="primary" @click="renameTimeline">Save</v-btn>
         </v-card-actions>
       </v-card>

@@ -187,7 +187,7 @@ export function getVideoInfo(channel, videoPath) {
   })
 }
 
-export function exportScreenshots(channel, projectId) {
+export function exportScreenshots(channel, projectId, frames) {
   const location = dialog.showSaveDialogSync(null, {
     title: 'Select export location',
     defaultPath: 'screenshots.zip'
@@ -196,7 +196,7 @@ export function exportScreenshots(channel, projectId) {
   const storePath = path.join(app.getPath('userData'), 'vian-lite', projectId, 'undoable.json')
 
   const worker = ExportScreenshotWorker({
-    workerData: { storePath: storePath, location: location }
+    workerData: { storePath: storePath, location: location, frames: frames }
   })
 
   const job = {

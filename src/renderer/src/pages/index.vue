@@ -37,7 +37,7 @@
           <v-text-field v-model="projectName" label="New Project Name"></v-text-field>
         </v-card-text>
         <v-card-actions>
-          <v-btn color="secondary" @click="renameDialog = false">Cancel</v-btn>
+          <v-btn color="warning" @click="renameDialog = false">Cancel</v-btn>
           <v-btn color="primary" @click="saveProjectName">Save</v-btn>
         </v-card-actions>
       </v-card>

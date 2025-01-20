@@ -15,5 +15,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onVideoInfo: (cb) => ipcRenderer.on('video-info', cb),
   saveStore: (arg1, arg2) => ipcRenderer.send('save-store', arg1, arg2),
   loadStore: (arg1, arg2) => ipcRenderer.invoke('load-store', arg1, arg2),
-  exportScreenshots: (p) => ipcRenderer.send('export-screenshots', p)
+  exportScreenshots: (p, f) => ipcRenderer.send('export-screenshots', p, f)
 })

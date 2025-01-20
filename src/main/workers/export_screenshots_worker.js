@@ -4,7 +4,7 @@ const path = require('path')
 const os = require('os')
 const archiver = require('archiver')
 
-async function exportScreenshots(storePath, location) {
+async function exportScreenshots(storePath, location, frames) {
   const tmpPath = fs.mkdtempSync(path.join(os.tmpdir(), 'vian-screenshots-'))
 
   const store = JSON.parse(fs.readFileSync(storePath, 'utf8'))
@@ -15,6 +15,7 @@ async function exportScreenshots(storePath, location) {
     fs.mkdirSync(timelinePath)
     t.data.forEach((s) => {
       const imagePath = s.image.replace('app://', '')
+      if (frames && !frames.includes(Number(path.basename(imagePath).replace('.jpg', '')))) return
       fs.copyFileSync(imagePath, path.join(timelinePath, path.basename(imagePath)))
     })
   })
@@ -31,7 +32,7 @@ async function exportScreenshots(storePath, location) {
 
 console.log('Started screenshot export worker')
 if (workerData !== null && workerData !== undefined) {
-  exportScreenshots(workerData.storePath, workerData.location).then((err) => {
+  exportScreenshots(workerData.storePath, workerData.location, workerData.frames).then((err) => {
     if (err) throw err
     else parentPort.postMessage(true)
   })
