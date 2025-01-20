@@ -85,13 +85,7 @@
       <v-card>
         <v-card-title>Generate Screenshots</v-card-title>
         <v-card-text>
-          <v-select
-            v-model="screenshotMode"
-            :items="screenshotModeItems"
-            item-title="title"
-            item-value="val"
-            label="Screenshot Mode"
-          ></v-select>
+          Create a screenshot every N seconds
           <v-text-field
             v-model="screenshotInterval"
             label="N"
@@ -99,8 +93,12 @@
             min="1"
             max="100"
           ></v-text-field>
+          <v-checkbox
+            v-model="screenshotPerShot"
+            label="Ensure at least one screenshot per frame"
+          ></v-checkbox>
           <v-select
-            v-if="screenshotMode == 'shot'"
+            v-if="screenshotPerShot"
             v-model="screenshotShotTimeline"
             :items="shotTimelines"
             label="Shot Timeline"
@@ -111,7 +109,12 @@
         </v-card-text>
         <v-card-actions>
           <v-btn color="secondary" @click="genScreenshotDialog = false">Cancel</v-btn>
-          <v-btn color="primary" @click="generateScreenshots" :disabled="genScreenshotButtonDisabled">Generate</v-btn>
+          <v-btn
+            color="primary"
+            :disabled="genScreenshotButtonDisabled"
+            @click="generateScreenshots"
+            >Generate</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -132,11 +135,7 @@ export default {
   components: { Timelines, VideoPlayer },
   data: () => ({
     genScreenshotDialog: false,
-    screenshotMode: 'seconds',
-    screenshotModeItems: [
-      { title: 'every N seconds', val: 'seconds' },
-      { title: 'N per shot', val: 'shot' }
-    ],
+    screenshotPerShot: false,
     screenshotInterval: 10,
     screenshotShotTimeline: undefined
   }),
@@ -160,8 +159,9 @@ export default {
     shotTimelines() {
       return this.undoableStore.timelines.filter((t) => t.type === 'shots')
     },
-    genScreenshotButtonDisabled () {
-      return this.screenshotMode === 'shot' && this.screenshotShotTimeline === undefined
+    genScreenshotButtonDisabled() {
+      return this.screenshotPerShot && this.screenshotShotTimeline === undefined
+    },
     }
   },
   created() {
@@ -194,29 +194,34 @@ export default {
     generateScreenshots() {
       this.genScreenshotDialog = false
       let frames = []
-      if (this.screenshotMode == 'seconds') {
-        for (let i = 0; i <= this.mainStore.videoDuration; i++) {
-          if (i % this.screenshotInterval == 0) {
-            frames.push(Math.floor(i * this.mainStore.fps))
-          }
-        }
-      } else if (this.screenshotMode == 'shot') {
-        frames = this.shotTimelines
-          .filter((t) => t.id === this.screenshotShotTimeline)[0]
-          .data.map((shot) => {
-            const shotLength = shot.end - shot.start
-            const stepSize = Math.max(
-              1,
-              Math.floor(shotLength / (Number(this.screenshotInterval) + 1))
-            )
-            const shotFrames = []
-            for (let i = stepSize; i < shotLength; i += stepSize) {
-              shotFrames.push(shot.start + i)
+      let shotI = 0
+      let timelineShots
+      if (this.screenshotPerShot) {
+        timelineShots = this.shotTimelines.filter((t) => t.id === this.screenshotShotTimeline)[0]
+          .data
+      }
+
+      for (let i = 0; i <= this.mainStore.videoDuration; i++) {
+        if (i % this.screenshotInterval == 0) {
+          const frame = Math.floor(i * this.mainStore.fps)
+
+          while (
+            this.screenshotPerShot &&
+            shotI < timelineShots.length &&
+            frame >= timelineShots[shotI].start
+          ) {
+            if (frame > timelineShots[shotI].end) {
+              frames.push(
+                Math.round(
+                  timelineShots[shotI].start +
+                    (timelineShots[shotI].end - timelineShots[shotI].start) / 2
+                )
+              )
             }
-            return shotFrames
-          })
-          .flat(2)
-        frames = [...new Set(frames)]
+            shotI++
+          }
+          frames.push(frame)
+        }
       }
       this.undoableStore.generateScreenshots(frames)
     },
