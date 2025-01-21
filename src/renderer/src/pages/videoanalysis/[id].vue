@@ -168,6 +168,7 @@ import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
 import { useUndoStore } from '@renderer/stores/undo'
+import { api } from '@renderer/api'
 
 export default {
   components: { Timelines, VideoPlayer },
@@ -237,9 +238,9 @@ export default {
     exportScreenshots(individually) {
       if (individually) {
         const frames = this.tempStore.selectedSegments.map((s) => s.x)
-        window.electronAPI.exportScreenshots(this.mainStore.id, frames)
+        api().exportScreenshots(this.mainStore.id, frames)
       } else {
-        window.electronAPI.exportScreenshots(this.mainStore.id)
+        api().exportScreenshots(this.mainStore.id)
       }
       this.exportScreenshotsDialog = false
     },
@@ -281,7 +282,7 @@ export default {
       this.undoableStore.importAnnotations()
     },
     exportAnnotations(csv) {
-      window.electronAPI.exportAnnotations(this.mainStore.id, csv)
+      api().exportAnnotations(this.mainStore.id, csv)
     },
     statusToColor(status) {
       if (status === 'RUNNING') return 'yellow'

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { useMainStore } from './main'
 import { useUndoStore } from './undo'
+import { api } from '@renderer/api'
 
 export const useMetaStore = defineStore('meta', {
   state: () => ({
@@ -10,13 +11,13 @@ export const useMetaStore = defineStore('meta', {
     initialize() {
       this.$subscribe((mutation, state) => {
         const copyState = JSON.parse(JSON.stringify(state))
-        window.electronAPI.saveStore('meta', copyState)
+        api().saveStore('meta', copyState)
         const undoStore = useUndoStore()
         undoStore.push('meta', copyState)
       })
     },
     async loadStore() {
-      const state = await window.electronAPI.loadStore('meta')
+      const state = await api().loadStore('meta')
       if (state !== undefined) {
         this.$patch(state)
       }

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useUndoableStore } from './undoable'
+import { api } from '@renderer/api'
 
 export const useMainStore = defineStore('main', {
   state: () => ({
@@ -22,22 +23,22 @@ export const useMainStore = defineStore('main', {
       undoableStore.id = id
       this.video = video
       if (this.fps === null && this.video !== null) {
-        window.electronAPI.getVideoInfo(this.video)
+        api().getVideoInfo(this.video)
       }
     },
     initialize() {
       this.$subscribe((mutation, state) => {
         if (this.id === null) return
         const copyState = JSON.parse(JSON.stringify(state))
-        window.electronAPI.saveStore('main', copyState)
+        api().saveStore('main', copyState)
       })
       // set up listener
-      window.electronAPI.onVideoInfo((channel, data) => {
+      api().onVideoInfo((channel, data) => {
         this.fps = data.fps
       })
     },
     async loadStore(projectId) {
-      const state = await window.electronAPI.loadStore('main', projectId)
+      const state = await api().loadStore('main', projectId)
       if (state !== undefined) {
         this.$patch(state)
       }

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { api } from '@renderer/api'
 
 export const useTempStore = defineStore('temp', {
   state: () => ({
@@ -24,7 +25,7 @@ export const useTempStore = defineStore('temp', {
       this.muted = false
     },
     initialize() {
-      window.electronAPI.onJobsUpdate((channel, data) => {
+      api().onJobsUpdate((channel, data) => {
         this.jobs = data
       })
     }
