@@ -56,8 +56,27 @@
         <v-list-item @click="genScreenshotDialog = true">
           <v-list-item-title>Generate Screenshots</v-list-item-title>
         </v-list-item>
-        <v-list-item @click="exportScreenshotsDialog = true">
-          <v-list-item-title>Export Screenshots</v-list-item-title>
+        <v-list-item @click="importAnnotations">
+          <v-list-item-title>Import Annotations</v-list-item-title>
+        </v-list-item>
+        <v-list-item>
+          <v-list-item-title>Export</v-list-item-title>
+          <template #append>
+            <v-icon icon="mdi-menu-right" size="x-small"></v-icon>
+          </template>
+          <v-menu :open-on-focus="false" activator="parent" open-on-hover submenu>
+            <v-list>
+              <v-list-item @click="exportAnnotations(false)">
+                <v-list-item-title>Export Annotations (eaf)</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="exportAnnotations(true)">
+                <v-list-item-title>Export Annotations (csv)</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="exportScreenshotsDialog = true">
+                <v-list-item-title>Export Screenshots</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </v-list-item>
       </v-list>
     </v-menu>
@@ -257,6 +276,12 @@ export default {
         }
       }
       this.undoableStore.generateScreenshots(frames)
+    },
+    importAnnotations() {
+      this.undoableStore.importAnnotations()
+    },
+    exportAnnotations(csv) {
+      window.electronAPI.exportAnnotations(this.mainStore.id, csv)
     },
     statusToColor(status) {
       if (status === 'RUNNING') return 'yellow'

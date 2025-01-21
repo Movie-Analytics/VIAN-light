@@ -139,6 +139,19 @@ export const useUndoableStore = defineStore('undoable', {
     renameTimeline(id, name) {
       this.timelines.filter((t) => t.id === id)[0].name = name
     },
+    addNewTimeline() {
+      this.timelines.push({
+        type: 'shots',
+        name: 'Shots',
+        id: crypto.randomUUID(),
+        data: []
+      })
+    },
+    async importAnnotations() {
+      const timelines = await window.electronAPI.importAnnotations(this.id)
+      if (!timelines) return
+      this.timelines = this.timelines.concat(timelines)
+    },
 
     async loadStore(projectId) {
       const state = await window.electronAPI.loadStore('undoable', projectId)
@@ -147,14 +160,6 @@ export const useUndoableStore = defineStore('undoable', {
       } else {
         this.id = projectId
       }
-    },
-    addNewTimeline() {
-      this.timelines.push({
-        type: 'shots',
-        name: 'Shots',
-        id: crypto.randomUUID(),
-        data: []
-      })
     },
     undo() {
       const undoStore = useUndoStore()
