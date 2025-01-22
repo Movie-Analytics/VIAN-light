@@ -39,6 +39,7 @@ export default {
       deep: true,
       handler() {
         this.drawSetup()
+        this.draw()
       }
     },
     'mainStore.videoDuration'() {
@@ -121,12 +122,14 @@ export default {
               uri: shot.thumbnail
             })
             // only re-draw after 200 new images were loaded
-            this.unloadedImages++
-            d3.image(shot.thumbnail).then((img) => {
-              this.tempStore.imageCache.set(shot.thumbnail, img)
-              this.unloadedImages--
-              if (this.unloadedImages % 200 == 0) this.draw()
-            })
+            if (!this.tempStore.imageCache.has(shot.thumbnail)) {
+              this.unloadedImages++
+              d3.image(shot.thumbnail).then((img) => {
+                this.tempStore.imageCache.set(shot.thumbnail, img)
+                this.unloadedImages--
+                if (this.unloadedImages % 200 == 0) this.draw()
+              })
+            }
           }
         }
       }
@@ -258,8 +261,11 @@ export default {
       this.tempStore.playJumpPosition = xNew / this.mainStore.fps
     },
     mouseleave() {
-      this.tempStore.tmpShot = null
-      this.draw()
+      if (this.tempStore.tmpShot !== null) {
+        this.tempStore.tmpShot = null
+        console.log('mouseleave')
+        this.draw()
+      }
     },
     mouseup(e) {
       if (this.tempStore.tmpShot === null) return
