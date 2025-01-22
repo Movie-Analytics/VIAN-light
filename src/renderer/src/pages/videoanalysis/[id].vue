@@ -85,13 +85,32 @@
     </v-btn>
   </v-app-bar>
   <v-main class="ma-3">
-    <v-container>
+    <div class="px-5">
       <v-row>
-        <v-col cols="6">
+        <v-col style="min-width: 400px">
           <video-player></video-player>
         </v-col>
-        <v-col>
-          <p v-if="mainStore.fps">FPS: {{ mainStore.fps }}</p>
+        <v-col cols="6" style="max-width: 700px">
+          <v-card>
+            <v-tabs v-model="tab" show-arrows>
+              <v-tab value="info">Info</v-tab>
+              <v-tab :disabled="undoableStore.shotTimelines.length == 0" value="shots">Shots</v-tab>
+              <v-tab value="selection">Selection</v-tab>
+            </v-tabs>
+            <v-card-text>
+              <v-tabs-window v-model="tab">
+                <v-tabs-window-item value="info">
+                  <p v-if="mainStore.fps">FPS: {{ mainStore.fps }}</p>
+                </v-tabs-window-item>
+                <v-tabs-window-item value="shots">
+                  <shot-list></shot-list>
+                </v-tabs-window-item>
+                <v-tabs-window-item value="selection">
+                  <shot-detail></shot-detail>
+                </v-tabs-window-item>
+              </v-tabs-window>
+            </v-card-text>
+          </v-card>
         </v-col>
       </v-row>
       <v-row>
@@ -99,7 +118,7 @@
           <timelines></timelines>
         </v-col>
       </v-row>
-    </v-container>
+    </div>
     <v-dialog v-model="genScreenshotDialog" persistent max-width="400">
       <v-card>
         <v-card-title>Generate Screenshots</v-card-title>
@@ -119,7 +138,7 @@
           <v-select
             v-if="screenshotPerShot"
             v-model="screenshotShotTimeline"
-            :items="shotTimelines"
+            :items="undoableStore.shotTimelines"
             label="Shot Timeline"
             item-title="name"
             item-value="id"
@@ -162,17 +181,20 @@
 <script>
 import { mapStores } from 'pinia'
 
-import VideoPlayer from '@renderer/components/VideoPlayer.vue'
-import Timelines from '@renderer/components/Timelines.vue'
 import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
 import { useUndoStore } from '@renderer/stores/undo'
 import { api } from '@renderer/api'
+import ShotDetail from '@renderer/components/ShotDetail.vue'
+import ShotList from '@renderer/components/ShotList.vue'
+import Timelines from '@renderer/components/Timelines.vue'
+import VideoPlayer from '@renderer/components/VideoPlayer.vue'
 
 export default {
-  components: { Timelines, VideoPlayer },
+  components: { Timelines, VideoPlayer, ShotList, ShotDetail },
   data: () => ({
+    tab: null,
     genScreenshotDialog: false,
     screenshotPerShot: false,
     screenshotInterval: 10,
@@ -196,9 +218,6 @@ export default {
     isRedoable() {
       return this.undoStore.isRedoable('undoable')
     },
-    shotTimelines() {
-      return this.undoableStore.timelines.filter((t) => t.type === 'shots')
-    },
     genScreenshotButtonDisabled() {
       return this.screenshotPerShot && this.screenshotShotTimeline === undefined
     },
@@ -208,7 +227,6 @@ export default {
         this.tempStore.selectedSegments.length == 0 ||
         this.tempStore.selectedSegments[0].type !== 'screenshot'
       )
-    },
     }
   },
   created() {
@@ -250,8 +268,9 @@ export default {
       let shotI = 0
       let timelineShots
       if (this.screenshotPerShot) {
-        timelineShots = this.shotTimelines.filter((t) => t.id === this.screenshotShotTimeline)[0]
-          .data
+        timelineShots = this.undoableStore.shotTimelines.filter(
+          (t) => t.id === this.screenshotShotTimeline
+        )[0].data
       }
 
       for (let i = 0; i <= this.mainStore.videoDuration; i++) {

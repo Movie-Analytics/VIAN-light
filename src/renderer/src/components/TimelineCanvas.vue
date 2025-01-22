@@ -106,10 +106,10 @@ export default {
               fill: color,
               timeline: timeline.id,
               id: shot.id,
-              selected: false,
+              selected: this.tempStore.selectedSegments.has(shot.id),
               type: 'shot'
             })
-          } else if (timeline.type === 'screenshots') {
+          } else if (timeline.type.startsWith('screenshots')) {
             this.data.push({
               x: shot.frame,
               y: timeline_i * 48 + 30 + 2,
@@ -117,7 +117,7 @@ export default {
               height: 44,
               timeline: timeline.id,
               id: shot.id,
-              selected: false,
+              selected: this.tempStore.selectedSegments.has(shot.id),
               type: 'screenshot',
               uri: shot.thumbnail
             })
@@ -183,26 +183,18 @@ export default {
         // select shots
         const entry = entries[0]
         if (
-          this.tempStore.selectedSegments.length > 0 &&
-          this.tempStore.selectedSegments[0].timeline !== entry.timeline
+          this.tempStore.selectedSegments.size > 0 &&
+          this.tempStore.selectedSegments.values().next().value !== entry.timeline
         ) {
           // only allow selection from the same timeline
-          entry.selected = true
-          this.tempStore.selectedSegments.map((s) => (s.selected = false))
-          this.tempStore.selectedSegments = [entry]
-        } else if (entry.selected) {
+          this.tempStore.selectedSegments = new Map([[entry.id, entry.timeline]])
+        } else if (this.tempStore.selectedSegments.has(entry.id)) {
           // click on selected element de-selects it
-          entry.selected = false
-          this.tempStore.selectedSegments = this.tempStore.selectedSegments.filter(
-            (s) => s.id !== entry.id
-          )
+          this.tempStore.selectedSegments.delete(entry.id)
         } else if (!event.ctrlKey) {
-          this.tempStore.selectedSegments.map((s) => (s.selected = false))
-          this.tempStore.selectedSegments = [entry]
-          entry.selected = true
+          this.tempStore.selectedSegments = new Map([[entry.id, entry.timeline]])
         } else {
-          entry.selected = true
-          this.tempStore.selectedSegments.push(entry)
+          this.tempStore.selectedSegments.set(entry.id, entry.timeline)
         }
         this.draw()
       }
@@ -324,6 +316,7 @@ export default {
       const hCtx = this.hCtx
       const ctx = this.ctx
       hCtx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
+      const selectedSegments = new Set(this.tempStore.selectedSegments.keys())
 
       this.elements.each((d) => {
         hCtx.fillStyle = d.hiddenColor
@@ -331,7 +324,7 @@ export default {
         const x = Math.round(rescale(d.x))
         const xwidth = Math.round(rescale(d.x + d.width))
         if (d.type === 'shot') {
-          ctx.fillStyle = d.selected ? 'yellow' : d.fill
+          ctx.fillStyle = selectedSegments.has(d.id) ? 'yellow' : d.fill
           ctx.fillRect(x, d.y, xwidth-x, d.height)
           hCtx.fillRect(x, d.y, xwidth-x, d.height)
 
@@ -349,7 +342,7 @@ export default {
         } else if (d.type === 'screenshot') {
           const image = this.tempStore.imageCache.get(d.uri)
           if (!image) return
-          if (d.selected) {
+          if (selectedSegments.has(d.id)) {
             ctx.fillStyle = 'yellow'
             ctx.fillRect(x, d.y, d.width, d.height)
             ctx.globalAlpha = 0.5

@@ -43,6 +43,10 @@ export const useMainStore = defineStore('main', {
         this.$patch(state)
       }
     },
+    timeReadableFrame(frame) {
+      const totalSeconds = frame / this.fps
+      return this.timeReadableSec(totalSeconds)
+    },
     timeReadableSec(t, subsec = false) {
       const formattedHours = String(Math.floor(t / 60 / 60)).padStart(2, '0')
       const formattedMinutes = String(Math.floor(t / 60) % 60).padStart(2, '0')

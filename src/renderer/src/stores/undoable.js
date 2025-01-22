@@ -14,6 +14,9 @@ export const useUndoableStore = defineStore('undoable', {
     subtitleFileSrc() {
       if (this.subtitles === null) return undefined
       return 'app://' + this.subtitles
+    },
+    shotTimelines() {
+      return this.timelines.filter((t) => t.type === 'shots')
     }
   },
   actions: {
@@ -82,6 +85,10 @@ export const useUndoableStore = defineStore('undoable', {
         segment.end = Math.max(segment.end, timeline.data[index].end)
         timeline.data.splice(index, 1)
       }
+    },
+    getSegmentForId(timelineId, segmentId) {
+      const timeline = this.timelines.filter((t) => t.id === timelineId)[0]
+      return timeline.data.filter((s) => s.id == segmentId)[0]
     },
     splitSegment(timelineId, segmentId, position) {
       const timeline = this.timelines.filter((t) => t.id === timelineId)[0]

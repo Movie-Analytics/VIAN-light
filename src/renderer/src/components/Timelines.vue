@@ -112,56 +112,48 @@ export default {
     ...mapStores(useTempStore),
     ...mapStores(useUndoableStore),
     segmentDeletable() {
-      return this.tempStore.selectedSegments.length > 0
+      return this.tempStore.selectedSegments.size > 0
     },
     segmentMergable() {
-      if (
-        this.tempStore.selectedSegments.length <= 1 ||
-        this.tempStore.selectedSegments[0].type === 'screenshot'
-      )
-        return false
-      const segments = this.tempStore.selectedSegments
-      const timeline = this.undoableStore.timelines
-        .filter((t) => t.id === segments[0].timeline)[0]
-        .data.map((d) => d.id)
-      const indices = segments.map((s) => timeline.indexOf(s.id)).sort((a, b) => a - b)
+      if (this.tempStore.selectedSegments.size <= 1) return false
+      const timeline = this.undoableStore.timelines.filter(
+        (t) => t.id === this.tempStore.selectedSegments.values().next().value
+      )[0]
+      if (timeline.type !== 'shots') return false
+
+      const timelineDataIds = timeline.data.map((d) => d.id)
+      const indices = Array.from(this.tempStore.selectedSegments.keys())
+        .map((s) => timelineDataIds.indexOf(s))
+        .sort((a, b) => a - b)
       return indices[indices.length - 1] - indices[0] === indices.length - 1
     },
     segmentSplitable() {
-      if (this.tempStore.selectedSegments.length != 1) return false
+      if (this.tempStore.selectedSegments.size != 1) return false
       const playFps = Math.round(this.tempStore.playPosition * this.mainStore.fps)
-      return (
-        this.tempStore.selectedSegments[0].x < playFps &&
-        this.tempStore.selectedSegments[0].x + this.tempStore.selectedSegments[0].width > playFps &&
-        this.tempStore.selectedSegments[0].type !== 'screenshot'
-      )
+      const [shotid, timelineid] = this.tempStore.selectedSegments.entries().next().value
+      const segment = this.undoableStore.getSegmentForId(timelineid, shotid)
+      return segment.start < playFps && segment.end > playFps && segment.start !== undefined
     }
   },
   methods: {
     segmentDelete() {
       const segments = this.tempStore.selectedSegments
-      this.undoableStore.deleteSegments(
-        segments[0].timeline,
-        segments.map((s) => s.id)
-      )
-      this.tempStore.selectedSegments = []
+      this.undoableStore.deleteSegments(segments.values().next().value, Array.from(segments.keys()))
+      this.tempStore.selectedSegments = new Map()
     },
     segmentMerge() {
       const segments = this.tempStore.selectedSegments
-      this.undoableStore.mergeSegments(
-        segments[0].timeline,
-        segments.map((s) => s.id)
-      )
-      this.tempStore.selectedSegments = []
+      this.undoableStore.mergeSegments(segments.values().next().value, Array.from(segments.keys()))
+      this.tempStore.selectedSegments = new Map()
     },
     segmentSplit() {
-      const segment = this.tempStore.selectedSegments[0]
+      const [shotid, timelineid] = this.tempStore.selectedSegments.entries().next().value
       this.undoableStore.splitSegment(
-        segment.timeline,
-        segment.id,
+        timelineid,
+        shotid,
         Math.round(this.tempStore.playPosition * this.mainStore.fps)
       )
-      this.tempStore.selectedSegments = []
+      this.tempStore.selectedSegments = new Map()
     },
     deleteTimeline(id) {
       this.undoableStore.deleteTimeline(id)

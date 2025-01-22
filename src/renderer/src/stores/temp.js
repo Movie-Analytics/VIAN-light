@@ -6,7 +6,7 @@ export const useTempStore = defineStore('temp', {
     playPosition: 0,
     playJumpPosition: null,
     jobs: [],
-    selectedSegments: [],
+    selectedSegments: new Map(), // shot id -> timeline id
     imageCache: new Map(),
     tmpShot: null,
     muted: false
@@ -19,7 +19,7 @@ export const useTempStore = defineStore('temp', {
       this.playPosition = 0
       this.playJumpPosition = null
       this.jobs = []
-      this.selectedSegments = []
+      this.selectedSegments = new Map()
       this.imageCache = new Map()
       this.tmpShot = null
       this.muted = false
