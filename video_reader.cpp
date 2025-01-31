@@ -411,7 +411,7 @@ int VideoReader::saveFrame(const std::string& directory, int frame_num) {
 int VideoReader::generateScreenshots(const std::string& directory, const std::vector<int>& frameStamps) {
     AVPacket packet;
     int response;
-    uint n_frames_extracted = 0;
+    int n_frames_extracted = 0;
 
     while (av_read_frame(format_ctx, &packet) >= 0 && n_frames_extracted < frameStamps.size()) {
         if (packet.stream_index == video_stream_index) {
