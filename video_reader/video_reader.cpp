@@ -119,7 +119,7 @@ std::vector<uint8_t>& VideoReader::ReadNextFrame(std::vector<uint8_t>& out_frame
                 finished = true;
                 return out_frame_data;
             }
-            fprintf(stderr, "frame num%" PRId64 "\n", codec_ctx->frame_num);
+            fprintf(stderr, "frame num %" PRId64 "\n", codec_ctx->frame_num);
 
             // TODO get cache sws context?
             SwsContext* sws_ctx = sws_getContext(

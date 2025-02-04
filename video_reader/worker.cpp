@@ -20,22 +20,18 @@ void Worker::Cancel() {
 
 void Worker::Execute() {
     try {
-        printf("execute");
         execFunction(videoReader, result);
         if (videoReader->isCancelled()) {
             SetError("Operation cancelled");
         }
     } catch (const std::exception& e) {
-        printf("exception");
         SetError(e.what());
     }
 }
 
 void Worker::OnOK() {
-    printf("ok");
     Napi::HandleScope scope(Env());
     Napi::Value jsResult = resultHandler(Env(), result);
-    printf("callback");
     Callback().Call({Env().Null(), jsResult});
 }
 
