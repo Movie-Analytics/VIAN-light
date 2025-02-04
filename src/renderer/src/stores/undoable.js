@@ -17,6 +17,9 @@ export const useUndoableStore = defineStore('undoable', {
     },
     shotTimelines() {
       return this.timelines.filter((t) => t.type === 'shots')
+    },
+    screenshotTimelines() {
+      return this.timelines.filter((t) => t.type.startsWith('screenshot'))
     }
   },
   actions: {
