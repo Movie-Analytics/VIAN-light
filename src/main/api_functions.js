@@ -43,9 +43,14 @@ export function loadSubtitles(projectId) {
 }
 
 export function terminateJob(channel, jobId) {
-  jobs[jobId].worker.terminate()
-  jobs[jobId].status = 'CANCELED'
-  sendJobsUpdate(channel)
+  const job = jobs[jobId]
+  if (job.type === 'shotboundary-detection' || job.type === 'screenshots-generation') {
+    job.worker.postMessage({ type: 'TERMINATE' })
+  } else {
+    job.worker.terminate()
+    job.status = 'CANCELED'
+    sendJobsUpdate(channel)
+  }
 }
 
 export function loadStore(name, id) {
@@ -98,9 +103,14 @@ export function runShotBoundaryDetection(channel, videoPath) {
   })
 
   worker.on('message', (data) => {
-    job.status = 'DONE'
-    sendJobsUpdate(channel)
-    channel.sender.send('shotboundary-detected', data.shots)
+    if (data.status === 'DONE') {
+      job.status = 'DONE'
+      sendJobsUpdate(channel)
+      channel.sender.send('shotboundary-detected', data.shots)
+    } else {
+      job.status = 'CANCELED'
+      sendJobsUpdate(channel)
+    }
   })
 }
 
@@ -127,9 +137,14 @@ export function runScreenshotsGeneration(channel, videoPath, frames, videoId) {
   })
 
   worker.on('message', (data) => {
-    job.status = 'DONE'
-    sendJobsUpdate(channel)
-    channel.sender.send('screenshots-generated', data.data)
+    if (data.status === 'DONE') {
+      job.status = 'DONE'
+      sendJobsUpdate(channel)
+      channel.sender.send('screenshots-generated', data.data)
+    } else {
+      job.status = 'CANCELED'
+      sendJobsUpdate(channel)
+    }
   })
 }
 

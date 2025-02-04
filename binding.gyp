@@ -34,7 +34,14 @@
               ]
             }
           },
-          "sources": [ "video_reader.cpp", "video_reader.h", ],
+          "sources": [ 
+            "video_reader/video_reader.cpp", 
+            "video_reader/video_reader.h", 
+            "video_reader/video_reader_wrapper.cpp", 
+            "video_reader/video_reader_wrapper.h", 
+            "video_reader/worker.cpp", 
+            "video_reader/worker.h", 
+          ],
           "libraries": [
             "<(module_root_dir)/onnxlibs/lib/onnxruntime.lib",
             "<(module_root_dir)/ffmpeglibs/lib/libavcodec.a",
@@ -67,8 +74,12 @@
         }],
         ["OS!='win'", {
           "sources": [
-            "video_reader.cpp",
-            "video_reader.h",
+            "video_reader/video_reader.cpp", 
+            "video_reader/video_reader.h", 
+            "video_reader/video_reader_wrapper.cpp", 
+            "video_reader/video_reader_wrapper.h", 
+            "video_reader/worker.cpp", 
+            "video_reader/worker.h", 
             "ffmpeglibs/lib/libavcodec.a",
             "ffmpeglibs/lib/libavdevice.a",
             "ffmpeglibs/lib/libavfilter.a",

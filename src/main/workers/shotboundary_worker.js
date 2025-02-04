@@ -8,6 +8,17 @@ console.log('Started worker to detect shot boundaries')
 if (workerData !== null && workerData !== undefined) {
   const reader = new video_reader.VideoReader(workerData)
   reader.open()
-  const shots = reader.detectShots(onnxPath)
-  parentPort.postMessage({ shots })
+  reader.detectShots(onnxPath, (err, result) => {
+    if (err) {
+      parentPort.postMessage({ status: 'CANCELED' })
+    } else {
+      parentPort.postMessage({ status: 'DONE', shots: result })
+    }
+  })
+
+  parentPort.on('message', (e) => {
+    if (e.type === 'TERMINATE') {
+      reader.cancelOperation()
+    }
+  })
 }
