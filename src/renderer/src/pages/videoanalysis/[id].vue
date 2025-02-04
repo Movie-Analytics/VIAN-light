@@ -222,11 +222,10 @@ export default {
       return this.screenshotPerShot && this.screenshotShotTimeline === undefined
     },
     exportScreenshotsIndividualDisabled() {
-      console.log('computed export ind.', this.tempStore.selectedSegments)
-      return (
-        this.tempStore.selectedSegments.length == 0 ||
-        this.tempStore.selectedSegments[0].type !== 'screenshot'
-      )
+      if (this.tempStore.selectedSegments.size == 0) return true
+      const [shotid, timelineid] = this.tempStore.selectedSegments.entries().next().value
+      const segment = this.undoableStore.getSegmentForId(timelineid, shotid)
+      return segment.image === undefined
     }
   },
   created() {
@@ -255,10 +254,12 @@ export default {
     },
     exportScreenshots(individually) {
       if (individually) {
-        const frames = this.tempStore.selectedSegments.map((s) => s.x)
-        api().exportScreenshots(this.mainStore.id, frames)
+        const frames = Array.from(this.tempStore.selectedSegments.entries()).map(
+          (shotinfo) => this.undoableStore.getSegmentForId(shotinfo[1], shotinfo[0]).frame
+        )
+        api.exportScreenshots(this.mainStore.id, frames)
       } else {
-        api().exportScreenshots(this.mainStore.id)
+        api.exportScreenshots(this.mainStore.id)
       }
       this.exportScreenshotsDialog = false
     },
