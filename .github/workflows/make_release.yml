@@ -33,7 +33,6 @@ jobs:
             **/vian-lite-linux*
             **/vian-lite-win*
             **/vian-lite-mac*
-          tag_name: artifacts-release-${{ github.run_id }}
           tag_name: ${{ github.event.inputs.release-tag }}
           generate_release_notes: true
         env:
