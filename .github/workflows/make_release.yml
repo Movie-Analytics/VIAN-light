@@ -46,4 +46,4 @@ jobs:
           tag_name: ${{ github.event.inputs.release-tag }}
           generate_release_notes: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN_GITHUB }}
