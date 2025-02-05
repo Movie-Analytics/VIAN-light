@@ -19,7 +19,7 @@ jobs:
       - name: Get Latest Workflow Run
         id: get-run
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.ACCESS_TOKEN_GITHUB }}
         run: |
           latest_run=$(gh run list --workflow=build_electron.yml --limit 1 --json databaseId,status --jq '.[] | select(.status == "completed") | .databaseId')
           echo "run_id=$latest_run" >> $GITHUB_OUTPUT
@@ -27,7 +27,7 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
           run-id: ${{ steps.get-run.outputs.run_id }}
 
       - name: Create Release
