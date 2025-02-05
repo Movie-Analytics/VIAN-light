@@ -29,14 +29,17 @@ jobs:
         with:
           github-token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
           run-id: ${{ steps.get-run.outputs.run_id }}
+        
+      - name: Debug
+        run: ls
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            **/vian-lite-linux*
-            **/vian-lite-win*
-            **/vian-lite-mac*
+            vian-lite-linux*
+            vian-lite-win*
+            vian-lite-mac*
           tag_name: ${{ github.event.inputs.release-tag }}
           generate_release_notes: true
         env:
