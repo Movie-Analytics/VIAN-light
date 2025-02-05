@@ -47,3 +47,9 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+
+      - name: Delete Workflow Run
+        env:
+          GH_TOKEN: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+        run: |
+          gh run delete ${{ steps.get-run.outputs.run_id }}
