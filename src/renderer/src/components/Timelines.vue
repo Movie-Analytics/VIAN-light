@@ -1,80 +1,74 @@
 <template>
-  <v-card>
-    <v-card-title>Timelines</v-card-title>
-    <v-card-text>
-      <v-row>
-        <v-btn
-          density="compact"
-          variant="text"
-          :disabled="!segmentDeletable"
-          icon
-          @click="segmentDelete"
-        >
-          <v-icon>mdi-delete</v-icon>
-        </v-btn>
-        <v-btn
-          density="compact"
-          variant="text"
-          :disabled="!segmentSplitable"
-          icon
-          @click="segmentSplit"
-        >
-          <v-icon>mdi-table-split-cell</v-icon>
-        </v-btn>
-        <v-btn
-          density="compact"
-          variant="text"
-          :disabled="!segmentMergable"
-          icon
-          @click="segmentMerge"
-        >
-          <v-icon>mdi-table-merge-cells</v-icon>
-        </v-btn>
-      </v-row>
-      <v-row>
-        <v-col cols="3">
-          <v-list lines="one" style="padding-top: 30px">
-            <v-list-item
-              v-for="timeline in undoableStore.timelines"
-              :key="timeline"
-              :title="timeline.name"
-            >
-              <template #append>
-                <v-list-item-action start>
-                  <v-menu>
-                    <template #activator="{ props }">
-                      <v-btn variant="text" density="compact" icon v-bind="props">
-                        <v-icon>mdi-dots-vertical</v-icon>
-                      </v-btn>
-                    </template>
-                    <v-list>
-                      <v-list-item
-                        title="Duplicate"
-                        @click="duplicateTimeline(timeline.id)"
-                      ></v-list-item>
-                      <v-list-item
-                        title="Delete"
-                        @click="deleteTimeline(timeline.id)"
-                      ></v-list-item>
-                      <v-list-item
-                        title="Rename"
-                        @click="renameDialogOpen(timeline.id)"
-                      ></v-list-item>
-                    </v-list>
-                  </v-menu>
-                </v-list-item-action>
-              </template>
-            </v-list-item>
-            <v-list-item @click="addTimeline">
-              <v-icon>mdi-playlist-plus</v-icon>
-            </v-list-item>
-          </v-list>
-        </v-col>
-        <v-col>
-          <timeline-canvas></timeline-canvas>
-        </v-col>
-      </v-row>
-    </v-card-text>
+  <v-sheet>
+    <v-row>
+      <v-btn
+        density="compact"
+        variant="text"
+        :disabled="!segmentDeletable"
+        icon
+        @click="segmentDelete"
+      >
+        <v-icon>mdi-delete</v-icon>
+      </v-btn>
+      <v-btn
+        density="compact"
+        variant="text"
+        :disabled="!segmentSplitable"
+        icon
+        @click="segmentSplit"
+      >
+        <v-icon>mdi-table-split-cell</v-icon>
+      </v-btn>
+      <v-btn
+        density="compact"
+        variant="text"
+        :disabled="!segmentMergable"
+        icon
+        @click="segmentMerge"
+      >
+        <v-icon>mdi-table-merge-cells</v-icon>
+      </v-btn>
+    </v-row>
+    <v-row>
+      <v-col cols="3">
+        <v-list lines="one" style="padding-top: 30px">
+          <v-list-item
+            v-for="timeline in undoableStore.timelines"
+            :key="timeline"
+            :title="timeline.name"
+          >
+            <template #append>
+              <v-list-item-action start>
+                <v-menu>
+                  <template #activator="{ props }">
+                    <v-btn variant="text" density="compact" icon v-bind="props">
+                      <v-icon>mdi-dots-vertical</v-icon>
+                    </v-btn>
+                  </template>
+                  <v-list>
+                    <v-list-item
+                      title="Duplicate"
+                      @click="duplicateTimeline(timeline.id)"
+                    ></v-list-item>
+                    <v-list-item title="Delete" @click="deleteTimeline(timeline.id)"></v-list-item>
+                    <v-list-item
+                      title="Rename"
+                      @click="renameDialogOpen(timeline.id)"
+                    ></v-list-item>
+                  </v-list>
+                </v-menu>
+              </v-list-item-action>
+            </template>
+          </v-list-item>
+          <v-list-item @click="addTimeline">
+            <v-icon>mdi-playlist-plus</v-icon>
+          </v-list-item>
+        </v-list>
+      </v-col>
+      <v-col>
+        <timeline-canvas></timeline-canvas>
+      </v-col>
+    </v-row>
     <v-dialog v-model="renameDialog" persistent max-width="400">
       <v-card>
         <v-card-title>Rename Timeline</v-card-title>
@@ -87,7 +81,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-card>
+  </v-sheet>
 </template>
 
 <script>

@@ -1,7 +1,7 @@
 <template>
   <div>
     <canvas ref="canvas" height="0"></canvas>
-    <canvas ref="hiddenCanvas" height="0" style="display: none"></canvas>
+    <canvas ref="hiddenCanvas" height="0" class="d-none"></canvas>
   </div>
 </template>
 
@@ -65,6 +65,8 @@ export default {
     d3.select(this.$refs.canvas).on('mouseleave', (e) => this.mouseleave(e))
     d3.select(this.$refs.canvas).on('mousemove', (e) => this.mousemove(e))
     d3.select(this.$refs.canvas).on('mouseup', (e) => this.mouseup(e))
+    this.drawSetup()
+    this.draw()
   },
   beforeUnmount() {
     this.resizeoberserver.unobserve(this.$refs.canvas)

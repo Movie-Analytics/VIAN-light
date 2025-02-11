@@ -1,5 +1,5 @@
 <template>
-  <v-card>
+  <v-sheet>
     <video
       ref="video"
       class="ma-2"
@@ -21,6 +21,7 @@
         :step="0.1"
         hide-details="true"
         style="min-width: 300px"
+        class="px-2"
         @update:model-value="sliderMoved"
       ></v-slider>
       <div class="ma-2" style="min-width: 300px">
@@ -51,7 +52,7 @@
         </v-btn>
       </div>
     </div>
-  </v-card>
+  </v-sheet>
 </template>
 
 <script>

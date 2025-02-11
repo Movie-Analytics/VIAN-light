@@ -78,6 +78,22 @@
             </v-list>
           </v-menu>
         </v-list-item>
+        <v-list-item>
+          <v-list-item-title>Layout</v-list-item-title>
+          <template #append>
+            <v-icon icon="mdi-menu-right" size="x-small"></v-icon>
+          </template>
+          <v-menu :open-on-focus="false" activator="parent" open-on-hover submenu>
+            <v-list>
+              <v-list-item @click="layout = 'tibava'">
+                <v-list-item-title>TIBAVA</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="layout = 'draggable'">
+                <v-list-item-title>Draggable</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </v-list-item>
       </v-list>
     </v-menu>
     <v-btn v-tooltip="'Home'" icon @click="homeClicked">
@@ -85,40 +101,8 @@
     </v-btn>
   </v-app-bar>
   <v-main class="ma-3">
-    <div class="px-5">
-      <v-row>
-        <v-col style="min-width: 400px">
-          <video-player></video-player>
-        </v-col>
-        <v-col cols="6" style="max-width: 700px">
-          <v-card>
-            <v-tabs v-model="tab" show-arrows>
-              <v-tab value="info">Info</v-tab>
-              <v-tab :disabled="undoableStore.shotTimelines.length == 0" value="shots">Shots</v-tab>
-              <v-tab value="selection">Selection</v-tab>
-            </v-tabs>
-            <v-card-text>
-              <v-tabs-window v-model="tab">
-                <v-tabs-window-item value="info">
-                  <p v-if="mainStore.fps">FPS: {{ mainStore.fps }}</p>
-                </v-tabs-window-item>
-                <v-tabs-window-item value="shots">
-                  <shot-list></shot-list>
-                </v-tabs-window-item>
-                <v-tabs-window-item value="selection">
-                  <shot-detail></shot-detail>
-                </v-tabs-window-item>
-              </v-tabs-window>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col>
-          <timelines></timelines>
-        </v-col>
-      </v-row>
-    </div>
+    <layout-tibava v-if="layout === 'tibava'"></layout-tibava>
+    <layout-draggable v-else-if="layout === 'draggable'"></layout-draggable>
     <v-dialog v-model="genScreenshotDialog" persistent max-width="400">
       <v-card>
         <v-card-title>Generate Screenshots</v-card-title>
@@ -186,15 +170,13 @@ import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
 import { useUndoStore } from '@renderer/stores/undo'
 import { api } from '@renderer/api'
-import ShotDetail from '@renderer/components/ShotDetail.vue'
-import ShotList from '@renderer/components/ShotList.vue'
-import Timelines from '@renderer/components/Timelines.vue'
-import VideoPlayer from '@renderer/components/VideoPlayer.vue'
+import LayoutTibava from '@renderer/components/LayoutTibava.vue'
+import LayoutDraggable from '@renderer/components/LayoutDraggable.vue'
 
 export default {
-  components: { Timelines, VideoPlayer, ShotList, ShotDetail },
+  components: { LayoutTibava, LayoutDraggable },
   data: () => ({
-    tab: null,
+    layout: 'tibava',
     genScreenshotDialog: false,
     screenshotPerShot: false,
     screenshotInterval: 10,

@@ -1,5 +1,5 @@
 <template>
-  <v-sheet>
+  <v-sheet style="height: inherit">
     <v-row class="ma-1">
       <v-select
         v-model="shotTimeline"
@@ -19,37 +19,39 @@
       >
       </v-select>
     </v-row>
-    <v-virtual-scroll v-if="shotTimeline" :height="300" :items="shots">
-      <template #default="{ item, index }">
-        <div class="my-5">
-          <div>
-            <span class="font-weight-bold">Shot {{ index + 1 }}</span>
-            <span class="text-medium-emphasis">
-              ({{ mainStore.timeReadableFrame(item.start) }} -
-              {{ mainStore.timeReadableFrame(item.end) }})
-            </span>
+    <div id="virtualscroll-container">
+      <v-virtual-scroll v-if="shotTimeline" :items="shots">
+        <template #default="{ item, index }">
+          <div class="my-5">
+            <div>
+              <span class="font-weight-bold">Shot {{ index + 1 }}</span>
+              <span class="text-medium-emphasis">
+                ({{ mainStore.timeReadableFrame(item.start) }} -
+                {{ mainStore.timeReadableFrame(item.end) }})
+              </span>
+            </div>
+            <div>
+              <p>
+                <span>Annotation: {{ item.annotation }}</span>
+              </p>
+            </div>
+            <v-row
+              v-if="screenshotTimeline != null"
+              justify="start"
+              class="overflow-x-auto mx-3 pt-3 flex-nowrap ga-3"
+            >
+              <img
+                v-for="img in getShotImages(item)"
+                :key="img.id"
+                :src="img.thumbnail"
+                style="height: 50px"
+                loading="lazy"
+              />
+            </v-row>
           </div>
-          <div>
-            <p>
-              <span>Annotation: {{ item.annotation }}</span>
-            </p>
-          </div>
-          <v-row
-            v-if="screenshotTimeline != null"
-            justify="start"
-            class="overflow-x-auto mx-3 pt-3 flex-nowrap ga-3"
-          >
-            <img
-              v-for="img in getShotImages(item)"
-              :key="img.id"
-              :src="img.thumbnail"
-              style="height: 50px"
-              loading="lazy"
-            />
-          </v-row>
-        </div>
-      </template>
-    </v-virtual-scroll>
+        </template>
+      </v-virtual-scroll>
+    </div>
   </v-sheet>
 </template>
 
@@ -83,3 +85,9 @@ export default {
   }
 }
 </script>
+<style scoped>
+#virtualscroll-container {
+  display: flex;
+  height: calc(100% - 100px);
+}
+</style>
