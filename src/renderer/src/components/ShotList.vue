@@ -8,16 +8,14 @@
         item-title="name"
         item-value="id"
         class="me-2"
-      >
-      </v-select>
+      />
       <v-select
         v-model="screenshotTimeline"
         :items="undoableStore.screenshotTimelines"
         label="Screenshot Timeline"
         item-title="name"
         item-value="id"
-      >
-      </v-select>
+      />
     </v-row>
     <div id="virtualscroll-container">
       <v-virtual-scroll v-if="shotTimeline" :items="shots">
@@ -36,7 +34,7 @@
               </p>
             </div>
             <v-row
-              v-if="screenshotTimeline != null"
+              v-if="screenshotTimeline"
               justify="start"
               class="overflow-x-auto mx-3 pt-3 flex-nowrap ga-3"
             >
@@ -66,21 +64,27 @@ export default {
     screenshotTimeline: null
   }),
   computed: {
-    ...mapStores(useMainStore),
-    ...mapStores(useUndoableStore),
+    ...mapStores(useMainStore, useUndoableStore),
     shots() {
-      if (!this.shotTimeline) return []
-
-      return this.undoableStore.shotTimelines.filter((s) => s.id === this.shotTimeline)[0].data
+      const timeline = this.undoableStore.shotTimelines.find((s) => s.id === this.shotTimeline)
+      return timeline ? timeline.data : []
+    }
+  },
+  watch: {
+    'undoableStore.timelines'(newVal) {
+      const timelineIds = newVal.map((t) => t.id)
+      if (!timelineIds.includes(this.shotTimeline)) this.shotTimeline = null
+      if (!timelineIds.includes(this.screenshotTimeline)) this.screenshotTimeline = null
     }
   },
   methods: {
     getShotImages(shot) {
-      if (this.screenshotTimeline === null) return null
-
-      return this.undoableStore.screenshotTimelines
-        .filter((s) => s.id === this.screenshotTimeline)[0]
-        .data.filter((s) => s.frame >= shot.start && s.frame < shot.end)
+      const timeline = this.undoableStore.screenshotTimelines.find(
+        (s) => s.id === this.screenshotTimeline
+      )
+      return timeline
+        ? timeline.data.filter((s) => s.frame >= shot.start && s.frame < shot.end)
+        : []
     }
   }
 }

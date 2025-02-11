@@ -78,6 +78,8 @@ export const useUndoableStore = defineStore('undoable', {
     deleteSegments(timelineId, segmentIds) {
       const timeline = this.timelines.filter((t) => t.id === timelineId)[0]
       timeline.data = timeline.data.filter((s) => segmentIds.indexOf(s.id) < 0)
+      const tempStore = useTempStore()
+      tempStore.validateSelectedSegments()
     },
     mergeSegments(timelineId, segmentIds) {
       const timeline = this.timelines.filter((t) => t.id === timelineId)[0]
@@ -88,6 +90,8 @@ export const useUndoableStore = defineStore('undoable', {
         segment.end = Math.max(segment.end, timeline.data[index].end)
         timeline.data.splice(index, 1)
       }
+      const tempStore = useTempStore()
+      tempStore.validateSelectedSegments()
     },
     getSegmentForId(timelineId, segmentId) {
       const timeline = this.timelines.filter((t) => t.id === timelineId)[0]
@@ -136,6 +140,8 @@ export const useUndoableStore = defineStore('undoable', {
     },
     deleteTimeline(id) {
       this.timelines = this.timelines.filter((t) => t.id !== id)
+      const tempStore = useTempStore()
+      tempStore.validateSelectedSegments()
     },
     duplicateTimeline(id) {
       const timeline = this.timelines.filter((t) => t.id === id)[0]
