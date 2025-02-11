@@ -102,9 +102,7 @@ export default {
     }
   },
   computed: {
-    ...mapStores(useMainStore),
-    ...mapStores(useTempStore),
-    ...mapStores(useUndoableStore),
+    ...mapStores(useMainStore, useTempStore, useUndoableStore),
     segmentDeletable() {
       return this.tempStore.selectedSegments.size > 0
     },

@@ -27,9 +27,7 @@ export default {
     timeout: null
   }),
   computed: {
-    ...mapStores(useMainStore),
-    ...mapStores(useUndoableStore),
-    ...mapStores(useTempStore),
+    ...mapStores(useMainStore, useUndoableStore, useTempStore),
     selectedTimelineSegment() {
       if (this.tempStore.selectedSegments.size !== 1) return
       const [shotid, timelineid] = this.tempStore.selectedSegments.entries().next().value

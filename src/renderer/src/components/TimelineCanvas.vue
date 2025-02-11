@@ -30,9 +30,7 @@ export default {
     }
   },
   computed: {
-    ...mapStores(useMainStore),
-    ...mapStores(useTempStore),
-    ...mapStores(useUndoableStore)
+    ...mapStores(useMainStore, useTempStore, useUndoableStore)
   },
   watch: {
     'undoableStore.timelines': {
@@ -269,7 +267,7 @@ export default {
         this.undoableStore.addShotToNth(
           Math.floor((coord[1] - 32) / 48),
           this.tempStore.tmpShot.start,
-          this.tempStore.tmpShot.end,
+          this.tempStore.tmpShot.end
         )
       } else {
         this.undoableStore.changeShotBoundaries(
@@ -327,8 +325,8 @@ export default {
         const xwidth = Math.round(rescale(d.x + d.width))
         if (d.type === 'shot') {
           ctx.fillStyle = selectedSegments.has(d.id) ? 'yellow' : d.fill
-          ctx.fillRect(x, d.y, xwidth-x, d.height)
-          hCtx.fillRect(x, d.y, xwidth-x, d.height)
+          ctx.fillRect(x, d.y, xwidth - x, d.height)
+          hCtx.fillRect(x, d.y, xwidth - x, d.height)
 
           // draw handles for grabbing
           ctx.globalAlpha = 0.1

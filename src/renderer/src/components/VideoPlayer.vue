@@ -78,9 +78,7 @@ export default {
     pictureInPictureEnabled() {
       return document !== undefined && document.pictureInPictureEnabled
     },
-    ...mapStores(useMainStore),
-    ...mapStores(useTempStore),
-    ...mapStores(useUndoableStore)
+    ...mapStores(useMainStore, useTempStore, useUndoableStore)
   },
   watch: {
     'tempStore.playJumpPosition'(newValue) {

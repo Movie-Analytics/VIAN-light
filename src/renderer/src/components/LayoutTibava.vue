@@ -57,8 +57,7 @@ export default {
     tab: null
   }),
   computed: {
-    ...mapStores(useMainStore),
-    ...mapStores(useUndoableStore)
+    ...mapStores(useMainStore, useUndoableStore)
   }
 }
 </script>

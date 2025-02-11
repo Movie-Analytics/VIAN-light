@@ -184,10 +184,7 @@ export default {
     exportScreenshotsDialog: false
   }),
   computed: {
-    ...mapStores(useMainStore),
-    ...mapStores(useTempStore),
-    ...mapStores(useUndoableStore),
-    ...mapStores(useUndoStore),
+    ...mapStores(useMainStore, useTempStore, useUndoableStore, useUndoStore),
     runningJobs() {
       return Object.values(this.tempStore.jobs).some((j) => j.status === 'RUNNING')
     },
