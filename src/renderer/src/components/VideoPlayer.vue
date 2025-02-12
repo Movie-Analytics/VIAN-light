@@ -7,11 +7,11 @@
       @durationchange="durationChange"
       @timeupdate="videoTimeUpdate"
     >
-      <source :src="mainStore.videoFileSrc" type="video/mp4" />
+      <source v-if="mainStore.video !== null" :src="mainStore.video" type="video/mp4" />
       <track
-        v-if="undoableStore.subtitleFileSrc !== undefined"
+        v-if="undoableStore.subtitles !== null"
         kind="subtitles"
-        :src="undoableStore.subtitleFileSrc"
+        :src="undoableStore.subtitles"
         default
       />
     </video>
@@ -46,7 +46,7 @@
           <v-icon v-if="tempStore.muted">mdi-volume-high</v-icon>
           <v-icon v-else>mdi-volume-mute</v-icon>
         </v-btn>
-        <v-btn v-if="undoableStore.subtitleFileSrc !== undefined" icon @click="toggleSubtitles">
+        <v-btn v-if="undoableStore.subtitles !== null" icon @click="toggleSubtitles">
           <v-icon v-if="undoableStore.subtitlesVisible">mdi-subtitles</v-icon>
           <v-icon v-else>mdi-subtitles-outline</v-icon>
         </v-btn>

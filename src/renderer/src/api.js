@@ -1,5 +1,10 @@
-export function api() {
-  if (isElectron) {
-    return window.electronAPI
+let api
+
+if (isElectron) {
+  api = window.electronAPI
+} else {
+  api = {
   }
 }
+
+export default api

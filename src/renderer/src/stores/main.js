@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { useUndoableStore } from './undoable'
-import { api } from '@renderer/api'
+import api from '@renderer/api'
 
 export const useMainStore = defineStore('main', {
   state: () => ({
@@ -9,12 +9,6 @@ export const useMainStore = defineStore('main', {
     videoDuration: null,
     id: null
   }),
-  getters: {
-    videoFileSrc() {
-      if (this.video === null) return undefined
-      return 'app://' + this.video
-    }
-  },
   actions: {
     async openVideo(id, video) {
       // TODO could become race condition
@@ -23,23 +17,23 @@ export const useMainStore = defineStore('main', {
       undoableStore.id = id
       this.video = video
       if (this.fps === null && this.video !== null) {
-        api().getVideoInfo(this.video)
+        api.getVideoInfo(this.video)
       }
     },
     initialize() {
       this.$subscribe((mutation, state) => {
         if (this.id === null) return
         const copyState = JSON.parse(JSON.stringify(state))
-        api().saveStore('main', copyState)
+        api.saveStore('main', copyState)
       })
       // set up listener
-      api().onVideoInfo((channel, data) => {
+      api.onVideoInfo((data) => {
         this.fps = data.fps
       })
     },
     async loadStore(projectId) {
-      const state = await api().loadStore('main', projectId)
-      if (state !== undefined) {
+      const state = await api.loadStore('main', projectId)
+      if (state !== null) {
         this.$patch(state)
       }
     },
@@ -57,12 +51,6 @@ export const useMainStore = defineStore('main', {
         formattedSeconds = String(Math.round(t % 60)).padStart(2, '0')
       }
       return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`
-    },
-    reset() {
-      this.id = null
-      this.video = null
-      this.fps = null
-      this.videoDuration = null
     }
   }
 })

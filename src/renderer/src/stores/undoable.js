@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { useUndoStore } from './undo'
 import { useMainStore } from './main'
-import { api } from '@renderer/api'
+import { useTempStore } from './temp'
+import api from '@renderer/api'
 
 export const useUndoableStore = defineStore('undoable', {
   state: () => ({
@@ -11,95 +12,88 @@ export const useUndoableStore = defineStore('undoable', {
     id: null
   }),
   getters: {
-    subtitleFileSrc() {
-      if (this.subtitles === null) return undefined
-      return 'app://' + this.subtitles
-    },
-    shotTimelines() {
-      return this.timelines.filter((t) => t.type === 'shots')
-    },
-    screenshotTimelines() {
-      return this.timelines.filter((t) => t.type.startsWith('screenshot'))
-    }
+    shotTimelines: (state) => state.timelines.filter((t) => t.type === 'shots'),
+    screenshotTimelines: (state) => state.timelines.filter((t) => t.type.startsWith('screenshot'))
   },
   actions: {
     async initialize() {
       this.$subscribe((mutation, state) => {
         if (state.id === null || mutation.events.key === 'id') return
         const copyState = JSON.parse(JSON.stringify(state))
-        api().saveStore('undoable', copyState)
+        api.saveStore('undoable', copyState)
 
-        const undoStore = useUndoStore()
-        undoStore.push('undoable', copyState)
+        useUndoStore().push('undoable', copyState)
       })
 
-      // set up listeners
-      api().onScreenshotsGeneration((channel, data) => {
-        for (const screenshot of data) {
-          screenshot.id = crypto.randomUUID()
-        }
-        this.timelines.push({
-          type: 'screenshots',
-          name: 'Screenshots',
-          id: crypto.randomUUID(),
-          data: data
-        })
+      api.onScreenshotsGeneration(this.onScreenshotsGeneration)
+      api.onScreenshotGeneration(this.onScreenshotGeneration)
+      api.onShotBoundaryDetection(this.onShotBoundaryDetection)
+    },
+    onShotBoundaryDetection(data) {
+      this.timelines.push({
+        type: 'shots',
+        name: 'Shots',
+        id: crypto.randomUUID(),
+        data: data.map((shot) => ({ start: shot[0], end: shot[1], id: crypto.randomUUID() }))
       })
-      api().onScreenshotGeneration((channel, data) => {
-        data.id = crypto.randomUUID()
-        if (this.timelines.filter((t) => t.type === 'screenshots-manual').length > 0) {
-          this.timelines.filter((t) => t.type === 'screenshots-manual')[0].data.push(data)
-        } else {
-          this.timelines.push({
-            type: 'screenshots-manual',
-            name: 'Manual Screenshots',
-            id: crypto.randomUUID(),
-            data: [data]
-          })
-        }
-      })
-      api().onShotBoundaryDetection((channel, data) => {
+    },
+    onScreenshotGeneration(data) {
+      data.id = crypto.randomUUID()
+      if (this.timelines.find((t) => t.type === 'screenshots-manual')) {
+        this.timelines.find((t) => t.type === 'screenshots-manual').data.push(data)
+      } else {
         this.timelines.push({
-          type: 'shots',
-          name: 'Shots',
+          type: 'screenshots-manual',
+          name: 'Manual Screenshots',
           id: crypto.randomUUID(),
-          data: data.map((shot) => ({ start: shot[0], end: shot[1], id: crypto.randomUUID() }))
+          data: [data]
         })
+      }
+    },
+    onScreenshotsGeneration(data) {
+      data.forEach((screenshot) => {
+        screenshot.id = crypto.randomUUID()
+      })
+      this.timelines.push({
+        type: 'screenshots',
+        name: 'Screenshots',
+        id: crypto.randomUUID(),
+        data: data
       })
     },
     async runShotBoundaryDetection() {
-      const mainStore = useMainStore()
-      api().runShotBoundaryDetection(mainStore.video)
+      api.runShotBoundaryDetection(useMainStore().video)
     },
     async loadSubtitles() {
-      this.subtitles = await api().loadSubtitles(this.id)
+      this.subtitles = await api.loadSubtitles(this.id)
       return this.subtitles
     },
+    getTimelineById(id) {
+      return this.timelines.find((t) => t.id === id)
+    },
     deleteSegments(timelineId, segmentIds) {
-      const timeline = this.timelines.filter((t) => t.id === timelineId)[0]
-      timeline.data = timeline.data.filter((s) => segmentIds.indexOf(s.id) < 0)
-      const tempStore = useTempStore()
-      tempStore.validateSelectedSegments()
+      const timeline = this.getTimelineById(timelineId)
+      timeline.data = timeline.data.filter((s) => !segmentIds.includes(s.id))
+      useTempStore().validateSelectedSegments()
     },
     mergeSegments(timelineId, segmentIds) {
-      const timeline = this.timelines.filter((t) => t.id === timelineId)[0]
-      const segment = timeline.data.filter((s) => s.id == segmentIds[0])[0]
-      for (const segmentId of segmentIds.slice(1)) {
-        const index = timeline.data.map((s) => s.id).indexOf(segmentId)
+      const timeline = this.getTimelineById(timelineId)
+      const segment = timeline.data.find((s) => s.id == segmentIds[0])
+      segmentIds.slice(1).forEach((segmentId) => {
+        const index = timeline.data.findIndex((s) => s.id === segmentId)
         segment.start = Math.min(segment.start, timeline.data[index].start)
         segment.end = Math.max(segment.end, timeline.data[index].end)
         timeline.data.splice(index, 1)
-      }
-      const tempStore = useTempStore()
-      tempStore.validateSelectedSegments()
+      })
+      useTempStore().validateSelectedSegments()
     },
     getSegmentForId(timelineId, segmentId) {
-      const timeline = this.timelines.filter((t) => t.id === timelineId)[0]
-      return timeline.data.filter((s) => s.id == segmentId)[0]
+      const timeline = this.getTimelineById(timelineId)
+      return timeline.data.find((s) => s.id === segmentId)
     },
     splitSegment(timelineId, segmentId, position) {
-      const timeline = this.timelines.filter((t) => t.id === timelineId)[0]
-      const index = timeline.data.map((s) => s.id).indexOf(segmentId)
+      const timeline = this.getTimelineById(timelineId)
+      const index = timeline.data.findIndex((s) => s.id === segmentId)
       const segment = timeline.data[index]
       timeline.data.splice(index + 1, 0, {
         start: position,
@@ -121,30 +115,26 @@ export const useUndoableStore = defineStore('undoable', {
     changeShotBoundaries(shotId, start, end) {
       for (const timeline of this.timelines) {
         if (timeline.type !== 'shots') continue
-        for (const shot of timeline.data) {
-          if (shot.id === shotId) {
-            shot.start = start
-            shot.end = end
-            return
-          }
+        const shot = timeline.data.find((s) => s.id === shotId)
+        if (shot) {
+          shot.start = start
+          shot.end = end
+          return
         }
       }
     },
     generateScreenshots(frames) {
-      const mainStore = useMainStore()
-      api().runScreenshotsGeneration(mainStore.video, frames, this.id)
+      api.runScreenshotsGeneration(useMainStore().video, frames, this.id)
     },
     generateScreenshot(frame) {
-      const mainStore = useMainStore()
-      api().runScreenshotGeneration(mainStore.video, frame, this.id)
+      api.runScreenshotGeneration(useMainStore().video, frame, this.id)
     },
     deleteTimeline(id) {
       this.timelines = this.timelines.filter((t) => t.id !== id)
-      const tempStore = useTempStore()
-      tempStore.validateSelectedSegments()
+      useTempStore().validateSelectedSegments()
     },
     duplicateTimeline(id) {
-      const timeline = this.timelines.filter((t) => t.id === id)[0]
+      const timeline = this.getTimelineById(id)
       const newTimeline = JSON.parse(JSON.stringify(timeline))
       newTimeline.data.forEach((d) => {
         d.id = crypto.randomUUID()
@@ -154,7 +144,7 @@ export const useUndoableStore = defineStore('undoable', {
       this.timelines.push(newTimeline)
     },
     renameTimeline(id, name) {
-      this.timelines.filter((t) => t.id === id)[0].name = name
+      this.getTimelineById(id).name = name
     },
     addNewTimeline() {
       this.timelines.push({
@@ -165,32 +155,24 @@ export const useUndoableStore = defineStore('undoable', {
       })
     },
     async importAnnotations() {
-      const timelines = await api().importAnnotations(this.id)
-      if (!timelines) return
-      this.timelines = this.timelines.concat(timelines)
+      const timelines = await api.importAnnotations(this.id)
+      if (timelines) {
+        this.timelines = this.timelines.concat(timelines)
+      }
     },
-
     async loadStore(projectId) {
-      const state = await api().loadStore('undoable', projectId)
-      if (state !== undefined) {
+      const state = await api.loadStore('undoable', projectId)
+      if (state !== null) {
         this.$patch(state)
       } else {
         this.id = projectId
       }
     },
     undo() {
-      const undoStore = useUndoStore()
-      this.$patch(undoStore.undo('undoable'))
+      this.$patch(useUndoStore().undo('undoable'))
     },
     redo() {
-      const undoStore = useUndoStore()
-      this.$patch(undoStore.redo('undoable'))
-    },
-    reset() {
-      this.id = null
-      this.subtitles = null
-      this.timelines = []
-      this.subtitlesVisible = true
+      this.$patch(useUndoStore().redo('undoable'))
     }
   }
 })

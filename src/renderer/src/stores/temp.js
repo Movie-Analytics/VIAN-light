@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { api } from '@renderer/api'
+import { useUndoableStore } from './undoable'
+import api from '@renderer/api'
 
 export const useTempStore = defineStore('temp', {
   state: () => ({
@@ -13,19 +14,10 @@ export const useTempStore = defineStore('temp', {
   }),
   actions: {
     terminateJob(id) {
-      window.electronAPI.terminateJob(id)
-    },
-    reset() {
-      this.playPosition = 0
-      this.playJumpPosition = null
-      this.jobs = []
-      this.selectedSegments = new Map()
-      this.imageCache = new Map()
-      this.tmpShot = null
-      this.muted = false
+      api.terminateJob(id)
     },
     initialize() {
-      api().onJobsUpdate((channel, data) => {
+      api.onJobsUpdate((data) => {
         this.jobs = data
       })
     },

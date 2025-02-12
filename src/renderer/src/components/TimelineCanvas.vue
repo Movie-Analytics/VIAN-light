@@ -86,7 +86,7 @@ export default {
       const timelineLength = this.mainStore.videoDuration * this.mainStore.fps
       this.scale = d3.scaleLinear([0, timelineLength], [0, this.canvasWidth])
       this.zoom.translateExtent([
-        [-0.1, 0],
+        [0, 0],
         [this.canvasWidth, 150]
       ])
     },

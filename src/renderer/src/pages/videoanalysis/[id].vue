@@ -20,7 +20,7 @@
         </v-btn>
       </template>
       <v-list>
-        <v-list-item v-for="(job, k, i) in tempStore.jobs" :key="i">
+        <v-list-item v-for="(job, i) in tempStore.jobs" :key="i">
           <v-list-item-title>{{ job.type }}</v-list-item-title>
           <template #append>
             <v-badge :color="statusToColor(job.status)" :content="job.status" inline></v-badge>
@@ -169,7 +169,7 @@ import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
 import { useUndoStore } from '@renderer/stores/undo'
-import { api } from '@renderer/api'
+import api from '@renderer/api'
 import LayoutTibava from '@renderer/components/LayoutTibava.vue'
 import LayoutDraggable from '@renderer/components/LayoutDraggable.vue'
 
@@ -186,10 +186,10 @@ export default {
   computed: {
     ...mapStores(useMainStore, useTempStore, useUndoableStore, useUndoStore),
     runningJobs() {
-      return Object.values(this.tempStore.jobs).some((j) => j.status === 'RUNNING')
+      return this.tempStore.jobs.some((j) => j.status === 'RUNNING')
     },
     hasJobs() {
-      return Object.keys(this.tempStore.jobs).length > 0
+      return this.tempStore.jobs.length > 0
     },
     isUndoable() {
       return this.undoStore.isUndoable('undoable')
@@ -214,9 +214,9 @@ export default {
   methods: {
     homeClicked() {
       this.$router.push('/')
-      this.mainStore.reset()
-      this.tempStore.reset()
-      this.undoableStore.reset()
+      this.mainStore.$reset()
+      this.tempStore.$reset()
+      this.undoableStore.$reset()
       this.undoStore.reset()
     },
     undo() {
@@ -233,8 +233,8 @@ export default {
     },
     exportScreenshots(individually) {
       if (individually) {
-        const frames = Array.from(this.tempStore.selectedSegments.entries()).map(
-          (shotinfo) => this.undoableStore.getSegmentForId(shotinfo[1], shotinfo[0]).frame
+        const frames = Array.from(this.tempStore.selectedSegments).map(
+          ([shotid, timelineid]) => this.undoableStore.getSegmentForId(timelineid, shotid).frame
         )
         api.exportScreenshots(this.mainStore.id, frames)
       } else {
@@ -246,12 +246,9 @@ export default {
       this.genScreenshotDialog = false
       let frames = []
       let shotI = 0
-      let timelineShots
-      if (this.screenshotPerShot) {
-        timelineShots = this.undoableStore.shotTimelines.filter(
-          (t) => t.id === this.screenshotShotTimeline
-        )[0].data
-      }
+      const timelineShots = this.screenshotPerShot
+        ? this.undoableStore.shotTimelines.find((t) => t.id === this.screenshotShotTimeline).data
+        : []
 
       for (let i = 0; i <= this.mainStore.videoDuration; i++) {
         if (i % this.screenshotInterval == 0) {
@@ -281,7 +278,7 @@ export default {
       this.undoableStore.importAnnotations()
     },
     exportAnnotations(csv) {
-      api().exportAnnotations(this.mainStore.id, csv)
+      api.exportAnnotations(this.mainStore.id, csv)
     },
     statusToColor(status) {
       if (status === 'RUNNING') return 'yellow'
