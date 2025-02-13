@@ -1,7 +1,13 @@
 <template>
   <v-card :style="styles" @dragover.prevent>
     <v-card-title>
-      <v-icon size="x-small" draggable="true" @drag="moveOnDrag" @dragstart="moveDragStart">
+      <v-icon
+        size="x-small"
+        draggable="true"
+        @drag="moveOnDrag"
+        @dragstart="moveDragStart"
+        @dragend="moveOnDrag"
+      >
         mdi-cursor-move
       </v-icon>
       {{ title }}
@@ -15,6 +21,7 @@
       draggable="true"
       @drag="resizeOnDrag"
       @dragstart="resizeDragStart"
+      @dragend="resizeOnDrag"
     >
       mdi-resize-bottom-right
     </v-icon>
