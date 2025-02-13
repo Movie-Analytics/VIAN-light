@@ -117,7 +117,7 @@
           ></v-text-field>
           <v-checkbox
             v-model="screenshotPerShot"
-            label="Ensure at least one screenshot per frame"
+            label="Ensure at least one screenshot per shot"
           ></v-checkbox>
           <v-select
             v-if="screenshotPerShot"
@@ -170,6 +170,7 @@ import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
 import { useUndoStore } from '@renderer/stores/undo'
 import api from '@renderer/api'
+import { exportAnnotations } from '@renderer/importexport'
 import LayoutTibava from '@renderer/components/LayoutTibava.vue'
 import LayoutDraggable from '@renderer/components/LayoutDraggable.vue'
 
@@ -278,7 +279,7 @@ export default {
       this.undoableStore.importAnnotations()
     },
     exportAnnotations(csv) {
-      api.exportAnnotations(this.mainStore.id, csv)
+      exportAnnotations(csv)
     },
     statusToColor(status) {
       if (status === 'RUNNING') return 'yellow'

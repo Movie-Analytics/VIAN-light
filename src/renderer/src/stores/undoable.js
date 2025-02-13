@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
+
 import { useUndoStore } from './undo'
 import { useMainStore } from './main'
 import { useTempStore } from './temp'
 import api from '@renderer/api'
+import { parseEafAnnotations } from '@renderer/importexport'
 
 export const useUndoableStore = defineStore('undoable', {
   state: () => ({
@@ -154,11 +156,22 @@ export const useUndoableStore = defineStore('undoable', {
         data: []
       })
     },
-    async importAnnotations() {
-      const timelines = await api.importAnnotations(this.id)
-      if (timelines) {
-        this.timelines = this.timelines.concat(timelines)
-      }
+    importAnnotations() {
+      const fileInput = document.createElement('input')
+      fileInput.type = 'file'
+      fileInput.accept = '.eaf'
+      fileInput.addEventListener('change', async (event) => {
+        const file = event.target.files[0]
+        if (!file) return
+
+        const reader = new FileReader()
+        reader.onload = async (e) => {
+          const content = e.target.result
+          this.timelines = this.timelines.concat(parseEafAnnotations(content))
+        }
+        reader.readAsText(file)
+      })
+      fileInput.click()
     },
     async loadStore(projectId) {
       const state = await api.loadStore('undoable', projectId)

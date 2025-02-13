@@ -5,10 +5,8 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import {
   cleanUp,
-  exportAnnotations,
   exportScreenshots,
   getVideoInfo,
-  importAnnotations,
   loadStore,
   loadSubtitles,
   openVideoDialog,
@@ -127,9 +125,5 @@ ipcMain.on('get-video-info', (channel, path) => getVideoInfo(channel, path))
 ipcMain.on('export-screenshots', (channel, projectId, frames) =>
   exportScreenshots(channel, projectId, frames)
 )
-ipcMain.on('export-annotations', (channel, projectId, csv) =>
-  exportAnnotations(channel, projectId, csv)
-)
-ipcMain.handle('import-annotations', (_event, projectId) => importAnnotations(projectId))
 
 cleanUp()
