@@ -7,7 +7,7 @@
       </v-btn>
     </v-app-bar>
     <v-main class="fill-height">
-      <v-container class="flex-column d-md-flex" style="height: 100%" max-width="1000">
+      <v-container class="flex-column d-sm-flex" style="height: 100%" max-width="1000">
         <v-row justify="center">
           <v-col cols="auto" align-self="center">
             <p class="text-h1">VIAN light</p>
