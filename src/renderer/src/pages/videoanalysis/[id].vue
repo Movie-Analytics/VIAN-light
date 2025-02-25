@@ -239,7 +239,7 @@ export default {
         )
         api.exportScreenshots(this.mainStore.id, frames)
       } else {
-        api.exportScreenshots(this.mainStore.id)
+        api.exportScreenshots(this.mainStore.id, null)
       }
       this.exportScreenshotsDialog = false
     },

@@ -1,7 +1,7 @@
 {
   "name": "vian-lite",
   "version": "1.0.0",
-  "description": "An Electron application with Vue",
+  "description": "A video annotation and anylsis software",
   "main": "./out/main/index.js",
   "author": "example.com",
   "homepage": "https://electron-vite.org",
@@ -10,12 +10,14 @@
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
+    "web": "vite --config vite_web.config.mjs",
     "build": "electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "npm run build && electron-builder --mac",
-    "build:linux": "npm run build && electron-builder --linux"
+    "build:linux": "npm run build && electron-builder --linux",
+    "build:web": "vite build --config vite_web.config.mjs"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",

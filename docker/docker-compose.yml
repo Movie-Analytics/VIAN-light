@@ -1,0 +1,74 @@
+name: vian-light
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: vian
+      POSTGRES_USER: vian
+      POSTGRES_PASSWORD: vian
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vian -d vian"]
+      interval: 1s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
+
+  celery:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile_backend
+    command: uv run celery -b redis://vian-light-redis-1:6379/0 --result-backend redis://vian-light-redis-1:6379/0 -A tasks worker -E
+    volumes:
+      - postgres_data:/data
+    depends_on:
+      - db
+      - redis
+    environment:
+      - VIAN_SECRET_KEY=secret
+      - VIAN_DATABASE_URL=postgresql+psycopg2://vian:vian@vian-light-db-1/vian
+      - VIAN_REDIS_URL=redis://vian-light-redis-1:6379/0
+      - VIAN_DATA_DIR=/data
+  
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile_backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      celery:
+        condition: service_started
+      redis:
+        condition: service_started
+    environment:
+      - VIAN_SECRET_KEY=secret
+      - VIAN_DATABASE_URL=postgresql+psycopg2://vian:vian@vian-light-db-1/vian
+      - VIAN_REDIS_URL=redis://vian-light-redis-1:6379/0
+      - VIAN_DATA_DIR=/data
+    volumes:
+      - postgres_data:/data
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+
+volumes:
+  postgres_data:
+  backend_data:

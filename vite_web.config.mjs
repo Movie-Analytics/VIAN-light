@@ -1,10 +1,10 @@
 import { resolve } from 'path'
-import { defineConfig } from 'vite'
+import { defineConfig, mergeConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 import VueRouter from 'unplugin-vue-router/vite'
 
-export default defineConfig({
+const baseConfig = {
   root: './src/renderer',
   define: {
     isElectron: false
@@ -19,4 +19,23 @@ export default defineConfig({
     vue({ template: { transformAssetUrls } }),
     Vuetify()
   ]
+}
+
+const developmentConfig = {
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true
+      }
+    }
+  }
+}
+
+export default defineConfig(({ mode }) => {
+  if (mode === 'development') {
+    return mergeConfig(baseConfig, developmentConfig)
+  } else {
+    return baseConfig
+  }
 })

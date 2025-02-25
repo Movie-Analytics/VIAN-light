@@ -13,6 +13,15 @@ export const useTempStore = defineStore('temp', {
     muted: false
   }),
   actions: {
+    async login(email, password) {
+      return await api.login(email, password)
+    },
+    async signup(email, password) {
+      const response = await api.signup(email, password)
+      if (response) {
+        return await this.login(email, password)
+      }
+    },
     terminateJob(id) {
       api.terminateJob(id)
     },

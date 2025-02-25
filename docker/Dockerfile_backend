@@ -1,0 +1,26 @@
+FROM python:3.12
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV VIAN_DATA_DIR "."
+ENV VIAN_DATABASE_URL "sqlite:///database.db"
+ENV VIAN_REDIS_URL "redis://localhost:6379/0"
+ENV VIAN_API_PREFIX "/api/"
+ENV VIAN_SECRET_KEY "secret"
+ENV VIAN_ORIGINS "http://localhost,http://localhost,http://0.0.0.0,http://127.0.0.1"
+
+RUN apt update && apt install -y ffmpeg build-essential libdrm-dev
+WORKDIR /app
+
+COPY . .
+
+WORKDIR server
+RUN pip install uv
+RUN uv venv
+RUN uv add gunicorn uvicorn-worker
+
+WORKDIR /app/server
+
+EXPOSE 8000
+
+CMD ["uv", "run", "gunicorn", "main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "--access-logfile", "-"]

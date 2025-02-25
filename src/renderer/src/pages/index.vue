@@ -106,6 +106,15 @@ export default {
     },
     openProject(projectId) {
       this.$router.push({ path: 'videoanalysis/' + projectId })
+    },
+    logout() {
+      api.logout()
+      this.$router.push('login')
+      this.mainStore.$reset()
+      this.tempStore.$reset()
+      this.undoableStore.$reset()
+      this.undoStore.reset()
+      this.metaStore.$reset()
     }
   }
 }

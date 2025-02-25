@@ -1,0 +1,15 @@
+FROM node:16 AS build-stage
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+COPY . .
+ENV VITE_API_BASE "/api/"
+RUN npm run build:web
+
+FROM caddy:2
+COPY --from=build-stage /app/src/renderer/dist /usr/share/caddy
+COPY docker/Caddyfile /etc/caddy/Caddyfile
+EXPOSE 80
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

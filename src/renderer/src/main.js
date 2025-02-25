@@ -5,10 +5,12 @@ import 'vuetify/styles'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { createVuetify } from 'vuetify'
+import { setupCsp } from './setupcsp'
 
 import router from './router'
 import App from './App.vue'
 
+setupCsp()
 const vuetify = createVuetify()
 const pinia = createPinia()
 

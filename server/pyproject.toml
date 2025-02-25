@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=42", "pybind11>=2.10.0"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "vian-server"
+version = "0.1.0"
+description = "Server for using VIAN-lite in the browser"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "celery[redis]>=5.4.0",
+  "fastapi[standard]>=0.115.7",
+  "passlib[bcrypt]>=1.7.4",
+  "psycopg2>=2.9.10",
+  "pybind11>=2.13.6",
+  "python-jose[cryptography]>=3.3.0",
+  "setuptools>=75.8.0",
+  "sqlmodel>=0.0.22",
+  "uvicorn>=0.34.0",
+  "webvtt-py>=0.5.1",
+]
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+target-version = "py312"
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+select = [
+  'A',
+  'ANN',
+  'ASYNC',
+  'B',
+  'C4',
+  'E',
+  'ERA',
+  'ERA001',
+  'F',
+  'FAST',
+  'FURB',
+  'G',
+  'I',
+  'LOG',
+  'PIE',
+  'PL',
+  'PTH',
+  'PYI',
+  'Q',
+  'RUF',
+  'S',
+  'SIM',
+  'T20',
+  'TRY',
+  'UP',
+  'UP',
+  'W',
+]
+ignore = ["B008", "TRY300"]
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single"

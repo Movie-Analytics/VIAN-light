@@ -9,6 +9,7 @@ import { useMainStore } from '@renderer/stores/main'
 import { useMetaStore } from '@renderer/stores/meta'
 import { useUndoableStore } from '@renderer/stores/undoable'
 import { useTempStore } from '@renderer/stores/temp'
+import api from '@renderer/api'
 
 export default {
   created() {
@@ -17,8 +18,18 @@ export default {
     useMetaStore().initialize()
     useTempStore().initialize()
 
-    // necessary in electron to show first page of Vue
-    this.$router.push('/')
+    // eslint-disable-next-line
+    if (isElectron) {
+      this.$router.push('/')
+    } else {
+      this.$router.push('login')
+      api.checkToken().then((success) => {
+        if (success) {
+          this.$router.push('/')
+          api.intervalCheckToken()
+        }
+      })
+    }
   }
 }
 </script>

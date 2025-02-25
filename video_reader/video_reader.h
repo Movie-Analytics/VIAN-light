@@ -24,8 +24,8 @@ public:
     int generateScreenshot(const std::string& directory, int frame);
     double getFrameRate();
     bool Open();
-    void setCancelled(bool value);
-    bool isCancelled() const;
+    static void setCancelled(bool value);
+    static bool isCancelled();
 
 private:
     std::string file_path;
@@ -36,11 +36,12 @@ private:
     int video_stream_index = -1;
     bool finished = false;
     FILE *file = nullptr;
-    std::atomic<bool> cancelled{false};
+    static std::atomic<bool> cancelled;
 
     std::vector<uint8_t>& ReadNextFrame(std::vector<uint8_t>& out_frame_data);
     int saveFrameAsJpeg(AVPixelFormat pix_fmt, AVFrame* pFrame, const std::string& path);
     int saveFrame(const std::string& directory, int frame);
+    static void signalHandler(int signum);
 };
 
 #endif

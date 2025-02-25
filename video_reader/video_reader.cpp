@@ -1,21 +1,27 @@
 #include "video_reader.h"
 using namespace std;
 
+#include <cmath>
+#include <csignal>
+#include <iomanip>
+#include <iomanip>
 #include <iostream>
-#include <iomanip>
-#include <string>
 #include <sstream>
-#include <iomanip>
+#include <string>
+#include <vector>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 #include <onnxruntime_cxx_api.h>
-#include <vector>
-#include <cmath>
 #include <onnxruntime_cxx_api.h>
 
 
+std::atomic<bool> VideoReader::cancelled(false);
+
 VideoReader::VideoReader(const std::string& file_path) : file_path(file_path) {
+    setCancelled(0);
+    signal(SIGTERM, VideoReader::signalHandler);
+    signal(SIGINT, VideoReader::signalHandler);
 }
 
 VideoReader::~VideoReader() {
@@ -34,7 +40,12 @@ VideoReader::~VideoReader() {
     if (parser) {
       av_parser_close(parser);
     }
-  }
+}
+
+void VideoReader::signalHandler(int signum) {
+    std::cout << "Received signal " << signum << ". Terminating gracefully..." << std::endl;
+    setCancelled(true);
+}
 
 
 bool VideoReader::Open() {
@@ -497,6 +508,6 @@ void VideoReader::setCancelled(bool value) {
     cancelled = value;
 }
 
-bool VideoReader::isCancelled() const {
+bool VideoReader::isCancelled() {
     return cancelled;
 }
