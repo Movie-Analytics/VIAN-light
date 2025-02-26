@@ -85,10 +85,10 @@
           </template>
           <v-menu :open-on-focus="false" activator="parent" open-on-hover submenu>
             <v-list>
-              <v-list-item @click="layout = 'tibava'">
-                <v-list-item-title>TIBAVA</v-list-item-title>
+              <v-list-item prepend-icon="mdi-tab" @click="layout = 'tibava'">
+                <v-list-item-title>Tabbed</v-list-item-title>
               </v-list-item>
-              <v-list-item @click="layout = 'draggable'">
+              <v-list-item prepend-icon="mdi-arrow-all" @click="layout = 'draggable'">
                 <v-list-item-title>Draggable</v-list-item-title>
               </v-list-item>
             </v-list>
