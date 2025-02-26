@@ -25,6 +25,9 @@ jobs:
       - name: Run ESLint
         run: npx eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts
 
+      - name: Install ruff
+        run: pip install ruff
+
       - name: Run ruff
         run: |
           cd server
