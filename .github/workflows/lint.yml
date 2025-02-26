@@ -1,0 +1,31 @@
+name: Lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install modules
+        run: npm install
+
+      - name: Run ESLint
+        run: eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts
+
+      - name: Run ruff
+        run: |
+          cd server
+          ruff check
