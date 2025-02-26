@@ -14,14 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install modules
-        run: npm install
-
       - name: Run ESLint
         run: eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts
 
