@@ -239,6 +239,26 @@ export default {
         height: 44,
         originalShot: entry
       }
+
+      if (e.shiftKey) {
+        const currentIndex = this.data.indexOf(entry)
+        const leftSide = entry.hiddenLeftHandle === color
+        const adjacent = leftSide ? this.data[currentIndex - 1] : this.data[currentIndex + 1]
+
+        if (adjacent !== undefined && adjacent.timeline === entry.timeline) {
+          this.tempStore.adjacentShot = {
+            leftSide: leftSide,
+            diff: leftSide
+              ? entry.x - (adjacent.x + adjacent.width)
+              : adjacent.x - (entry.x + entry.width),
+            start: adjacent.x,
+            y: adjacent.y,
+            end: adjacent.x + adjacent.width,
+            height: 44,
+            originalShot: adjacent
+          }
+        }
+      }
     },
     mousemove(e) {
       if (e.buttons !== 1 || this.tempStore.tmpShot === null) return
@@ -250,12 +270,22 @@ export default {
       this.tempStore.tmpShot.start = Math.min(this.tempStore.tmpShot.origin, xNew)
       this.tempStore.tmpShot.end = Math.max(this.tempStore.tmpShot.origin, xNew)
 
+      if (e.shiftKey && this.tempStore.adjacentShot) {
+        if (this.tempStore.leftSide) {
+          this.tempStore.adjacentShot.end =
+            this.tempStore.tmpShot.start - this.tempStore.adjacentShot.diff
+        } else {
+          this.tempStore.adjacentShot.start =
+            this.tempStore.tmpShot.end + this.tempStore.adjacentShot.diff
+        }
+      }
+
       this.tempStore.playJumpPosition = xNew / this.mainStore.fps
     },
     mouseleave() {
       if (this.tempStore.tmpShot !== null) {
         this.tempStore.tmpShot = null
-        console.log('mouseleave')
+        this.tempStore.adjacentShot = null
         this.draw()
       }
     },
@@ -275,8 +305,17 @@ export default {
           this.tempStore.tmpShot.start,
           this.tempStore.tmpShot.end
         )
+
+        if (e.shiftKey && this.tempStore.adjacentShot) {
+          this.undoableStore.changeShotBoundaries(
+            this.tempStore.adjacentShot.originalShot.id,
+            this.tempStore.adjacentShot.start,
+            this.tempStore.adjacentShot.end
+          )
+        }
       }
       this.tempStore.tmpShot = null
+      this.tempStore.adjacentShot = null
     },
     drawAxis() {
       const transScale = this.transform.rescaleX(this.scale)
@@ -361,6 +400,15 @@ export default {
         this.tempStore.tmpShot.y,
         rescale(this.tempStore.tmpShot.end) - rescale(this.tempStore.tmpShot.start),
         this.tempStore.tmpShot.height
+      )
+
+      if (this.tempStore.adjacentShot === null) return
+      this.ctx.fillStyle = 'orange'
+      this.ctx.fillRect(
+        rescale(this.tempStore.adjacentShot.start),
+        this.tempStore.adjacentShot.y,
+        rescale(this.tempStore.adjacentShot.end) - rescale(this.tempStore.adjacentShot.start),
+        this.tempStore.adjacentShot.height
       )
     },
     draw() {

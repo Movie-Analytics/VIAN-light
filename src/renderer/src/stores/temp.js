@@ -10,6 +10,7 @@ export const useTempStore = defineStore('temp', {
     selectedSegments: new Map(), // shot id -> timeline id
     imageCache: new Map(),
     tmpShot: null,
+    adjacentShot: null,
     muted: false
   }),
   actions: {
