@@ -3,11 +3,14 @@ import { contextBridge, ipcRenderer } from 'electron'
 contextBridge.exposeInMainWorld('electronAPI', {
   openVideo: () => ipcRenderer.invoke('open-video'),
   runShotBoundaryDetection: (arg) => ipcRenderer.send('run-shotboundary-detection', arg),
-  onShotBoundaryDetection: (cb) => ipcRenderer.on('shotboundary-detected', (c, ...args) => cb(...args)),
+  onShotBoundaryDetection: (cb) =>
+    ipcRenderer.on('shotboundary-detected', (c, ...args) => cb(...args)),
   runScreenshotsGeneration: (v, f, i) => ipcRenderer.send('run-screenshots-generation', v, f, i),
-  onScreenshotsGeneration: (cb) => ipcRenderer.on('screenshots-generated', (c, ...args) => cb(...args)),
+  onScreenshotsGeneration: (cb) =>
+    ipcRenderer.on('screenshots-generated', (c, ...args) => cb(...args)),
   runScreenshotGeneration: (v, f, i) => ipcRenderer.send('run-screenshot-generation', v, f, i),
-  onScreenshotGeneration: (cb) => ipcRenderer.on('screenshot-generated', (c, ...args) => cb(...args)),
+  onScreenshotGeneration: (cb) =>
+    ipcRenderer.on('screenshot-generated', (c, ...args) => cb(...args)),
   loadSubtitles: (p) => ipcRenderer.invoke('load-subtitles', p),
   onJobsUpdate: (cb) => ipcRenderer.on('jobs-update', (c, ...args) => cb(...args)),
   terminateJob: (arg) => ipcRenderer.send('terminate-job', arg),

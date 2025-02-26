@@ -2,11 +2,11 @@ import json
 import logging
 import shutil
 import uuid
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Sequence
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from pathlib import Path
-from typing import Annotated, Sequence
+from typing import Annotated
 
 import webvtt
 from celery.result import AsyncResult
