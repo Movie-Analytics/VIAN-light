@@ -23,7 +23,7 @@ jobs:
         run: npm install eslint
 
       - name: Run ESLint
-        run: eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts
+        run: npx eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts
 
       - name: Run ruff
         run: |
