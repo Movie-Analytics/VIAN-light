@@ -48,7 +48,7 @@ jobs:
         run: |
           cd server
           uv venv
-          uv install pyright
+          uv add pyright
 
       - name: Run ruff
         run: ruff check
