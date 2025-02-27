@@ -41,7 +41,12 @@ jobs:
           check_artifacts: true
           search_artifacts: true
 
-      - name: Install ruff
+      - name: Test pip and python
+        run: |
+          pip --version
+          python --version
+
+      - name: Install uv
         run: pip install uv
 
       - name: Build venv
