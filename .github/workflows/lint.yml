@@ -68,7 +68,9 @@ jobs:
           uv venv
 
       - name: Install linters
-        run: uv add pyright ruff
+        run: |
+          cd server
+          uv add pyright ruff
 
       - name: Run ruff
         run: uv run ruff check
