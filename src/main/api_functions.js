@@ -1,15 +1,15 @@
-const { dialog } = require('electron')
 import { parse, stringify } from 'subtitle'
+const { dialog } = require('electron')
 import { app } from 'electron'
-import path from 'path'
 import fs from 'fs'
+import path from 'path'
 
-import CleanUpWorker from './workers/cleanup_worker?nodeWorker'
-import ShotBoundaryWorker from './workers/shotboundary_worker?nodeWorker'
-import ScreenshotsGenerationWorker from './workers/screenshots_generation_worker?nodeWorker'
-import ScreenshotGenerationWorker from './workers/screenshot_generation_worker?nodeWorker'
-import VideoInfoWorker from './workers/videoinfo_worker?nodeWorker'
-import ExportScreenshotWorker from './workers/export_screenshots_worker?nodeWorker'
+import cleanUpWorker from './workers/cleanup_worker?nodeWorker'
+import exportScreenshotWorker from './workers/export_screenshots_worker?nodeWorker'
+import screenshotGenerationWorker from './workers/screenshot_generation_worker?nodeWorker'
+import screenshotsGenerationWorker from './workers/screenshots_generation_worker?nodeWorker'
+import shotBoundaryWorker from './workers/shotboundary_worker?nodeWorker'
+import videoInfoWorker from './workers/videoinfo_worker?nodeWorker'
 
 const DATA_DIR = 'vian-lite'
 
@@ -24,11 +24,11 @@ class JobManager {
 
   createJob(type, worker) {
     const job = {
-      id: this.jobs.size,
       creation: Date.now(),
-      type: type,
+      id: this.jobs.size,
       status: 'RUNNING',
-      worker: worker
+      type,
+      worker
     }
     this.jobs.set(job.id, job)
     return job
@@ -64,7 +64,7 @@ class JobManager {
 
     worker.on('error', (error) => {
       console.error(`Worker error in ${type}:`, error)
-      jobManager.updateJobStatus(job.id, 'ERROR')
+      this.updateJobStatus(job.id, 'ERROR')
       this.sendJobsUpdate(channel)
     })
 
@@ -79,14 +79,14 @@ const jobManager = new JobManager()
 
 export const selectFile = (filters) => {
   const result = dialog.showOpenDialogSync({
-    properties: ['openFile'],
-    filters: filters
+    filters,
+    properties: ['openFile']
   })
   return result?.[0] || null
 }
 
 export const openVideoDialog = () => {
-  const video = selectFile([{ name: 'Videos', extensions: ['mp4'] }])
+  const video = selectFile([{ extensions: ['mp4'], name: 'Videos' }])
   if (!video) return null
   return {
     location: `app://${video}`,
@@ -95,7 +95,7 @@ export const openVideoDialog = () => {
 }
 
 export const loadSubtitles = (projectId) => {
-  const file = selectFile([{ name: 'Subtitles', extensions: ['srt'] }])
+  const file = selectFile([{ extensions: ['srt'], name: 'Subtitles' }])
   if (!file) return null
 
   const vttPath = path.join(getDataPath(projectId), 'subtitles.vtt')
@@ -130,7 +130,7 @@ export const saveStore = (name, store) => {
 }
 
 export const runShotBoundaryDetection = (channel, videoPath) => {
-  const worker = ShotBoundaryWorker({ workerData: videoPath.replace('app://', '') })
+  const worker = shotBoundaryWorker({ workerData: videoPath.replace('app://', '') })
   const job = jobManager.createWorkerJob(channel, 'shotboundary-detection', worker)
 
   worker.on('message', (data) => {
@@ -147,8 +147,8 @@ export const runScreenshotsGeneration = (channel, videoPath, frames, videoId) =>
   const dataPath = path.join(getDataPath(videoId), 'screenshots')
   fs.mkdirSync(dataPath, { recursive: true })
 
-  const worker = ScreenshotsGenerationWorker({
-    workerData: { videoPath: videoPath.replace('app://', ''), frames: frames, directory: dataPath }
+  const worker = screenshotsGenerationWorker({
+    workerData: { directory: dataPath, frames, videoPath: videoPath.replace('app://', '') }
   })
   const job = jobManager.createWorkerJob(channel, 'screenshots-generation', worker)
 
@@ -166,8 +166,8 @@ export const runScreenshotGeneration = (channel, videoPath, frame, videoId) => {
   const dataPath = path.join(getDataPath(videoId), 'screenshots')
   fs.mkdirSync(dataPath, { recursive: true })
 
-  const worker = ScreenshotGenerationWorker({
-    workerData: { videoPath: videoPath.replace('app://', ''), frame: frame, directory: dataPath }
+  const worker = screenshotGenerationWorker({
+    workerData: { directory: dataPath, frame, videoPath: videoPath.replace('app://', '') }
   })
   const job = jobManager.createWorkerJob(channel, 'screenshot-generation', worker)
 
@@ -178,7 +178,7 @@ export const runScreenshotGeneration = (channel, videoPath, frame, videoId) => {
 }
 
 export const getVideoInfo = (channel, videoPath) => {
-  const worker = VideoInfoWorker({ workerData: videoPath.replace('app://', '') })
+  const worker = videoInfoWorker({ workerData: videoPath.replace('app://', '') })
   const job = jobManager.createWorkerJob(channel, 'video-info', worker)
 
   worker.on('message', (data) => {
@@ -189,14 +189,14 @@ export const getVideoInfo = (channel, videoPath) => {
 
 export const exportScreenshots = (channel, projectId, frames) => {
   const location = dialog.showSaveDialogSync(null, {
-    title: 'Select export location',
-    defaultPath: 'screenshots.zip'
+    defaultPath: 'screenshots.zip',
+    title: 'Select export location'
   })
   if (location === '') return
   const storePath = path.join(getDataPath(projectId), 'undoable.json')
 
-  const worker = ExportScreenshotWorker({
-    workerData: { storePath: storePath, location: location, frames: frames }
+  const worker = exportScreenshotWorker({
+    workerData: { frames, location, storePath }
   })
   const job = jobManager.createWorkerJob(channel, 'export-screenshots', worker)
 
@@ -206,7 +206,7 @@ export const exportScreenshots = (channel, projectId, frames) => {
 }
 
 export const cleanUp = () => {
-  const worker = CleanUpWorker({
+  const worker = cleanUpWorker({
     type: 'module',
     workerData: getDataPath()
   })

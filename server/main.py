@@ -159,7 +159,7 @@ async def upload_video(
     current_account: auth.AccountDep,
     file: Annotated[UploadFile, File(...)],
 ) -> dict:
-    if not file.content_type.startswith('video/mp4'):
+    if not file.content_type.startswith('video/mp4'):  # type: ignore
         raise HTTPException(
             status_code=400,
             detail='Invalid file type. Please upload a mp4 video.'
@@ -191,7 +191,7 @@ async def get_video_info(
 ) -> dict:
     video_path = get_path(config.VIDEO_UPLOAD_DIR) / videoinfo.video.rsplit('/')[-1]
     job = db.create_job(session, current_account, 'video-info', videoinfo.id)
-    worker = tasks.get_video_info.delay(str(video_path), job.id)
+    worker = tasks.get_video_info.delay(str(video_path), job.id)  # type: ignore
     db.update_job(session, job.id, worker=worker.id)
     return {'message': 'job submitted'}
 
@@ -209,7 +209,7 @@ async def shotboundary_detection(
         'shotboundary-detection',
         videoinfo.id
     )
-    worker = tasks.shotboundary_detection.delay(str(video_path), job.id)
+    worker = tasks.shotboundary_detection.delay(str(video_path), job.id)  # type: ignore
     db.update_job(session, job.id, worker=worker.id)
     return {'message': 'job submitted'}
 
@@ -232,7 +232,7 @@ async def screenshots_generation(
             'screenshot-generation',
             screenshotinfo.id
         )
-        worker = tasks.screenshot_generation.delay(
+        worker = tasks.screenshot_generation.delay(  # type: ignore
             str(video_path),
             str(screenshots_path),
             screenshotinfo.frames[0],
@@ -245,7 +245,7 @@ async def screenshots_generation(
             'screenshots-generation',
             screenshotinfo.id
         )
-        worker = tasks.screenshots_generation.delay(
+        worker = tasks.screenshots_generation.delay(  # type: ignore
             str(video_path),
             str(screenshots_path),
             screenshotinfo.frames,
@@ -281,7 +281,7 @@ async def upload_subtitles(
     current_account: auth.AccountDep,
     file: Annotated[UploadFile, File(...)],
 ) -> dict:
-    if not file.content_type.startswith('application/x-subrip'):
+    if not file.content_type.startswith('application/x-subrip'):  # type: ignore
         raise HTTPException(
             status_code=400,
             detail='Invalid file type. Please upload a srt subtitle.'
@@ -340,7 +340,7 @@ async def export_screenshots(
     if store is None:
         return {'message': 'Store not found'}
     store = json.loads(store.data)
-    worker = tasks.export_screenshots.delay(
+    worker = tasks.export_screenshots.delay(  # type: ignore
         store['timelines'],
         export.frames,
         store['id'],

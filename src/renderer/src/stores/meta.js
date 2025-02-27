@@ -1,13 +1,18 @@
 import { defineStore } from 'pinia'
+
+import api from '@renderer/api'
 import { useMainStore } from './main'
 import { useUndoStore } from './undo'
-import api from '@renderer/api'
 
 export const useMetaStore = defineStore('meta', {
   state: () => ({
     projects: []
   }),
+  /* eslint-disable-next-line vue/sort-keys */
   actions: {
+    deleteProject(projectId) {
+      this.projects = this.projects.filter((project) => project.id !== projectId)
+    },
     initialize() {
       this.$subscribe((mutation, state) => {
         const copyState = JSON.parse(JSON.stringify(state))
@@ -22,23 +27,20 @@ export const useMetaStore = defineStore('meta', {
         this.$patch(state)
       }
     },
-    async open_video() {
+    async openVideo() {
       const videoInfo = await api.openVideo()
       if (!videoInfo) return null
       const project = {
-        name: videoInfo.name,
-        id: crypto.randomUUID()
+        id: crypto.randomUUID(),
+        name: videoInfo.name
       }
       this.projects.push(project)
       const mainStore = useMainStore()
       mainStore.openVideo(project.id, videoInfo.location)
       return project.id
     },
-    deleteProject(projectId) {
-      this.projects = this.projects.filter((project) => project.id !== projectId)
-    },
     renameProject(projectId, newName) {
-      const project = this.projects.find((project) => project.id === projectId)
+      const project = this.projects.find((p) => p.id === projectId)
       if (project) {
         project.name = newName
       }

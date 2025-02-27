@@ -1,5 +1,5 @@
 <template>
-  <v-sheet style="height: inherit">
+  <v-sheet id="top-sheet">
     <v-row class="ma-1">
       <v-select
         v-model="shotTimeline"
@@ -9,6 +9,7 @@
         item-value="id"
         class="me-2"
       />
+
       <v-select
         v-model="screenshotTimeline"
         :items="undoableStore.screenshotTimelines"
@@ -17,32 +18,36 @@
         item-value="id"
       />
     </v-row>
+
     <div id="virtualscroll-container">
       <v-virtual-scroll v-if="shotTimeline" :items="shots">
         <template #default="{ item, index }">
           <div class="my-5">
             <div>
               <span class="font-weight-bold">Shot {{ index + 1 }}</span>
+
               <span class="text-medium-emphasis">
                 ({{ mainStore.timeReadableFrame(item.start) }} -
                 {{ mainStore.timeReadableFrame(item.end) }})
               </span>
             </div>
+
             <div>
               <p>
                 <span>Annotation: {{ item.annotation }}</span>
               </p>
             </div>
+
             <v-row
               v-if="screenshotTimeline"
               justify="start"
-              class="overflow-x-auto mx-3 pt-3 flex-nowrap ga-3"
+              class="flex-nowrap ga-3 mx-3 overflow-x-auto pt-3"
             >
               <img
                 v-for="img in getShotImages(item)"
                 :key="img.id"
                 :src="img.thumbnail"
-                style="height: 50px"
+                class="shot-thumb"
                 loading="lazy"
               />
             </v-row>
@@ -59,17 +64,22 @@ import { useMainStore } from '@renderer/stores/main'
 import { useUndoableStore } from '@renderer/stores/undoable'
 
 export default {
+  name: 'ShotList',
+
   data: () => ({
-    shotTimeline: null,
-    screenshotTimeline: null
+    screenshotTimeline: null,
+    shotTimeline: null
   }),
+
   computed: {
     ...mapStores(useMainStore, useUndoableStore),
+
     shots() {
       const timeline = this.undoableStore.shotTimelines.find((s) => s.id === this.shotTimeline)
       return timeline ? timeline.data : []
     }
   },
+
   watch: {
     'undoableStore.timelines'(newVal) {
       const timelineIds = newVal.map((t) => t.id)
@@ -77,6 +87,7 @@ export default {
       if (!timelineIds.includes(this.screenshotTimeline)) this.screenshotTimeline = null
     }
   },
+
   methods: {
     getShotImages(shot) {
       const timeline = this.undoableStore.screenshotTimelines.find(
@@ -89,9 +100,16 @@ export default {
   }
 }
 </script>
+
 <style scoped>
 #virtualscroll-container {
   display: flex;
   height: calc(100% - 100px);
+}
+#top-sheet {
+  height: inherit;
+}
+.shot-thumb {
+  height: 50px;
 }
 </style>

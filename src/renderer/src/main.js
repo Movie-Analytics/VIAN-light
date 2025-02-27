@@ -7,8 +7,8 @@ import { createPinia } from 'pinia'
 import { createVuetify } from 'vuetify'
 import { setupCsp } from './setupcsp'
 
-import router from './router'
 import App from './App.vue'
+import router from './router'
 
 setupCsp()
 const vuetify = createVuetify()

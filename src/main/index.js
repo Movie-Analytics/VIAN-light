@@ -1,8 +1,7 @@
-import { app, shell, BrowserWindow, ipcMain, protocol } from 'electron'
+import { BrowserWindow, app, ipcMain, protocol, shell } from 'electron'
+import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 
-import icon from '../../resources/icon.png?asset'
 import {
   cleanUp,
   exportScreenshots,
@@ -10,39 +9,40 @@ import {
   loadStore,
   loadSubtitles,
   openVideoDialog,
-  runScreenshotsGeneration,
   runScreenshotGeneration,
+  runScreenshotsGeneration,
   runShotBoundaryDetection,
   saveStore,
   terminateJob
 } from './api_functions'
+import icon from '../../resources/icon.png?asset'
 
 protocol.registerSchemesAsPrivileged([
   {
-    scheme: 'app',
     privileges: {
-      secure: true,
-      supportFetchAPI: true,
       bypassCSP: true,
-      stream: true
-    }
+      secure: true,
+      stream: true,
+      supportFetchAPI: true
+    },
+    scheme: 'app'
   }
 ])
 
-function createWindow() {
+const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
+    autoHideMenuBar: true,
     height: 670,
     show: false,
-    autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
+      contextIsolation: true,
       preload: join(__dirname, '../preload/index.js'),
       sandbox: true,
-      contextIsolation: true,
       webSecurity: true
-    }
+    },
+    width: 900,
+    ...(process.platform === 'linux' ? { icon } : {})
   })
   if (is.dev) {
     mainWindow.webContents.openDevTools()
@@ -59,8 +59,8 @@ function createWindow() {
 
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  if (is.dev && process.env.ELECTRON_RENDERER_URL) {
+    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
@@ -82,15 +82,15 @@ app.whenReady().then(() => {
 
   createWindow()
 
-  app.on('activate', function () {
+  app.on('activate', () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 
-  // using deprecated method until this bug is solved:
+  // Using deprecated method until this bug is solved:
   // https://github.com/electron/electron/issues/38749
-  // TODO access filter
+  // TODO: access filter
   protocol.registerFileProtocol('app', (request, callback) => {
     const filePath = request.url.slice('app://'.length)
     callback(filePath)

@@ -2,22 +2,6 @@ import * as cheerio from 'cheerio'
 import { useMainStore } from '@renderer/stores/main'
 import { useUndoableStore } from '@renderer/stores/undoable'
 
-export const exportAnnotations = (csv) => {
-  const blob = csv
-    ? new Blob([generateCSVContent()], { type: 'text/csv' })
-    : new Blob([generateEAFContent()], { type: 'text/eaf' })
-
-  const url = URL.createObjectURL(blob)
-
-  const a = document.createElement('a')
-  a.href = url
-  a.download = csv ? 'annotations.csv' : 'annotations.eaf'
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
-}
-
 const frameToTimestamp = (frame, fps) => {
   const totalSecs = frame / fps
   const formattedHours = String(Math.floor(totalSecs / 60 / 60)).padStart(2, '0')
@@ -62,7 +46,7 @@ const generateEAFContent = () => {
             </ALIGNABLE_ANNOTATION>
         </ANNOTATION>
       `
-      annotationid++
+      annotationid += 1
 
       timeorder += `<TIME_SLOT TIME_SLOT_ID="ts${timeslotid}" TIME_VALUE="${start}"/>\n`
       timeorder += `<TIME_SLOT TIME_SLOT_ID="ts${timeslotid + 1}" TIME_VALUE="${end}"/>\n`
@@ -114,19 +98,35 @@ export const parseEafAnnotations = (xmlContent) => {
     const timelineId = element.parent.parent.attribs.tier_id
     if (!timelines.has(timelineId)) {
       timelines.set(timelineId, {
-        name: timelineId,
-        id: crypto.randomUUID(),
         data: [],
+        id: crypto.randomUUID(),
+        name: timelineId,
         type: 'shots'
       })
     }
     const text = xml(element).find('ANNOTATION_VALUE').text()
     timelines.get(timelineId).data.push({
-      start: timemap.get(element.attribs.time_slot_ref1),
-      end: timemap.get(element.attribs.time_slot_ref2),
       annotation: text,
-      id: crypto.randomUUID()
+      end: timemap.get(element.attribs.time_slot_ref2),
+      id: crypto.randomUUID(),
+      start: timemap.get(element.attribs.time_slot_ref1)
     })
   })
   return [...timelines.values()]
+}
+
+export const exportAnnotations = (csv) => {
+  const blob = csv
+    ? new Blob([generateCSVContent()], { type: 'text/csv' })
+    : new Blob([generateEAFContent()], { type: 'text/eaf' })
+
+  const url = URL.createObjectURL(blob)
+
+  const a = document.createElement('a')
+  a.href = url
+  a.download = csv ? 'annotations.csv' : 'annotations.eaf'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }

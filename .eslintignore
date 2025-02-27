@@ -1,6 +1,0 @@
-node_modules
-dist
-out
-.gitignore
-electron.vite.config.1*.mjs
-typed-router.d*

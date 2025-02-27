@@ -23,9 +23,9 @@ def get_video_info(video: str, job: int) -> dict|None:
         session = next(db.get_session())
         db.update_job(session, job, status='RUNNING')
 
-        video = video_reader.VideoReader(video)
-        video.open()
-        fps = video.get_frame_rate()
+        reader = video_reader.VideoReader(video)  # type: ignore
+        reader.open()
+        fps = reader.get_frame_rate()
 
         db.update_job(session, job, status='DONE')
         db.create_result(session, job, {'fps': fps})
@@ -43,7 +43,7 @@ def shotboundary_detection(self: Task, video: str, job: int) -> list|None:
         session = next(db.get_session())
         db.update_job(session, job, status='RUNNING')
 
-        reader = video_reader.VideoReader(video)
+        reader = video_reader.VideoReader(video)  # type: ignore
         reader.open()
         shots = reader.detect_shots(config.ONNXMODEL)
 
@@ -73,7 +73,7 @@ def screenshots_generation(
         session = next(db.get_session())
         db.update_job(session, job, status='RUNNING')
 
-        reader = video_reader.VideoReader(video)
+        reader = video_reader.VideoReader(video)  # type: ignore
         reader.open()
         success = reader.generate_screenshots(str(config.DATA_DIR / directory), frames)
 
@@ -115,7 +115,7 @@ def screenshot_generation(
         session = next(db.get_session())
         db.update_job(session, job, status='RUNNING')
 
-        reader = video_reader.VideoReader(video)
+        reader = video_reader.VideoReader(video)  # type: ignore
         reader.open()
         success = reader.generate_screenshot(str(config.DATA_DIR / directory), frame)
         if success != 0:

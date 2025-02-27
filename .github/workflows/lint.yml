@@ -20,7 +20,7 @@ jobs:
           node-version: 22
 
       - name: Install modules
-        run: npm install eslint
+        run: npm install eslint @electron-toolkit/eslint-config eslint-plugin-vue @vue/eslint-config-prettier
 
       - name: Run ESLint
         run: npx eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts

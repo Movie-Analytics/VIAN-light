@@ -1,32 +1,24 @@
 import { defineStore } from 'pinia'
-import { useUndoableStore } from './undoable'
+
 import api from '@renderer/api'
+import { useUndoableStore } from './undoable'
 
 export const useMainStore = defineStore('main', {
   state: () => ({
-    video: null,
     fps: null,
-    videoDuration: null,
-    id: null
+    id: null,
+    video: null,
+    videoDuration: null
   }),
+  /* eslint-disable-next-line vue/sort-keys */
   actions: {
-    async openVideo(id, video) {
-      // TODO could become race condition
-      const undoableStore = useUndoableStore()
-      this.id = id
-      undoableStore.id = id
-      this.video = video
-      if (this.fps === null && this.video !== null) {
-        api.getVideoInfo(this.video)
-      }
-    },
     initialize() {
       this.$subscribe((mutation, state) => {
         if (this.id === null) return
         const copyState = JSON.parse(JSON.stringify(state))
         api.saveStore('main', copyState)
       })
-      // set up listener
+      // Set up listener
       api.onVideoInfo((data) => {
         this.fps = data.fps
       })
@@ -37,19 +29,30 @@ export const useMainStore = defineStore('main', {
         this.$patch(state)
       }
     },
+    openVideo(id, video) {
+      // TODO could become race condition, meta or backend should create file
+      // and then just loadProject
+      const undoableStore = useUndoableStore()
+      this.id = id
+      undoableStore.id = id
+      this.video = video
+      if (this.fps === null && this.video !== null) {
+        api.getVideoInfo(this.video)
+      }
+    },
     timeReadableFrame(frame) {
       const totalSeconds = frame / this.fps
       return this.timeReadableSec(totalSeconds)
     },
     timeReadableSec(t, subsec = false) {
-      const formattedHours = String(Math.floor(t / 60 / 60)).padStart(2, '0')
-      const formattedMinutes = String(Math.floor(t / 60) % 60).padStart(2, '0')
-      let formattedSeconds
-      if (subsec) {
-        formattedSeconds = String((t % 60).toFixed(2)).padStart(2, '0')
-      } else {
-        formattedSeconds = String(Math.round(t % 60)).padStart(2, '0')
-      }
+      const hours = Math.floor(t / 3600)
+      const minutes = Math.floor((t % 3600) / 60)
+      const seconds = subsec ? (t % 60).toFixed(2) : Math.round(t % 60)
+
+      const formattedHours = String(hours).padStart(2, '0')
+      const formattedMinutes = String(minutes).padStart(2, '0')
+      const formattedSeconds = String(seconds).padStart(2, '0')
+
       return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`
     }
   }

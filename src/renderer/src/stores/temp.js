@@ -1,19 +1,27 @@
 import { defineStore } from 'pinia'
-import { useUndoableStore } from './undoable'
+
 import api from '@renderer/api'
+import { useUndoableStore } from './undoable'
 
 export const useTempStore = defineStore('temp', {
   state: () => ({
-    playPosition: 0,
-    playJumpPosition: null,
-    jobs: [],
-    selectedSegments: new Map(), // shot id -> timeline id
-    imageCache: new Map(),
-    tmpShot: null,
     adjacentShot: null,
-    muted: false
+    imageCache: new Map(),
+    jobs: [],
+    muted: false,
+    playJumpPosition: null,
+    playPosition: 0,
+    // Maps shot id -> timeline id
+    selectedSegments: new Map(),
+    tmpShot: null
   }),
+  /* eslint-disable-next-line vue/sort-keys */
   actions: {
+    initialize() {
+      api.onJobsUpdate((data) => {
+        this.jobs = data
+      })
+    },
     async login(email, password) {
       return await api.login(email, password)
     },
@@ -22,18 +30,13 @@ export const useTempStore = defineStore('temp', {
       if (response) {
         return await this.login(email, password)
       }
+      return false
     },
     terminateJob(id) {
       api.terminateJob(id)
     },
-    initialize() {
-      api.onJobsUpdate((data) => {
-        this.jobs = data
-      })
-    },
     validateSelectedSegments() {
-      const undoableStore = useUndoableStore()
-      const timelines = undoableStore.timelines
+      const { timelines } = useUndoableStore()
 
       const timelineMap = new Map(timelines.map((t) => [t.id, t]))
 

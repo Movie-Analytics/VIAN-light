@@ -1,66 +1,66 @@
 <template>
   <div class="px-5">
-    <layout-draggable-item
-      v-for="item in items"
-      :key="item.title"
-      v-bind="item"
-      @dragged="onDragged"
-    >
+    <LayoutDraggableItem v-for="item in items" :key="item.title" v-bind="item" @dragged="onDragged">
       <component :is="item.component"></component>
-    </layout-draggable-item>
+    </LayoutDraggableItem>
   </div>
 </template>
 
 <script>
+import LayoutDraggableItem from '@renderer/components/LayoutDraggableItem.vue'
 import ShotDetail from '@renderer/components/ShotDetail.vue'
 import ShotList from '@renderer/components/ShotList.vue'
 import Timelines from '@renderer/components/Timelines.vue'
 import VideoPlayer from '@renderer/components/VideoPlayer.vue'
-import LayoutDraggableItem from '@renderer/components/LayoutDraggableItem.vue'
 
 export default {
-  components: { LayoutDraggableItem, Timelines, VideoPlayer, ShotList, ShotDetail },
+  name: 'LayoutDraggable',
+  expose: [],
+  components: { LayoutDraggableItem, ShotDetail, ShotList, Timelines, VideoPlayer },
+
   data: () => ({
-    zOrder: ['Player', 'Shot List', 'Shot Details', 'Timelines'],
     items: [
       {
+        component: 'VideoPlayer',
+        heightInitial: 450,
         title: 'Player',
+        widthInitial: 500,
         xInitial: 10,
         yInitial: 70,
-        widthInitial: 500,
-        heightInitial: 450,
-        component: 'VideoPlayer',
         z: 0
       },
       {
+        component: 'ShotList',
+        heightInitial: 450,
         title: 'Shot List',
+        widthInitial: 400,
         xInitial: 550,
         yInitial: 70,
-        widthInitial: 400,
-        heightInitial: 450,
-        component: 'ShotList',
         z: 1
       },
       {
+        component: 'Timelines',
+        heightInitial: 400,
         title: 'Timelines',
+        widthInitial: 500,
         xInitial: 10,
         yInitial: 550,
-        widthInitial: 500,
-        heightInitial: 400,
-        component: 'Timelines',
         z: 2
       },
       {
+        component: 'ShotDetail',
+        heightInitial: 400,
         title: 'Shot Details',
+        widthInitial: 400,
         xInitial: 550,
         yInitial: 550,
-        widthInitial: 400,
-        heightInitial: 400,
-        component: 'ShotDetail',
         z: 3
       }
-    ]
+    ],
+
+    zOrder: ['Player', 'Shot List', 'Shot Details', 'Timelines']
   }),
+
   methods: {
     onDragged(name) {
       const draggedItem = this.items.find((item) => item.title === name)

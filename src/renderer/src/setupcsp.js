@@ -1,4 +1,4 @@
-export function setupCsp() {
+export const setupCsp = () => {
   // eslint-disable-next-line
   if (isElectron) {
     // Only add CSP meta tag in Electron

@@ -1,10 +1,12 @@
 <template>
   <div>
     <p v-if="tempStore.selectedSegments.size == 0">No elements in timeline selected</p>
+
     <v-sheet v-else-if="tempStore.selectedSegments.size == 1">
       <div v-if="selectedTimelineSegment && selectedTimelineSegment.image">
         <v-img :src="selectedTimelineSegment.image" />
       </div>
+
       <div v-else>
         <p class="font-weight-bold">Shot</p>
         {{ mainStore.timeReadableFrame(selectedTimelineSegment.start) }} -
@@ -12,9 +14,11 @@
         <v-text-field v-model="annotationBuffer" label="Annotations"></v-text-field>
       </div>
     </v-sheet>
+
     <p v-else>Multiple elements selected</p>
   </div>
 </template>
+
 <script>
 import { mapStores } from 'pinia'
 import { useMainStore } from '@renderer/stores/main'
@@ -22,12 +26,16 @@ import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
 
 export default {
+  name: 'ShotDetail',
+
   data: () => ({
     annotationBuffer: '',
     timeout: null
   }),
+
   computed: {
     ...mapStores(useMainStore, useUndoableStore, useTempStore),
+
     selectedTimelineSegment() {
       if (this.tempStore.selectedSegments.size !== 1) return null
       const [shotid, timelineid] = this.tempStore.selectedSegments.entries().next().value
@@ -36,12 +44,8 @@ export default {
         .data.find((s) => s.id === shotid)
     }
   },
+
   watch: {
-    selectedTimelineSegment(newValue) {
-      if (newValue) {
-        this.annotationBuffer = newValue.annotation
-      }
-    },
     annotationBuffer(newValue) {
       if (newValue === this.selectedTimelineSegment.annotation) return
 
@@ -53,6 +57,12 @@ export default {
         }
         this.timeout = null
       }, 1000)
+    },
+
+    selectedTimelineSegment(newValue) {
+      if (newValue) {
+        this.annotationBuffer = newValue.annotation
+      }
     }
   }
 }

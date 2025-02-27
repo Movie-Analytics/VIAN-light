@@ -1,5 +1,8 @@
-import { useTempStore } from '@renderer/stores/temp'
 import { useMainStore } from '@renderer/stores/main'
+import { useTempStore } from '@renderer/stores/temp'
+
+const TOKEN_REFRESH_INTERVAL = 15 * 60 * 1000
+const JOB_REFRESH_INTERVAL = 2 * 1000
 
 class RemoteApi {
   constructor() {
@@ -9,12 +12,12 @@ class RemoteApi {
     this.jobUpdate = null
     this.tokenUpdate = null
     this.bearerToken = null
-    this.base_api = '/'
+    this.baseApi = '/'
     if (import.meta.env.DEV) {
-      this.base_api = '/api/'
+      this.baseApi = '/api/'
     }
     if (import.meta.env.VITE_API_BASE) {
-      this.base_api = import.meta.env.VITE_API_BASE
+      this.baseApi = import.meta.env.VITE_API_BASE
     }
   }
 
@@ -23,13 +26,13 @@ class RemoteApi {
     formData.append('username', email)
     formData.append('password', password)
 
-    const response = await fetch(this.base_api + 'login', {
-      method: 'POST',
-      body: formData
+    const response = await fetch(this.baseApi + 'login', {
+      body: formData,
+      method: 'POST'
     })
     if (response.ok) {
-      const json_response = await response.json()
-      const token = json_response.access_token
+      const jsonResponse = await response.json()
+      const token = jsonResponse.access_token
       this.bearerToken = token
       localStorage.setItem('token', token)
 
@@ -43,15 +46,12 @@ class RemoteApi {
   intervalCheckToken() {
     if (this.tokenUpdate !== null) return
 
-    this.tokenUpdate = setInterval(
-      async () => {
-        if (!(await this.checkToken())) {
-          this.tokenUpdate = null
-          this.logout()
-        }
-      },
-      15 * 60 * 1000
-    )
+    this.tokenUpdate = setInterval(async () => {
+      if (!(await this.checkToken())) {
+        this.tokenUpdate = null
+        this.logout()
+      }
+    }, TOKEN_REFRESH_INTERVAL)
   }
 
   async checkToken() {
@@ -61,14 +61,14 @@ class RemoteApi {
     }
     if (token === null) return false
 
-    const response = await fetch(this.base_api + 'renew-token', {
-      method: 'GET',
+    const response = await fetch(this.baseApi + 'renew-token', {
       headers: {
         Authorization: `Bearer ${token}`
-      }
+      },
+      method: 'GET'
     })
     if (response.ok) {
-      const token = (await response.json()).access_token
+      token = (await response.json()).access_token
       this.bearerToken = token
       localStorage.setItem('token', token)
       this.startJobUpdateFetch()
@@ -78,15 +78,15 @@ class RemoteApi {
   }
 
   async signup(email, password) {
-    const response = await fetch(this.base_api + 'signup', {
-      method: 'POST',
+    const response = await fetch(this.baseApi + 'signup', {
       body: JSON.stringify({
-        email: email,
-        password: password
+        email,
+        password
       }),
       headers: {
         'Content-type': 'application/json; charset=UTF-8'
-      }
+      },
+      method: 'POST'
     })
     return response.ok
   }
@@ -98,7 +98,7 @@ class RemoteApi {
       fileInput.accept = 'video/mp4'
 
       fileInput.onchange = async (event) => {
-        const file = event.target.files[0]
+        const [file] = event.target.files
         if (!file) {
           resolve(null)
         }
@@ -108,12 +108,12 @@ class RemoteApi {
           const formData = new FormData()
           formData.append('file', file)
 
-          const response = await fetch(this.base_api + 'upload-video', {
-            method: 'POST',
+          const response = await fetch(this.baseApi + 'upload-video', {
+            body: formData,
             headers: {
               Authorization: `Bearer ${token}`
             },
-            body: formData
+            method: 'POST'
           })
 
           if (!response.ok) {
@@ -122,7 +122,7 @@ class RemoteApi {
 
           const result = await response.json()
           resolve(result)
-        } catch (error) {
+        } catch {
           resolve(null)
         }
       }
@@ -133,20 +133,20 @@ class RemoteApi {
   async loadStore(name, id) {
     const token = this.bearerToken
 
-    const response = await fetch(this.base_api + 'load-store', {
-      method: 'POST',
+    const response = await fetch(this.baseApi + 'load-store', {
+      body: JSON.stringify({
+        id: id || null,
+        name
+      }),
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-type': 'application/json; charset=UTF-8'
       },
-      body: JSON.stringify({
-        name: name,
-        id: id || null
-      })
+      method: 'POST'
     })
 
     if (response.ok) return response.json()
-    else return null
+    return null
   }
 
   async saveStore(name, store) {
@@ -156,17 +156,17 @@ class RemoteApi {
       id = store.id
     }
 
-    const response = await fetch(this.base_api + 'save-store', {
-      method: 'POST',
+    const response = await fetch(this.baseApi + 'save-store', {
+      body: JSON.stringify({
+        data: store,
+        id,
+        name
+      }),
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-type': 'application/json; charset=UTF-8'
       },
-      body: JSON.stringify({
-        name: name,
-        id: id,
-        data: store
-      })
+      method: 'POST'
     })
 
     return response.ok
@@ -185,16 +185,16 @@ class RemoteApi {
   async getVideoInfo(video) {
     this.callbacks['jobs-update'](await this.getJobs())
 
-    const response = await fetch(this.base_api + 'get-video-info', {
-      method: 'POST',
+    const response = await fetch(this.baseApi + 'get-video-info', {
+      body: JSON.stringify({
+        id: useMainStore().id,
+        video
+      }),
       headers: {
         Authorization: `Bearer ${this.bearerToken}`,
         'Content-type': 'application/json; charset=UTF-8'
       },
-      body: JSON.stringify({
-        video: video,
-        id: useMainStore().id
-      })
+      method: 'POST'
     })
     this.startJobUpdateFetch()
 
@@ -214,16 +214,16 @@ class RemoteApi {
   async runShotBoundaryDetection(video) {
     this.callbacks['jobs-update'](await this.getJobs())
 
-    const response = await fetch(this.base_api + 'shotboundary-detection', {
-      method: 'POST',
+    const response = await fetch(this.baseApi + 'shotboundary-detection', {
+      body: JSON.stringify({
+        id: useMainStore().id,
+        video
+      }),
       headers: {
         Authorization: `Bearer ${this.bearerToken}`,
         'Content-type': 'application/json; charset=UTF-8'
       },
-      body: JSON.stringify({
-        video: video,
-        id: useMainStore().id
-      })
+      method: 'POST'
     })
     this.startJobUpdateFetch()
 
@@ -237,7 +237,7 @@ class RemoteApi {
       fileInput.accept = 'application/x-subrip'
 
       fileInput.onchange = async (event) => {
-        const file = event.target.files[0]
+        const [file] = event.target.files
         if (!file) {
           resolve(null)
         }
@@ -247,12 +247,12 @@ class RemoteApi {
           const formData = new FormData()
           formData.append('file', file)
 
-          const response = await fetch(this.base_api + `upload-subtitles/${id}`, {
-            method: 'POST',
+          const response = await fetch(this.baseApi + `upload-subtitles/${id}`, {
+            body: formData,
             headers: {
               Authorization: `Bearer ${token}`
             },
-            body: formData
+            method: 'POST'
           })
 
           if (!response.ok) {
@@ -275,12 +275,12 @@ class RemoteApi {
   }
 
   async getJobs() {
-    const response = await fetch(this.base_api + 'get-jobs/' + useMainStore().id, {
-      method: 'GET',
+    const response = await fetch(this.baseApi + 'get-jobs/' + useMainStore().id, {
       headers: {
         Authorization: `Bearer ${this.bearerToken}`,
         'Content-type': 'application/json; charset=UTF-8'
-      }
+      },
+      method: 'GET'
     })
     return await response.json()
   }
@@ -303,13 +303,13 @@ class RemoteApi {
         jobs
           .filter((j) => j.status === 'DONE' && !oldJobsDone.includes(j.id))
           .forEach(async (j) => {
-            // fetch results for newly finished jobs
-            const response = await fetch(this.base_api + `get-result/${j.id}`, {
-              method: 'GET',
+            // Fetch results for newly finished jobs
+            const response = await fetch(this.baseApi + `get-result/${j.id}`, {
               headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-type': 'application/json; charset=UTF-8'
-              }
+              },
+              method: 'GET'
             })
             if (response.ok) this.callbacks[j.type]((await response.json()).data)
           })
@@ -319,23 +319,23 @@ class RemoteApi {
         clearInterval(this.jobUpdate)
         this.jobUpdate = null
       }
-    }, 2000)
+    }, JOB_REFRESH_INTERVAL)
   }
 
   async runScreenshotsGeneration(video, frames, projectid) {
     this.callbacks['jobs-update'](await this.getJobs())
 
-    const response = await fetch(this.base_api + 'screenshots-generation', {
-      method: 'POST',
+    const response = await fetch(this.baseApi + 'screenshots-generation', {
+      body: JSON.stringify({
+        frames,
+        id: projectid,
+        video
+      }),
       headers: {
         Authorization: `Bearer ${this.bearerToken}`,
         'Content-type': 'application/json; charset=UTF-8'
       },
-      body: JSON.stringify({
-        video: video,
-        frames: frames,
-        id: projectid
-      })
+      method: 'POST'
     })
     this.startJobUpdateFetch()
 
@@ -349,12 +349,12 @@ class RemoteApi {
   async terminateJob(id) {
     const token = this.bearerToken
 
-    const response = await fetch(this.base_api + `terminate-job/${id}`, {
-      method: 'GET',
+    const response = await fetch(this.baseApi + `terminate-job/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-type': 'application/json; charset=UTF-8'
-      }
+      },
+      method: 'GET'
     })
 
     return response.ok
@@ -363,16 +363,16 @@ class RemoteApi {
   async exportScreenshots(projectId, frames) {
     const token = this.bearerToken
 
-    const response = await fetch(this.base_api + 'export-screenshots', {
-      method: 'POST',
+    const response = await fetch(this.baseApi + 'export-screenshots', {
+      body: JSON.stringify({
+        frames,
+        id: projectId
+      }),
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-type': 'application/json; charset=UTF-8'
       },
-      body: JSON.stringify({
-        frames: frames,
-        id: projectId
-      })
+      method: 'POST'
     })
     this.startJobUpdateFetch()
 
