@@ -42,16 +42,16 @@ jobs:
           search_artifacts: true
 
       - name: Install ruff
-        run: pip install ruff pyright uv
+        run: pip install uv
 
       - name: Build venv
         run: |
           cd server
           uv venv
+          uv install pyright
 
       - name: Run ruff
-        run: |
-          ruff check
+        run: ruff check
 
       - name: Run pyright
-        run: pyright
+        run: uv run pyright
