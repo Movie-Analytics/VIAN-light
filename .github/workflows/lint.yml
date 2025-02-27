@@ -73,7 +73,7 @@ jobs:
           uv add pyright ruff
 
       - name: Run ruff
-        run: uv run ruff check
+        run: uvx ruff check
 
       - name: Run pyright
-        run: uv run pyright
+        run: uvx pyright
