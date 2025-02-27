@@ -31,9 +31,12 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install ruff
-        run: pip install ruff
+        run: pip install ruff pyright
 
       - name: Run ruff
         run: |
           cd server
           ruff check
+
+      - name: Run pyright
+        run: pyright
