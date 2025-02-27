@@ -70,3 +70,6 @@ line-ending = "auto"
 
 [tool.ruff.lint.flake8-quotes]
 inline-quotes = "single"
+
+[tool.setuptools]
+py-modules = []
