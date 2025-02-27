@@ -25,7 +25,7 @@ jobs:
       - name: Run ESLint
         run: npx eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts
 
-  ruff:
+  ruff_pyright:
     runs-on: ubuntu-latest
     container: ubuntu:latest
 
@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install build tools
-        run: apt-get update && apt-get install -y build-essential libdrm-dev libbz2-dev liblzma-dev zip
+        run: apt-get update && apt-get install -y build-essential libdrm-dev libbz2-dev liblzma-dev zip python3
 
       - name: Download onnx
         uses: dsaltares/fetch-gh-release-asset@master
@@ -59,13 +59,8 @@ jobs:
           check_artifacts: true
           search_artifacts: true
 
-      - name: Test pip and python
-        run: |
-          pip --version
-          python --version
-
       - name: Install uv
-        run: pip install uv
+        run: pip3 install uv
 
       - name: Build venv
         run: |
