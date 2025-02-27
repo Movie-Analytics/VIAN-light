@@ -2,7 +2,7 @@ import logging
 import uuid
 from zipfile import ZIP_DEFLATED, ZipFile
 
-import video_reader
+import video_reader  # type: ignore
 from celery import Celery, Task
 
 import config

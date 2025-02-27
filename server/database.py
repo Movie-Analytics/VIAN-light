@@ -29,7 +29,7 @@ SessionDep = Annotated[Session, Depends(get_session)]
 
 
 class Account(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
+    id: int|None = Field(default=None, primary_key=True)
     email: str
     password: str
 
@@ -38,18 +38,18 @@ class Account(SQLModel, table=True):
 
 
 class Store(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
+    id: int|None = Field(default=None, primary_key=True)
     project_id: str|None
     name: str
     data: str
-    account_id: int = Field(foreign_key='account.id')
+    account_id: int|None = Field(foreign_key='account.id')
 
     account: Account = Relationship(back_populates='stores')
 
 
 class Job(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
-    account_id: int = Field(foreign_key='account.id')
+    id: int|None = Field(default=None, primary_key=True)
+    account_id: int|None = Field(foreign_key='account.id')
     project_id: str
     creation: datetime.datetime
     type: str
@@ -61,8 +61,8 @@ class Job(SQLModel, table=True):
 
 
 class Result(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
-    job_id: int = Field(foreign_key='job.id')
+    id: int|None = Field(default=None, primary_key=True)
+    job_id: int|None = Field(foreign_key='job.id')
     data: str|None
 
     job: Job = Relationship(back_populates='results')
@@ -154,10 +154,12 @@ def create_job(
 
 def update_job(
     session: Session,
-    jobid: int,
+    jobid: int|None,
     status: str|None = None,
     worker: str|None = None
 ) -> None:
+    if jobid is None:
+        return
     statement = select(Job).where(Job.id==jobid)
     job = session.exec(statement).first()
     if job is not None and status is not None:
