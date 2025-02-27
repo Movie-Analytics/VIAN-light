@@ -30,12 +30,27 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Download ffmpeg-libs
+        uses: dawidd6/action-download-artifact@v7
+        with:
+          repo: elya5/ffmpeg-build
+          github_token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+          name: ffmpeg-libs-linux
+          path: ffmpeglibs
+          workflow: blank.yml
+          check_artifacts: true
+          search_artifacts: true
+
       - name: Install ruff
-        run: pip install ruff pyright
+        run: pip install ruff pyright uv
+
+      - name: Build venv
+        run: |
+          cd server
+          uv venv
 
       - name: Run ruff
         run: |
-          cd server
           ruff check
 
       - name: Run pyright
