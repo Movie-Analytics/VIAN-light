@@ -92,7 +92,7 @@
                 <v-list-item-title>Export Screenshots</v-list-item-title>
               </v-list-item>
 
-              <v-list-item @click="exportProject">
+              <v-list-item>
                 <v-list-item-title>Export Project</v-list-item-title>
               </v-list-item>
             </v-list>
@@ -203,10 +203,10 @@
 <script>
 import { mapStores } from 'pinia'
 
-import { exportAnnotations, exportProject } from '@renderer/importexport'
 import LayoutDraggable from '@renderer/components/LayoutDraggable.vue'
 import LayoutTibava from '@renderer/components/LayoutTibava.vue'
 import api from '@renderer/api'
+import { exportAnnotations } from '@renderer/importexport'
 import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoStore } from '@renderer/stores/undo'
@@ -264,10 +264,6 @@ export default {
   methods: {
     exportAnnotations(csv) {
       exportAnnotations(csv)
-    },
-
-    exportProject() {
-      exportProject()
     },
 
     exportScreenshots(individually) {
