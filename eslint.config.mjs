@@ -99,7 +99,8 @@ export default [
             'undoStore',
             'undoableStore',
             '$router',
-            '$route'
+            '$route',
+            '$vuetify'
           ]
         }
       ],

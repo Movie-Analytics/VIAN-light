@@ -11,7 +11,7 @@ import App from './App.vue'
 import router from './router'
 
 setupCsp()
-const vuetify = createVuetify()
+const vuetify = createVuetify({ theme: { themes: { dark: false } } })
 const pinia = createPinia()
 
 const app = createApp(App)

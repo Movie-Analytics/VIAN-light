@@ -19,6 +19,7 @@ export default {
 
   data() {
     return {
+      axisColor: 'black',
       canvasHeight: 0,
       canvasWidth: 500,
       ctx: null,
@@ -38,6 +39,15 @@ export default {
   },
 
   watch: {
+    '$vuetify.theme.global.name'(val) {
+      if (val === 'dark') {
+        this.axisColor = 'white'
+      } else {
+        this.axisColor = 'black'
+      }
+      this.draw()
+    },
+
     'mainStore.fps'() {
       if (this.mainStore.videoDuration && this.mainStore.fps) {
         this.drawSetup()
@@ -144,7 +154,7 @@ export default {
         return this.mainStore.timeReadableSec(Math.round(d / this.mainStore.fps))
       }
 
-      this.ctx.strokeStyle = 'black'
+      this.ctx.strokeStyle = this.axisColor
 
       this.ctx.beginPath()
 
@@ -161,7 +171,7 @@ export default {
 
       this.ctx.textAlign = 'center'
       this.ctx.textBaseline = 'top'
-      this.ctx.fillStyle = 'black'
+      this.ctx.fillStyle = this.axisColor
       ticks.forEach((d) => {
         this.ctx.beginPath()
         this.ctx.fillText(tickFormat(d), transScale(d), Y + tickSize + textMargin)

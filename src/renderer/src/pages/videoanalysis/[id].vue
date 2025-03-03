@@ -118,6 +118,12 @@
             </v-list>
           </v-menu>
         </v-list-item>
+
+        <v-list-item @click="switchLightMode">
+          <v-list-item-title v-if="darkMode">Switch to light mode</v-list-item-title>
+
+          <v-list-item-title v-else>Switch to dark mode</v-list-item-title>
+        </v-list-item>
       </v-list>
     </v-menu>
 
@@ -227,6 +233,10 @@ export default {
 
   computed: {
     ...mapStores(useMainStore, useTempStore, useUndoableStore, useUndoStore),
+
+    darkMode() {
+      return this.$vuetify.theme.global.name === 'dark'
+    },
 
     exportScreenshotsIndividualDisabled() {
       if (this.tempStore.selectedSegments.size === 0) return true
@@ -341,6 +351,15 @@ export default {
       else if (status === 'DONE') return 'success'
       else if (status === 'CANCELED') return 'black'
       return 'white'
+    },
+
+    switchLightMode() {
+      const theme = this.$vuetify.theme.global.name
+      if (theme === 'dark') {
+        this.$vuetify.theme.global.name = 'light'
+      } else {
+        this.$vuetify.theme.global.name = 'dark'
+      }
     },
 
     undo() {
