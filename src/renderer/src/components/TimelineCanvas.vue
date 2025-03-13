@@ -212,11 +212,17 @@ export default {
             // Only re-draw after 200 new images were loaded
             if (!this.tempStore.imageCache.has(shot.thumbnail)) {
               this.unloadedImages += 1
-              d3.image(shot.thumbnail).then((img) => {
-                this.tempStore.imageCache.set(shot.thumbnail, img)
-                this.unloadedImages -= 1
-                if (this.unloadedImages % 200 === 0) this.draw()
-              })
+              d3.image(shot.thumbnail)
+                .then((img) => {
+                  this.tempStore.imageCache.set(shot.thumbnail, img)
+                })
+                .catch((err) => {
+                  console.error('Error loading thumbnail', err)
+                })
+                .finally(() => {
+                  this.unloadedImages -= 1
+                  if (this.unloadedImages % 200 === 0) this.draw()
+                })
             }
           }
         }
