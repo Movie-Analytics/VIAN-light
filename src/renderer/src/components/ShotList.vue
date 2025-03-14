@@ -17,6 +17,27 @@
         item-title="name"
         item-value="id"
       />
+
+      <v-menu :close-on-content-click="false" width="300">
+        <template #activator="{ props }">
+          <v-btn v-bind="props" icon class="ms-2">
+            <v-icon>mdi-magnify</v-icon>
+          </v-btn>
+        </template>
+
+        <v-sheet>
+          <v-slider
+            v-model="thumbZoom"
+            :disabled="!screenshotTimeline"
+            append-icon="mdi-magnify-plus-outline"
+            prepend-icon="mdi-magnify-minus-outline"
+            class="ma-2"
+            hide-details
+            :min="30"
+            :max="100"
+          ></v-slider>
+        </v-sheet>
+      </v-menu>
     </v-row>
 
     <div id="virtualscroll-container">
@@ -42,8 +63,8 @@
               <img
                 v-for="img in getShotImages(item)"
                 :key="img.id"
-                :src="img.thumbnail"
-                class="shot-thumb"
+                :src="getThumbSrc(img)"
+                :style="thumbZoomStyle"
                 loading="lazy"
               />
             </v-row>
@@ -64,7 +85,8 @@ export default {
 
   data: () => ({
     screenshotTimeline: null,
-    shotTimeline: null
+    shotTimeline: null,
+    thumbZoom: 50
   }),
 
   computed: {
@@ -73,6 +95,12 @@ export default {
     shots() {
       const timeline = this.undoableStore.shotTimelines.find((s) => s.id === this.shotTimeline)
       return timeline ? timeline.data : []
+    },
+
+    thumbZoomStyle() {
+      return {
+        height: `${this.thumbZoom}px`
+      }
     }
   },
 
@@ -92,6 +120,13 @@ export default {
       return timeline
         ? timeline.data.filter((s) => s.frame >= shot.start && s.frame < shot.end)
         : []
+    },
+
+    getThumbSrc(img) {
+      if (this.thumbZoom < 80) {
+        return img.thumbnail
+      }
+      return img.image
     }
   }
 }
@@ -104,8 +139,5 @@ export default {
 }
 #top-sheet {
   height: inherit;
-}
-.shot-thumb {
-  height: 50px;
 }
 </style>
