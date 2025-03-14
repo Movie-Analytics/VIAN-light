@@ -38,11 +38,7 @@
               </p>
             </div>
 
-            <v-row
-              v-if="screenshotTimeline"
-              justify="start"
-              class="flex-nowrap ga-3 mx-3 overflow-x-auto pt-3"
-            >
+            <v-row v-if="screenshotTimeline" justify="start" class="ga-3 mx-3 pt-3">
               <img
                 v-for="img in getShotImages(item)"
                 :key="img.id"
