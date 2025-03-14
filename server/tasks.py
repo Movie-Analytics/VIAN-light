@@ -160,7 +160,7 @@ def export_screenshots(
                     if frames is None or f['frame'] in frames
                 ]
                 t_path = timeline['name'] + ' - ' + timeline['id']
-                if len(timeline_frames):
+                if len(timeline_frames) > 0:
                     zipf.mkdir(t_path)
 
                 frame_dir = config.DATA_DIR / config.SCREENSHOT_UPLOAD_DIR / projectid
