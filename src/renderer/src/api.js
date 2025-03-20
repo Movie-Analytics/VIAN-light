@@ -427,7 +427,7 @@ class RemoteApi {
       return
     }
 
-    const result = await response.json()
+    await response.json()
     this.startJobUpdateFetch()
   }
 

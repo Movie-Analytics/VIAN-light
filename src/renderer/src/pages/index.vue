@@ -164,6 +164,7 @@ export default {
 
     importProject() {
       this.tempStore.$reset()
+      // eslint-disable-next-line
       if (isElectron) {
         this.metaStore.importProject(this.importVideoFile.path, this.importZipFile.path)
       } else {

@@ -196,8 +196,8 @@ def create_result(session: Session, jobid: int, data: dict|list|str) -> Result:
 
 def get_job(session: Session, account: Account|None, jobid: int) -> Job|None:
     if account is None:
-        statement = select(Job).where(Job.id == jobid).order_by(Job.creation.asc())
+        statement = select(Job).where(Job.id == jobid).order_by(Job.creation.asc())  # type: ignore
     else:
         statement = select(Job).where(Job.account_id == account.id,
-                                      Job.id == jobid).order_by(Job.creation.asc())
+                                      Job.id == jobid).order_by(Job.creation.asc())  # type: ignore
     return session.exec(statement).first()
