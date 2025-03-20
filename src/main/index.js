@@ -4,8 +4,10 @@ import { join } from 'path'
 
 import {
   cleanUp,
+  exportProject,
   exportScreenshots,
   getVideoInfo,
+  importProject,
   loadStore,
   loadSubtitles,
   openVideoDialog,
@@ -124,6 +126,10 @@ ipcMain.on('run-screenshot-generation', (channel, path, frame, videoId) =>
 ipcMain.on('get-video-info', (channel, path) => getVideoInfo(channel, path))
 ipcMain.on('export-screenshots', (channel, projectId, frames) =>
   exportScreenshots(channel, projectId, frames)
+)
+ipcMain.on('export-project', (channel, projectId) => exportProject(channel, projectId))
+ipcMain.on('import-project', (channel, videoFile, zipFile) =>
+  importProject(channel, videoFile, zipFile)
 )
 
 cleanUp()

@@ -27,7 +27,8 @@
     "node-addon-api": "^8.2.2",
     "subtitle": "^4.2.1",
     "unplugin-vue-router": "^0.10.8",
-    "vuetify": "^3.7.4"
+    "vuetify": "^3.7.4",
+    "yauzl": "^3.2.0"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^2.0.0",

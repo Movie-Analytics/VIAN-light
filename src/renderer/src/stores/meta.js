@@ -13,6 +13,9 @@ export const useMetaStore = defineStore('meta', {
     deleteProject(projectId) {
       this.projects = this.projects.filter((project) => project.id !== projectId)
     },
+    importProject(videoFile, zipFile) {
+      api.importProject(videoFile, zipFile)
+    },
     initialize() {
       this.$subscribe((mutation, state) => {
         const copyState = JSON.parse(JSON.stringify(state))
@@ -20,12 +23,17 @@ export const useMetaStore = defineStore('meta', {
         const undoStore = useUndoStore()
         undoStore.push('meta', copyState)
       })
+
+      api.onImportProject(this.onImportProject)
     },
     async loadStore() {
       const state = await api.loadStore('meta')
       if (state !== null) {
         this.$patch(state)
       }
+    },
+    onImportProject(project) {
+      this.projects.push(project)
     },
     async openVideo() {
       const videoInfo = await api.openVideo()

@@ -92,7 +92,7 @@
                 <v-list-item-title>Export Screenshots</v-list-item-title>
               </v-list-item>
 
-              <v-list-item>
+              <v-list-item @click="exportProject">
                 <v-list-item-title>Export Project</v-list-item-title>
               </v-list-item>
             </v-list>
@@ -274,6 +274,10 @@ export default {
   methods: {
     exportAnnotations(csv) {
       exportAnnotations(csv)
+    },
+
+    exportProject() {
+      api.exportProject(this.mainStore.id)
     },
 
     exportScreenshots(individually) {

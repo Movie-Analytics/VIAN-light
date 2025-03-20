@@ -1,6 +1,7 @@
 import json
 import logging
 import shutil
+import tempfile
 import uuid
 from collections.abc import AsyncGenerator, Sequence
 from contextlib import asynccontextmanager
@@ -17,30 +18,37 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr
 
 import authentication as auth
-import config
 import database as db
 import tasks
+from config import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    API_PREFIX,
+    EXPORT_DIR,
+    MIN_KEY_LENGTH,
+    ORIGINS,
+    SCREENSHOT_UPLOAD_DIR,
+    SECRET_KEY,
+    SUBTITLE_UPLOAD_DIR,
+    VIDEO_UPLOAD_DIR,
+    get_path,
+)
 
 logger = logging.getLogger(__name__)
 
 
-def get_path(path: str|Path) -> Path:
-    return config.DATA_DIR / path
-
-
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
-    get_path(config.VIDEO_UPLOAD_DIR).mkdir(exist_ok=True, parents=True)
-    get_path(config.SUBTITLE_UPLOAD_DIR).mkdir(exist_ok=True)
-    get_path(config.SCREENSHOT_UPLOAD_DIR).mkdir(exist_ok=True)
-    get_path(config.EXPORT_DIR).mkdir(exist_ok=True)
+    get_path(VIDEO_UPLOAD_DIR).mkdir(exist_ok=True, parents=True)
+    get_path(SUBTITLE_UPLOAD_DIR).mkdir(exist_ok=True)
+    get_path(SCREENSHOT_UPLOAD_DIR).mkdir(exist_ok=True)
+    get_path(EXPORT_DIR).mkdir(exist_ok=True)
     app.mount(
-        config.API_PREFIX + 'uploads',
+        API_PREFIX + 'uploads',
         StaticFiles(directory=get_path('uploads')),
         name='uploads'
     )
     db.create_db_and_tables()
-    if len(config.SECRET_KEY) < config.MIN_KEY_LENGTH:
+    if len(SECRET_KEY) < MIN_KEY_LENGTH:
         logger.warning('Secret key not set. Using insecure default')
 
     yield
@@ -49,7 +57,7 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(title='vian-server', lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=config.ORIGINS,
+    allow_origins=ORIGINS,
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],
@@ -89,7 +97,11 @@ class ScreenshotExport(BaseModel):
     id: str
 
 
-@app.post(config.API_PREFIX + 'signup')
+class ProjectExport(BaseModel):
+    id: str
+
+
+@app.post(API_PREFIX + 'signup')
 async def signup(user: UserInfo, session: db.SessionDep) -> dict:
     if db.get_account_by_email(session, user.email):
         raise HTTPException(status_code=400, detail='Email already registered')
@@ -100,7 +112,7 @@ async def signup(user: UserInfo, session: db.SessionDep) -> dict:
     return {'message': 'User created successfully'}
 
 
-@app.post(config.API_PREFIX + 'login')
+@app.post(API_PREFIX + 'login')
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> dict:
     user_email = form_data.username
     user_password = form_data.password
@@ -114,23 +126,23 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> d
                 headers={'WWW-Authenticate': 'Bearer'},
             )
 
-    access_token_expires = timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = auth.create_access_token(
         data={'sub': user_email}, expires_delta=access_token_expires
     )
     return {'access_token': access_token, 'token_type': 'bearer'}
 
 
-@app.get(config.API_PREFIX + 'renew-token')
+@app.get(API_PREFIX + 'renew-token')
 async def renew_token(current_account: auth.AccountDep, session: db.SessionDep) -> dict:
-    access_token_expires = timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = auth.create_access_token(
         data={'sub': current_account.email}, expires_delta=access_token_expires
     )
     return {'access_token': access_token, 'token_type': 'bearer'}
 
 
-@app.post(config.API_PREFIX + 'save-store')
+@app.post(API_PREFIX + 'save-store')
 async def save_store(
     store: StoreData,
     current_account: auth.AccountDep,
@@ -141,7 +153,7 @@ async def save_store(
     return {'message': f'Store "{store.name}" saved successfully'}
 
 
-@app.post(config.API_PREFIX + 'load-store')
+@app.post(API_PREFIX + 'load-store')
 async def load_store(
     store: LoadStore,
     session: db.SessionDep,
@@ -153,7 +165,7 @@ async def load_store(
     raise HTTPException(status_code=404, detail=f'Store "{store.name}" not found')
 
 
-@app.post(config.API_PREFIX + 'upload-video')
+@app.post(API_PREFIX + 'upload-video')
 async def upload_video(
     session: db.SessionDep,
     current_account: auth.AccountDep,
@@ -166,7 +178,7 @@ async def upload_video(
         )
 
     unique_filename = f'{uuid.uuid4()}.mp4'
-    full_file_path = get_path(config.VIDEO_UPLOAD_DIR) / unique_filename
+    full_file_path = get_path(VIDEO_UPLOAD_DIR) / unique_filename
 
     try:
         with full_file_path.open('wb') as buffer:
@@ -178,31 +190,31 @@ async def upload_video(
         ) from e
 
     return {
-        'location': config.API_PREFIX + str(config.VIDEO_UPLOAD_DIR / unique_filename),
+        'location': API_PREFIX + str(VIDEO_UPLOAD_DIR / unique_filename),
         'name': file.filename
     }
 
 
-@app.post(config.API_PREFIX + 'get-video-info')
+@app.post(API_PREFIX + 'get-video-info')
 async def get_video_info(
     videoinfo: VideoInfo,
     session: db.SessionDep,
     current_account: auth.AccountDep
 ) -> dict:
-    video_path = get_path(config.VIDEO_UPLOAD_DIR) / videoinfo.video.rsplit('/')[-1]
+    video_path = get_path(VIDEO_UPLOAD_DIR) / videoinfo.video.rsplit('/')[-1]
     job = db.create_job(session, current_account, 'video-info', videoinfo.id)
     worker = tasks.get_video_info.delay(str(video_path), job.id)  # type: ignore
     db.update_job(session, job.id, worker=worker.id)
     return {'message': 'job submitted'}
 
 
-@app.post(config.API_PREFIX + 'shotboundary-detection')
+@app.post(API_PREFIX + 'shotboundary-detection')
 async def shotboundary_detection(
     videoinfo: VideoInfo,
     session: db.SessionDep,
     current_account: auth.AccountDep
 ) -> dict:
-    video_path = get_path(config.VIDEO_UPLOAD_DIR) / videoinfo.video.rsplit('/')[-1]
+    video_path = get_path(VIDEO_UPLOAD_DIR) / videoinfo.video.rsplit('/')[-1]
     job = db.create_job(
         session,
         current_account,
@@ -214,15 +226,15 @@ async def shotboundary_detection(
     return {'message': 'job submitted'}
 
 
-@app.post(config.API_PREFIX + 'screenshots-generation')
+@app.post(API_PREFIX + 'screenshots-generation')
 async def screenshots_generation(
     screenshotinfo: ScreenshotInfo,
     session: db.SessionDep,
     current_account: auth.AccountDep
 ) -> dict:
     video = screenshotinfo.video.rsplit('/')[-1]
-    video_path = get_path(config.VIDEO_UPLOAD_DIR) / video
-    screenshots_path = config.SCREENSHOT_UPLOAD_DIR / screenshotinfo.id
+    video_path = get_path(VIDEO_UPLOAD_DIR) / video
+    screenshots_path = SCREENSHOT_UPLOAD_DIR / screenshotinfo.id
     get_path(screenshots_path).mkdir(exist_ok=True)
 
     if len(screenshotinfo.frames) == 1:
@@ -256,7 +268,7 @@ async def screenshots_generation(
     return {'message': 'job submitted'}
 
 
-@app.get(config.API_PREFIX + 'get-jobs/{projectid}')
+@app.get(API_PREFIX + 'get-jobs/{projectid}')
 async def get_jobs(
     projectid: str,
     session: db.SessionDep,
@@ -265,7 +277,15 @@ async def get_jobs(
     return db.get_jobs(session, current_account, projectid)
 
 
-@app.get(config.API_PREFIX + 'get-result/{jobid}')
+@app.get(API_PREFIX + 'get-jobs/')
+async def get_jobs_all(
+    session: db.SessionDep,
+    current_account: auth.AccountDep
+) -> Sequence:
+    return  db.get_jobs(session, current_account, None)
+
+
+@app.get(API_PREFIX + 'get-result/{jobid}')
 async def get_result(
     jobid: int,
     session: db.SessionDep,
@@ -274,7 +294,7 @@ async def get_result(
     return db.get_result(session, current_account, jobid)
 
 
-@app.post(config.API_PREFIX + 'upload-subtitles/{projectid}')
+@app.post(API_PREFIX + 'upload-subtitles/{projectid}')
 async def upload_subtitles(
     projectid: str,
     session: db.SessionDep,
@@ -288,7 +308,7 @@ async def upload_subtitles(
         )
 
     unique_filename = f'{uuid.uuid4()}.srt'
-    full_file_path = get_path(config.SUBTITLE_UPLOAD_DIR) / unique_filename
+    full_file_path = get_path(SUBTITLE_UPLOAD_DIR) / unique_filename
     vtt_file_path = str(full_file_path).replace('srt', 'vtt')
 
     try:
@@ -306,12 +326,12 @@ async def upload_subtitles(
     unique_filename = unique_filename.replace('srt', 'vtt')
 
     return {
-        'location': config.API_PREFIX +
-                    str(config.SUBTITLE_UPLOAD_DIR / unique_filename)
+        'location': API_PREFIX +
+                    str(SUBTITLE_UPLOAD_DIR / unique_filename)
     }
 
 
-@app.get(config.API_PREFIX + 'terminate-job/{task_id}')
+@app.get(API_PREFIX + 'terminate-job/{task_id}')
 async def terminate_job(
     task_id: int,
     session: db.SessionDep,
@@ -329,7 +349,7 @@ async def terminate_job(
     return {'message': 'Job not running'}
 
 
-@app.post(config.API_PREFIX + 'export-screenshots')
+@app.post(API_PREFIX + 'export-screenshots')
 async def export_screenshots(
     export: ScreenshotExport,
     session: db.SessionDep,
@@ -344,6 +364,59 @@ async def export_screenshots(
         store['timelines'],
         export.frames,
         store['id'],
+        job.id
+    )
+    db.update_job(session, job.id, worker=worker.id)
+    return {'message': 'job submitted'}
+
+
+@app.post(API_PREFIX + 'export-project')
+async def export_project(
+    export: ProjectExport,
+    session: db.SessionDep,
+    current_account: auth.AccountDep
+) -> dict:
+    job = db.create_job(session, current_account, 'export-project', export.id)
+    worker = tasks.export_project.delay(  # type: ignore
+        export.id,
+        job.id
+    )
+    db.update_job(session, job.id, worker=worker.id)
+    return {'message': 'job submitted'}
+
+
+@app.post(API_PREFIX + 'import-project')
+async def import_project(
+    video: Annotated[UploadFile, File(...)],
+    zipfile: Annotated[UploadFile, File(...)],
+    session: db.SessionDep,
+    current_account: auth.AccountDep
+) -> dict:
+    if not video.content_type.startswith('video/mp4'):  # type: ignore
+        raise HTTPException(
+            status_code=400,
+            detail='Invalid file type. Please upload a video file.'
+        )
+    if not zipfile.content_type.startswith('application/zip'):  # type: ignore
+        raise HTTPException(
+            status_code=400,
+            detail='Invalid file type. Please upload a zip file.'
+        )
+
+    tmp = tempfile.mkdtemp()
+    videoTmpPath = Path(tmp) / (video.filename or 'video.mp4')
+    with videoTmpPath.open('wb') as buffer:
+        shutil.copyfileobj(video.file, buffer)
+    zipTmpPath = Path(tmp) / (zipfile.filename or 'file.zip')
+    with zipTmpPath.open('wb') as buffer:
+        shutil.copyfileobj(zipfile.file, buffer)
+
+    project_id = str(uuid.uuid4())
+    job = db.create_job(session, current_account, 'import-project', project_id)
+    worker = tasks.import_project.delay(  # type:ignore
+        str(videoTmpPath),
+        str(zipTmpPath),
+        project_id,
         job.id
     )
     db.update_job(session, job.id, worker=worker.id)

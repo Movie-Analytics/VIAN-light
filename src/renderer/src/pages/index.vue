@@ -20,6 +20,10 @@
           <v-col cols="auto" align-self="center">
             <v-btn @click="openVideo">Open video</v-btn>
           </v-col>
+
+          <v-col cols="auto" align-self="center">
+            <v-btn @click="importDialog = true">Import project</v-btn>
+          </v-col>
         </v-row>
 
         <v-row class="align-content-start">
@@ -52,7 +56,7 @@
         </v-row>
       </v-container>
 
-      <v-dialog v-model="renameDialog" persistent>
+      <v-dialog v-model="renameDialog" persistent max-width="500">
         <v-card>
           <v-card-title>Rename Project</v-card-title>
 
@@ -64,6 +68,30 @@
             <v-btn color="warning" @click="renameDialog = false">Cancel</v-btn>
 
             <v-btn color="primary" @click="saveProjectName">Save</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+      <v-dialog v-model="importDialog" persistent max-width="500" :disabled="importDisabled">
+        <v-card>
+          <v-card-title>Import Project</v-card-title>
+
+          <v-card-text>
+            <v-file-input v-model="importVideoFile" label="Video" accept="video/mp4"></v-file-input>
+
+            <v-file-input
+              v-model="importZipFile"
+              label="Project file"
+              accept="application/zip"
+            ></v-file-input>
+          </v-card-text>
+
+          <v-card-actions>
+            <v-btn color="warning" @click="importDialog = false">Cancel</v-btn>
+
+            <v-btn color="primary" :disabled="importButtonDisabled" @click="importProject">
+              Import
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -87,6 +115,10 @@ export default {
   data() {
     return {
       currentProjectId: null,
+      importDialog: false,
+      importDisabled: false,
+      importVideoFile: null,
+      importZipFile: null,
       projectName: '',
       renameDialog: false
     }
@@ -98,6 +130,20 @@ export default {
     electron() {
       // eslint-disable-next-line
       return isElectron
+    },
+
+    importButtonDisabled() {
+      return this.importVideoFile === null || this.importZipFile === null
+    }
+  },
+
+  watcher: {
+    'tempStore.jobs'(val) {
+      if (val[0]?.type === 'import-project' && val[0].status !== 'RUNNING') {
+        this.importDisabled = false
+        this.importDialog = false
+        this.tempStore.$reset()
+      }
     }
   },
 
@@ -114,6 +160,16 @@ export default {
 
     deleteProject(projectId) {
       this.metaStore.deleteProject(projectId)
+    },
+
+    importProject() {
+      this.tempStore.$reset()
+      if (isElectron) {
+        this.metaStore.importProject(this.importVideoFile.path, this.importZipFile.path)
+      } else {
+        this.metaStore.importProject(this.importVideoFile, this.importZipFile)
+      }
+      this.importDisabled = true
     },
 
     logout() {

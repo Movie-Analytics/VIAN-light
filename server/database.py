@@ -124,10 +124,13 @@ def load_store(
 def get_jobs(
     session: Session,
     current_account: Account,
-    projectid: str
+    projectid: str|None
 ) -> Sequence[Job]:
-    statement = select(Job).where(Job.account_id==current_account.id,
-                                  Job.project_id == projectid)
+    if projectid:
+        statement = select(Job).where(Job.account_id==current_account.id,
+                                      Job.project_id == projectid)
+    else:
+        statement = select(Job).where(Job.account_id==current_account.id)
     return session.exec(statement).all()
 
 
@@ -191,7 +194,10 @@ def create_result(session: Session, jobid: int, data: dict|list|str) -> Result:
     return result
 
 
-def get_job(session: Session, account: Account, jobid: int) -> Job|None:
-    statement = select(Job).where(Job.account_id == account.id,
-                                  Job.id == jobid)
+def get_job(session: Session, account: Account|None, jobid: int) -> Job|None:
+    if account is None:
+        statement = select(Job).where(Job.id == jobid).order_by(Job.creation.asc())
+    else:
+        statement = select(Job).where(Job.account_id == account.id,
+                                      Job.id == jobid).order_by(Job.creation.asc())
     return session.exec(statement).first()

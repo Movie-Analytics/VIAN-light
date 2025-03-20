@@ -7,6 +7,7 @@ const JOB_REFRESH_INTERVAL = 2 * 1000
 class RemoteApi {
   constructor() {
     this.callbacks = {
+      'export-project': this.onExportProject,
       'export-screenshots': this.onExportScreenhots
     }
     this.jobUpdate = null
@@ -36,7 +37,6 @@ class RemoteApi {
       this.bearerToken = token
       localStorage.setItem('token', token)
 
-      this.startJobUpdateFetch()
       this.intervalCheckToken()
       return true
     }
@@ -71,7 +71,6 @@ class RemoteApi {
       token = (await response.json()).access_token
       this.bearerToken = token
       localStorage.setItem('token', token)
-      this.startJobUpdateFetch()
       return true
     }
     return false
@@ -104,14 +103,13 @@ class RemoteApi {
         }
 
         try {
-          const token = this.bearerToken
           const formData = new FormData()
           formData.append('file', file)
 
           const response = await fetch(this.baseApi + 'upload-video', {
             body: formData,
             headers: {
-              Authorization: `Bearer ${token}`
+              Authorization: `Bearer ${this.bearerToken}`
             },
             method: 'POST'
           })
@@ -131,15 +129,16 @@ class RemoteApi {
   }
 
   async loadStore(name, id) {
-    const token = this.bearerToken
-
+    if (name === 'main') {
+      this.callbacks['jobs-update'](await this.getJobs())
+    }
     const response = await fetch(this.baseApi + 'load-store', {
       body: JSON.stringify({
         id: id || null,
         name
       }),
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${this.bearerToken}`,
         'Content-type': 'application/json; charset=UTF-8'
       },
       method: 'POST'
@@ -150,7 +149,6 @@ class RemoteApi {
   }
 
   async saveStore(name, store) {
-    const token = this.bearerToken
     let id = null
     if (name !== 'meta') {
       id = store.id
@@ -163,7 +161,7 @@ class RemoteApi {
         name
       }),
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${this.bearerToken}`,
         'Content-type': 'application/json; charset=UTF-8'
       },
       method: 'POST'
@@ -275,7 +273,11 @@ class RemoteApi {
   }
 
   async getJobs() {
-    const response = await fetch(this.baseApi + 'get-jobs/' + useMainStore().id, {
+    let url = this.baseApi + 'get-jobs/'
+    if (useMainStore().id !== null) {
+      url += useMainStore().id
+    }
+    const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${this.bearerToken}`,
         'Content-type': 'application/json; charset=UTF-8'
@@ -289,8 +291,6 @@ class RemoteApi {
     if (this.jobUpdate !== null) return
 
     this.jobUpdate = setInterval(async () => {
-      const token = this.bearerToken
-
       try {
         const jobs = await this.getJobs()
         if (jobs.every((j) => j.status !== 'RUNNING')) {
@@ -306,7 +306,7 @@ class RemoteApi {
             // Fetch results for newly finished jobs
             const response = await fetch(this.baseApi + `get-result/${j.id}`, {
               headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${this.bearerToken}`,
                 'Content-type': 'application/json; charset=UTF-8'
               },
               method: 'GET'
@@ -347,11 +347,9 @@ class RemoteApi {
   }
 
   async terminateJob(id) {
-    const token = this.bearerToken
-
     const response = await fetch(this.baseApi + `terminate-job/${id}`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${this.bearerToken}`,
         'Content-type': 'application/json; charset=UTF-8'
       },
       method: 'GET'
@@ -361,15 +359,13 @@ class RemoteApi {
   }
 
   async exportScreenshots(projectId, frames) {
-    const token = this.bearerToken
-
     const response = await fetch(this.baseApi + 'export-screenshots', {
       body: JSON.stringify({
         frames,
         id: projectId
       }),
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${this.bearerToken}`,
         'Content-type': 'application/json; charset=UTF-8'
       },
       method: 'POST'
@@ -386,6 +382,57 @@ class RemoteApi {
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
+  }
+
+  async exportProject(projectId) {
+    const response = await fetch(this.baseApi + 'export-project', {
+      body: JSON.stringify({
+        id: projectId
+      }),
+      headers: {
+        Authorization: `Bearer ${this.bearerToken}`,
+        'Content-type': 'application/json; charset=UTF-8'
+      },
+      method: 'POST'
+    })
+    this.startJobUpdateFetch()
+
+    return response.ok
+  }
+
+  onExportProject(url) {
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'vian_lite.zip'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
+  async importProject(videoFile, zipFile) {
+    this.callbacks['jobs-update'](await this.getJobs())
+    const formData = new FormData()
+    formData.append('zipfile', zipFile)
+    formData.append('video', videoFile)
+
+    const response = await fetch(this.baseApi + 'import-project', {
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${this.bearerToken}`
+      },
+      method: 'POST'
+    })
+
+    if (!response.ok) {
+      return
+    }
+
+    const result = await response.json()
+    this.startJobUpdateFetch()
+  }
+
+  onImportProject(cb) {
+    this.callbacks['import-project'] = cb
   }
 }
 

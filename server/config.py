@@ -23,3 +23,6 @@ API_PREFIX = os.environ.get('VIAN_API_PREFIX', '/api/')
 SECRET_KEY = os.environ.get('VIAN_SECRET_KEY', 'your-secret')
 ORIGINS = os.environ.get('VIAN_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',')
 MIN_KEY_LENGTH = 20
+
+def get_path(path: str|Path) -> Path:
+    return DATA_DIR / path

@@ -5,7 +5,9 @@ import fs from 'fs'
 import path from 'path'
 
 import cleanUpWorker from './workers/cleanup_worker?nodeWorker'
+import exportProjectWorker from './workers/export_project_worker?nodeWorker'
 import exportScreenshotWorker from './workers/export_screenshots_worker?nodeWorker'
+import importProjectWorker from './workers/import_project_worker?nodeWorker'
 import screenshotGenerationWorker from './workers/screenshot_generation_worker?nodeWorker'
 import screenshotsGenerationWorker from './workers/screenshots_generation_worker?nodeWorker'
 import shotBoundaryWorker from './workers/shotboundary_worker?nodeWorker'
@@ -39,6 +41,8 @@ class JobManager {
     if (job) {
       job.status = status
       this.sendJobsUpdate(channel)
+    } else {
+      console.warn('Job not found. Status cannot be updated')
     }
   }
 
@@ -64,8 +68,7 @@ class JobManager {
 
     worker.on('error', (error) => {
       console.error(`Worker error in ${type}:`, error)
-      this.updateJobStatus(job.id, 'ERROR')
-      this.sendJobsUpdate(channel)
+      this.updateJobStatus(channel, job.id, 'ERROR')
     })
 
     this.sendJobsUpdate(channel)
@@ -202,6 +205,33 @@ export const exportScreenshots = (channel, projectId, frames) => {
 
   worker.on('message', () => {
     jobManager.updateJobStatus(channel, job.id, 'DONE')
+  })
+}
+
+export const exportProject = (channel, projectId) => {
+  const location = dialog.showSaveDialogSync(null, {
+    defaultPath: 'vian_project.zip',
+    title: 'Select export location'
+  })
+  if (location === '') return
+  const projectPath = getDataPath(projectId)
+
+  const worker = exportProjectWorker({ workerData: { location, projectPath } })
+  const job = jobManager.createWorkerJob(channel, 'export-project', worker)
+
+  worker.on('message', () => {
+    jobManager.updateJobStatus(channel, job.id, 'DONE')
+  })
+}
+
+export const importProject = (channel, videoFile, zipFile) => {
+  const dataPath = path.join(app.getPath('userData'), DATA_DIR)
+  const worker = importProjectWorker({ workerData: { dataPath, videoFile, zipFile } })
+  const job = jobManager.createWorkerJob(channel, 'import-project', worker)
+
+  worker.on('message', (data) => {
+    jobManager.updateJobStatus(channel, job.id, 'DONE')
+    channel.sender.send('imported-project', data)
   })
 }
 
