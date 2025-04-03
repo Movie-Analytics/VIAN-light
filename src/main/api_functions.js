@@ -196,10 +196,9 @@ export const exportScreenshots = (channel, projectId, frames) => {
     title: 'Select export location'
   })
   if (location === '') return
-  const storePath = path.join(getDataPath(projectId), 'undoable.json')
 
   const worker = exportScreenshotWorker({
-    workerData: { frames, location, storePath }
+    workerData: { frames, location, storePath: getDataPath(projectId) }
   })
   const job = jobManager.createWorkerJob(channel, 'export-screenshots', worker)
 

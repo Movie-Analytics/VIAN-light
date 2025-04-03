@@ -4,19 +4,35 @@ const path = require('path')
 const os = require('os')
 const archiver = require('archiver')
 
+const timeSec = (t) => {
+  const hours = Math.floor(t / 3600)
+  const minutes = Math.floor((t % 3600) / 60)
+  const seconds = (t % 60).toFixed(2).replace('.', ',')
+
+  const formattedHours = String(hours).padStart(2, '0')
+  const formattedMinutes = String(minutes).padStart(2, '0')
+  const formattedSeconds = String(seconds).padStart(2, '0')
+
+  return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`
+}
+
 const exportScreenshots = async (storePath, location, frames) => {
   const tmpPath = fs.mkdtempSync(path.join(os.tmpdir(), 'vian-screenshots-'))
 
-  const store = JSON.parse(fs.readFileSync(storePath, 'utf8'))
+  const undoableStore = JSON.parse(fs.readFileSync(path.join(storePath, 'undoable.json'), 'utf8'))
+  const mainStore = JSON.parse(fs.readFileSync(path.join(storePath, 'main.json'), 'utf8'))
 
-  store.timelines.forEach((t) => {
+  undoableStore.timelines.forEach((t) => {
     if (!t.type.startsWith('screenshots')) return
     const timelinePath = path.join(tmpPath, `${t.name}-${t.id}`)
     fs.mkdirSync(timelinePath)
     t.data.forEach((s) => {
-      const imagePath = s.image.replace('app://', '')
       if (frames && !frames.includes(s.frame)) return
-      fs.copyFileSync(imagePath, path.join(timelinePath, path.basename(imagePath)))
+      const imagePath = s.image.replace('app://', '')
+      let newImageName = path.basename(imagePath).slice(0, -path.extname(imagePath).length)
+
+      newImageName = timeSec(Number.parseInt(newImageName, 10) / mainStore.fps) + '.jpg'
+      fs.copyFileSync(imagePath, path.join(timelinePath, newImageName))
     })
   })
 

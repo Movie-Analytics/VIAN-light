@@ -160,10 +160,18 @@ def screenshot_generation(
 def export_screenshots(
     timelines: list[dict],
     frames: list[int]|None,
+    fps: int,
     projectid: str,
     job: int
 ) -> str|None:
     logger.info('Starting screenshots export')
+
+    def time_sec(t: float) -> str:
+        hours = int(t / 3600)
+        minutes = int((t % 3600) / 60)
+        seconds = f'{(t % 60):.2f}'.replace('.', ',')
+        return f'{hours:02}:{minutes:02}:{seconds}'
+
     try:
         session = next(db.get_session())
         db.update_job(session, job, status='RUNNING')
@@ -184,7 +192,11 @@ def export_screenshots(
 
                 frame_dir = DATA_DIR / SCREENSHOT_UPLOAD_DIR / projectid
                 for frame in timeline_frames:
-                    zipf.write(frame_dir / frame, t_path + '/' + frame)
+                    frame_name = time_sec(int(frame.removesuffix('.jpg'))/fps) + '.jpg'
+                    zipf.write(
+                        frame_dir / frame,
+                        t_path + '/' + frame_name
+                    )
         zip_path = API_PREFIX + str(zip_path)
         db.update_job(session, job, status='DONE')
         db.create_result(session, job, zip_path)

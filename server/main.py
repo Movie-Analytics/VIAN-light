@@ -356,14 +356,17 @@ async def export_screenshots(
     current_account: auth.AccountDep
 ) -> dict:
     job = db.create_job(session, current_account, 'export-screenshots', export.id)
-    store = db.load_store(session, current_account, 'undoable', export.id)
-    if store is None:
+    undoable_store = db.load_store(session, current_account, 'undoable', export.id)
+    main_store = db.load_store(session, current_account, 'main', export.id)
+    if undoable_store is None or main_store is None:
         return {'message': 'Store not found'}
-    store = json.loads(store.data)
+    undoable_store = json.loads(undoable_store.data)
+    main_store = json.loads(main_store.data)
     worker = tasks.export_screenshots.delay(  # type: ignore
-        store['timelines'],
+        undoable_store['timelines'],
         export.frames,
-        store['id'],
+        main_store['fps'],
+        undoable_store['id'],
         job.id
     )
     db.update_job(session, job.id, worker=worker.id)
