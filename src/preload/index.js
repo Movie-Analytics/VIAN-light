@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   importProject: (arg, v, z) => ipcRenderer.send('import-project', arg, v, z),
   loadStore: (arg1, arg2) => ipcRenderer.invoke('load-store', arg1, arg2),
   loadSubtitles: (p) => ipcRenderer.invoke('load-subtitles', p),
+  logError: (msg) => ipcRenderer.send('log-error', msg),
   onImportProject: (cb) => ipcRenderer.on('imported-project', (c, ...args) => cb(...args)),
   onJobsUpdate: (cb) => ipcRenderer.on('jobs-update', (c, ...args) => cb(...args)),
   onScreenshotGeneration: (cb) =>

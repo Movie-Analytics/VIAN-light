@@ -22,6 +22,13 @@ export default {
 
     // eslint-disable-next-line
     if (isElectron) {
+      window.addEventListener('error', (event) => {
+        api.logError(`Renderer Error: ${event.error.stack || event.error.message}`)
+      })
+      window.addEventListener('unhandledrejection', (event) => {
+        api.logError(`Unhandled Promise Rejection: ${event.reason}`)
+      })
+
       this.$router.push('/')
     } else {
       this.$router.push('login')

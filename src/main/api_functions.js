@@ -19,6 +19,12 @@ const getDataPath = (projectId = '') => path.join(app.getPath('userData'), DATA_
 
 const getStorePath = (projectId, name) => path.join(getDataPath(projectId), `${name}.json`)
 
+export const logError = (msg) => {
+  const logPath = getDataPath('error.log')
+  const logMessage = `[${new Date().toISOString()}]: ${msg}\n`
+  fs.appendFileSync(logPath, logMessage, 'utf8')
+}
+
 class JobManager {
   constructor() {
     this.jobs = new Map()
@@ -68,6 +74,7 @@ class JobManager {
 
     worker.on('error', (error) => {
       console.error(`Worker error in ${type}:`, error)
+      logError(`Error in worker: ${error.stack || error.message}`)
       this.updateJobStatus(channel, job.id, 'ERROR')
     })
 

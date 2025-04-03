@@ -10,6 +10,7 @@ import {
   importProject,
   loadStore,
   loadSubtitles,
+  logError,
   openVideoDialog,
   runScreenshotGeneration,
   runScreenshotsGeneration,
@@ -111,6 +112,13 @@ app.on('window-all-closed', () => {
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
 
+process.on('uncaughtException', (error) => {
+  logError(`Uncaught Exception: ${error.stack || error.message}`)
+})
+process.on('unhandledRejection', (reason) => {
+  logError(`Unhandled Promise Rejection: ${reason}`)
+})
+
 ipcMain.handle('open-video', () => openVideoDialog())
 ipcMain.handle('load-subtitles', (_event, projectId) => loadSubtitles(projectId))
 ipcMain.on('terminate-job', (channel, jobId) => terminateJob(channel, jobId))
@@ -131,5 +139,8 @@ ipcMain.on('export-project', (channel, projectId) => exportProject(channel, proj
 ipcMain.on('import-project', (channel, videoFile, zipFile) =>
   importProject(channel, videoFile, zipFile)
 )
+ipcMain.on('log-error', (_, msg) => {
+  logError(`Renderer Process Error: ${msg}`)
+})
 
 cleanUp()
