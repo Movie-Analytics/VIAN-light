@@ -184,12 +184,14 @@ export default {
       for (const [timelineIndex, timeline] of this.undoableStore.timelines.entries()) {
         for (const [shotIndex, shot] of timeline.data.entries()) {
           if (timeline.type === 'shots') {
-            let color = '#cccccc'
-            if (shotIndex % 2 === 0) color = '#eeeeee'
+            let color = '#aaaaaa'
+            if (shotIndex % 2 === 0) color = '#cccccc'
+            if (shot.locked) color = '#eeeeee'
             this.data.push({
               fill: color,
               height: 44,
               id: shot.id,
+              locked: shot.locked,
               selected: this.tempStore.selectedSegments.has(shot.id),
               timeline: timeline.id,
               type: 'shot',
@@ -356,6 +358,11 @@ export default {
       if (entries.length === 0) return
       e.stopImmediatePropagation()
       const [entry] = entries
+
+      if (entry.locked) {
+        return
+      }
+
       this.tempStore.tmpShot = {
         end: entry.x + entry.width,
         height: 44,
@@ -369,6 +376,10 @@ export default {
         const currentIndex = this.data.indexOf(entry)
         const leftSide = entry.hiddenLeftHandle === color
         const adjacent = leftSide ? this.data[currentIndex - 1] : this.data[currentIndex + 1]
+        if (adjacent.locked) {
+          this.tempStore.tmpShot = null
+          return
+        }
 
         if (adjacent?.timeline === entry.timeline) {
           this.tempStore.adjacentShot = {

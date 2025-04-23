@@ -11,7 +11,13 @@
         <p class="font-weight-bold">Shot</p>
         {{ mainStore.timeReadableFrame(selectedTimelineSegment.start) }} -
         {{ mainStore.timeReadableFrame(selectedTimelineSegment.end) }}
-        <v-text-field v-model="annotationBuffer" label="Annotations"></v-text-field>
+        <v-text-field
+          v-model="annotationBuffer"
+          :disabled="selectedTimelineSegment.locked"
+          label="Annotations"
+        ></v-text-field>
+
+        <v-checkbox v-model="selectedTimelineSegment.locked" label="Lock segment"></v-checkbox>
       </div>
     </v-sheet>
 

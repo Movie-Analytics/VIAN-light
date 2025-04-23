@@ -120,11 +120,11 @@ export default {
     ...mapStores(useMainStore, useTempStore, useUndoableStore),
 
     segmentDeletable() {
-      return this.tempStore.selectedSegments.size > 0
+      return this.tempStore.selectedSegments.size > 0 && !this.segmentsLocked
     },
 
     segmentMergable() {
-      if (this.tempStore.selectedSegments.size <= 1) return false
+      if (this.tempStore.selectedSegments.size <= 1 || this.segmentsLocked) return false
       const timeline = this.undoableStore.timelines.filter(
         (t) => t.id === this.tempStore.selectedSegments.values().next().value
       )[0]
@@ -138,11 +138,17 @@ export default {
     },
 
     segmentSplitable() {
-      if (this.tempStore.selectedSegments.size !== 1) return false
+      if (this.tempStore.selectedSegments.size !== 1 || this.segmentsLocked) return false
       const playFps = Math.round(this.tempStore.playPosition * this.mainStore.fps)
       const [shotid, timelineid] = this.tempStore.selectedSegments.entries().next().value
       const segment = this.undoableStore.getSegmentForId(timelineid, shotid)
       return segment.start < playFps && segment.end > playFps
+    },
+
+    segmentsLocked() {
+      return Array.from(this.tempStore.selectedSegments.entries())
+        .map((shot) => this.undoableStore.getSegmentForId(shot[1], shot[0]).locked)
+        .some((v) => v)
     }
   },
 
