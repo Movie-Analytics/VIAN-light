@@ -1,7 +1,7 @@
 <template>
   <v-app-bar density="compact">
     <v-app-bar-title
-      >VIAN-lite
+      >VIAN-light
       <span class="text-body-2 text-medium-emphasis">{{ mainStore.video }}</span></v-app-bar-title
     >
 

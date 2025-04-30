@@ -59,7 +59,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: vian-lite-linux
+          name: vian-light-linux
           path: ${{ github.workspace }}/dist/*AppImage
           retention-days: 90
           overwrite: true
@@ -114,7 +114,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: vian-lite-macos
+          name: vian-light-macos
           path: ${{ github.workspace }}/dist/*.dmg
           retention-days: 90
           overwrite: true
@@ -179,7 +179,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: vian-lite-win
+          name: vian-light-win
           path: ${{ github.workspace }}/dist/*.exe
           retention-days: 90
           overwrite: true

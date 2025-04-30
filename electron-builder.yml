@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: vian-lite
+productName: vian-light
 directories:
   buildResources: build
 files:
@@ -11,7 +11,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: vian-lite
+  executableName: vian-light
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

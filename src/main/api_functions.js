@@ -13,7 +13,7 @@ import screenshotsGenerationWorker from './workers/screenshots_generation_worker
 import shotBoundaryWorker from './workers/shotboundary_worker?nodeWorker'
 import videoInfoWorker from './workers/videoinfo_worker?nodeWorker'
 
-const DATA_DIR = 'vian-lite'
+const DATA_DIR = 'vian-light'
 
 const getDataPath = (projectId = '') => path.join(app.getPath('userData'), DATA_DIR, projectId)
 

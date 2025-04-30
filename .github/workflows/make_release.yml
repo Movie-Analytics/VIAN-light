@@ -29,20 +29,20 @@ jobs:
         with:
           github-token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
           run-id: ${{ steps.get-run.outputs.run_id }}
-        
+
       - name: Debug
         run: |
           ls
           echo ""
-          ls vian-lite-linux
+          ls vian-light-linux
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            vian-lite-linux/vian-lite*
-            vian-lite-win/vian-lite*
-            vian-lite-macos/vian-lite*
+            vian-light-linux/vian-light*
+            vian-light-win/vian-light*
+            vian-light-macos/vian-light*
           tag_name: ${{ github.event.inputs.release-tag }}
           generate_release_notes: true
         env:

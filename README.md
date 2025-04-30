@@ -1,4 +1,4 @@
-# vian-lite
+# vian-light
 
 A video annotation software built with Electron and Vue.js.
 
