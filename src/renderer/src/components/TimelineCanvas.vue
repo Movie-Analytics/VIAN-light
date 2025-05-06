@@ -57,6 +57,7 @@ export default {
     'mainStore.videoDuration'() {
       if (this.mainStore.videoDuration && this.mainStore.fps) {
         this.drawSetup()
+        this.draw()
       }
     },
 
