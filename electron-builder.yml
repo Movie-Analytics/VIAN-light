@@ -1,4 +1,4 @@
-appId: com.electron.app
+appId: ch.uzh.vian
 productName: vian-light
 directories:
   buildResources: build
@@ -10,6 +10,8 @@ files:
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
 asarUnpack:
   - resources/**
+  - build/Release/**
+nodeGypRebuild: true
 win:
   executableName: vian-light
 nsis:
@@ -17,16 +19,21 @@ nsis:
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+afterSign: electron-builder-notarize-next
 mac:
+  hardenedRuntime: true
+  gatekeeperAssess: false
   entitlementsInherit: build/entitlements.mac.plist
+  entitlements: ./node_modules/electron-builder-notarize-next/entitlements.mac.inherit.plist
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
-  notarize: false
+  notarize: true
 dmg:
   artifactName: ${name}-${version}.${ext}
+  sign: true
 linux:
   target:
     - AppImage
@@ -35,6 +42,3 @@ linux:
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://example.com/auto-updates
