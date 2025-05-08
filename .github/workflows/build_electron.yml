@@ -77,30 +77,8 @@ jobs:
       - name: Write AuthKey.p8
         run: echo "${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}" > AuthKey.p8
 
-      - name: Ensure notarytool
-        run: |
-          if ! command -v notarytool &> /dev/null
-          then
-            echo "notarytool not found, attempting to install..."
-          else
-            echo "notarytool already installed."
-            xcrun notarytool --version
-          fi
-
-      - name: Select Xcode version
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '14.1.0'
-
-      - name: Ensure notarytool
-        run: |
-          if ! command -v notarytool &> /dev/null
-          then
-            echo "notarytool not found, attempting to install..."
-          else
-            echo "notarytool already installed."
-            xcrun notarytool --version
-          fi
+      - name: Test notarytool directly
+        run: xcrun notarytool --version
 
       - name: Install Node.js 22
         uses: actions/setup-node@v4
