@@ -82,7 +82,21 @@ jobs:
           if ! command -v notarytool &> /dev/null
           then
             echo "notarytool not found, attempting to install..."
-            brew install --cask notarytool
+          else
+            echo "notarytool already installed."
+            xcrun notarytool --version
+          fi
+
+      - name: Select Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '14.0'
+
+      - name: Ensure notarytool
+        run: |
+          if ! command -v notarytool &> /dev/null
+          then
+            echo "notarytool not found, attempting to install..."
           else
             echo "notarytool already installed."
             xcrun notarytool --version
