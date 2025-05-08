@@ -77,6 +77,17 @@ jobs:
       - name: Write AuthKey.p8
         run: echo "${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}" > AuthKey.p8
 
+      - name: Ensure notarytool
+        run: |
+          if ! command -v notarytool &> /dev/null
+          then
+            echo "notarytool not found, attempting to install..."
+            brew install --cask notarytool
+          else
+            echo "notarytool already installed."
+            xcrun notarytool --version
+          fi
+
       - name: Install Node.js 22
         uses: actions/setup-node@v4
         with:
