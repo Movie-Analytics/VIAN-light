@@ -67,10 +67,11 @@ jobs:
   build-mac:
     runs-on: macos-13
     env:
-      APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+      APPLE_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
       APPLE_API_KEY: AuthKey.p8
-      APPLE_API_KEY_ISSUER: ${{ secrets.APPLE_API_ISSUER_ID }}
-      API_KEY_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+      APPLE_API_KEY_ISSUER: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+      APPLE_API_KEY_ISSUER:
+      API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
     steps:
       - uses: actions/checkout@v4
 
