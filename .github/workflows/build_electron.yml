@@ -79,7 +79,7 @@ jobs:
         run: echo "${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}" > AuthKey.p8
 
       - name: Write Certificate.p12
-        run: echo "${{ secrets.APP_STORE_CERTIFICATE }}" > | base64 -d > Certificate.p12
+        run: echo "${{ secrets.APP_STORE_CERTIFICATE }}" | base64 -d > Certificate.p12
 
       - name: Test notarytool directly
         run: xcrun notarytool --version
