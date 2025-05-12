@@ -75,6 +75,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Apple Certificates
+        run: |
+          curl -fsSL -o apple_wwdrca_g3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
+          curl -fsSL -o apple_root_ca_g2.cer https://www.apple.com/certificateauthority/AppleRootCA-G2.cer
+          curl -fsSL -o apple_root_ca_g3.cer https://www.apple.com/certificateauthority/AppleRootCA-G3.cer
+          sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain apple_wwdrca_g3.cer
+          sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain apple_root_ca_g2.cer
+          sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain apple_root_ca_g3.cer
+
       - name: Write AuthKey.p8
         run: echo "${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}" > AuthKey.p8
 
@@ -122,7 +131,9 @@ jobs:
         run: npm install
 
       - name: Build
-        run: npm run build:mac
+        run: |
+          set -x
+          npm run build:mac
 
       - uses: actions/upload-artifact@v4
         with:
