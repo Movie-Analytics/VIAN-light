@@ -39,7 +39,6 @@
     "cheerio": "^1.0.0",
     "electron": "^31.0.2",
     "electron-builder": "^24.13.3",
-    "electron-builder-notarize-next": "github:Movie-Analytics/electron-builder-notarize-next",
     "electron-vite": "^2.3.0",
     "eslint": "^9.21.0",
     "eslint-plugin-vue": "^9.32.0",
