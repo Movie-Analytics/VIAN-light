@@ -106,7 +106,6 @@ jobs:
           security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleRootCA-G2.cer
           security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleRootCA-G3.cer
           echo "Intermediate certificates installed into $KEYCHAIN_NAME."
-          sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain AppleWWDRCAG2.cer
 
       - name: Import Signing Certificate into Keychain
         run: |
