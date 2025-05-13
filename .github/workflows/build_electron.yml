@@ -144,6 +144,14 @@ jobs:
       - name: Build
         run: |
           set -x
+          echo "Listing keychains again before build:"
+          security list-keychains -d user
+          echo "Default keychain:"
+          security default-keychain
+          echo "Attempting to find identity again just before build:"
+          security find-identity -v -p codesigning "$KEYCHAIN_NAME"
+
+          echo "Starting build process..."
           npm run build:mac
 
       - uses: actions/upload-artifact@v4
