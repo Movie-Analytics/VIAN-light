@@ -100,11 +100,11 @@ jobs:
           curl -fsSL -o AppleRootCA-G2.cer https://www.apple.com/certificateauthority/AppleRootCA-G2.cer
           curl -fsSL -o AppleRootCA-G3.cer https://www.apple.com/certificateauthority/AppleRootCA-G3.cer
 
-          security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleWWDRCAG2.cer
-          security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleWWDRCAG3.cer
-          security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleWWDRCAG4.cer
-          security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleRootCA-G2.cer
-          security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleRootCA-G3.cer
+          sudo security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleWWDRCAG2.cer
+          sudo security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleWWDRCAG3.cer
+          sudo security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleWWDRCAG4.cer
+          sudo security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleRootCA-G2.cer
+          sudo security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleRootCA-G3.cer
           echo "Intermediate certificates installed into $KEYCHAIN_NAME."
 
       - name: Import Signing Certificate into Keychain
