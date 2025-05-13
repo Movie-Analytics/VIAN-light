@@ -79,21 +79,54 @@ jobs:
       - name: Write Certificate.p12
         run: echo "${{ secrets.APP_STORE_CERTIFICATE }}" | base64 -d > Certificate.p12
 
-      - name: Create Keychain
+
+      - name: Create Temporary Keychain
         run: |
+          set -ex # Exit on error, print commands
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+          security list-keychains -d user -s "$KEYCHAIN_NAME" login.keychain # Add to search path, keeping login
           security default-keychain -s "$KEYCHAIN_NAME"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_NAME" # Set timeout
+          security set-keychain-settings -t 7200 -u "$KEYCHAIN_NAME"
+          echo "Keychain '$KEYCHAIN_NAME' created, added to search list, set as default, unlocked."
 
-      - name: Import Certificate
+      - name: Install Apple Intermediate Certificates into Keychain
         run: |
-          security import Certificate.p12 -k "$KEYCHAIN_NAME" -P "$CSC_KEY_PASSWORD" -T /usr/bin/codesign
+          set -ex
+          echo "Downloading and installing Apple Intermediate Certificates..."
+          curl -fsSL -o AppleWWDRCAG2.cer https://www.apple.com/certificateauthority/AppleWWDRCAG2.cer
+          curl -fsSL -o AppleWWDRCAG3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
+          curl -fsSL -o AppleWWDRCAG4.cer https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer
+          curl -fsSL -o AppleRootCA-G2.cer https://www.apple.com/certificateauthority/AppleRootCA-G2.cer
+          curl -fsSL -o AppleRootCA-G3.cer https://www.apple.com/certificateauthority/AppleRootCA-G3.cer
 
-      # This step might be needed on newer macOS versions or depending on cert type
-      - name: Allow codesign access
+          security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleWWDRCAG2.cer
+          security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleWWDRCAG3.cer
+          security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleWWDRCAG4.cer
+          security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleRootCA-G2.cer
+          security add-trusted-cert -d -r trustRoot -k "$KEYCHAIN_NAME" AppleRootCA-G3.cer
+          echo "Intermediate certificates installed into $KEYCHAIN_NAME."
+          sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain AppleWWDRCAG2.cer
+
+      - name: Import Signing Certificate into Keychain
         run: |
+          set -ex
+          echo "Importing signing certificate (Certificate.p12) into $KEYCHAIN_NAME"
+          security import Certificate.p12 -k "$KEYCHAIN_NAME" -P "$CSC_KEY_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security #-T /usr/bin/productbuild -T /usr/bin/pkgbuild
+          echo "Certificate imported."
+
+          echo "Setting key partition list (recommended for CI)..."
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+          echo "Key partition list set."
+
+      - name: Verify Identity in Keychain
+        run: |
+          set -ex
+          echo "--- Verifying identities in keychain: $KEYCHAIN_NAME ---"
+          security find-identity -v "$KEYCHAIN_NAME"
+          echo "--- Verifying CODE SIGNING identities in keychain: $KEYCHAIN_NAME ---"
+          security find-identity -v -p codesigning "$KEYCHAIN_NAME"
+          echo "--- Verification step complete. Check output above carefully. ---"
 
       - name: Write AuthKey.p8
         run: echo "${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}" > AuthKey.p8
@@ -169,6 +202,7 @@ jobs:
         if: always()
         run: |
           rm AuthKey.p8
+          rm Certificate.p12
 
   build-windows:
     runs-on: windows-2019
