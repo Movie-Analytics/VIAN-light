@@ -24,8 +24,8 @@ export default {
       canvasWidth: 500,
       ctx: null,
       data: [],
-      elements: null,
       hCtx: null,
+      isDrawingScheduled: false,
       resizeoberserver: null,
       scale: null,
       transform: d3.zoomIdentity,
@@ -45,7 +45,7 @@ export default {
       } else {
         this.axisColor = 'black'
       }
-      this.draw()
+      this.requestDraw()
     },
 
     'mainStore.fps'() {
@@ -57,12 +57,12 @@ export default {
     'mainStore.videoDuration'() {
       if (this.mainStore.videoDuration && this.mainStore.fps) {
         this.drawSetup()
-        this.draw()
+        this.requestDraw()
       }
     },
 
     'tempStore.playPosition'() {
-      this.draw()
+      this.requestDraw()
     },
 
     'undoableStore.timelines': {
@@ -70,7 +70,7 @@ export default {
 
       handler() {
         this.drawSetup()
-        this.draw()
+        this.requestDraw()
       }
     }
   },
@@ -89,10 +89,10 @@ export default {
     })
     d3.select(this.$refs.canvas).on('wheel', (e) => {
       this.zoom.translateBy(d3.select(e.currentTarget), e.wheelDeltaX / this.transform.k, 0)
-      this.draw()
+      this.requestDraw()
     })
     this.drawSetup()
-    this.draw()
+    this.requestDraw()
   },
 
   beforeUnmount() {
@@ -100,6 +100,16 @@ export default {
   },
 
   methods: {
+    requestDraw() {
+      if (!this.isDrawingScheduled) {
+        this.isDrawingScheduled = true
+        requestAnimationFrame(() => {
+          this.draw()
+          this.isDrawingScheduled = false
+        });
+      }
+    },
+
     clickHandler(event) {
       const coord = d3.pointer(event, this.$refs.canvas)
       const colorData = this.hCtx.getImageData(coord[0], coord[1], 1, 1).data
@@ -128,7 +138,7 @@ export default {
         } else {
           this.tempStore.selectedSegments = new Map([[entry.id, entry.timeline]])
         }
-        this.draw()
+        this.requestDraw()
       }
     },
 
@@ -196,6 +206,7 @@ export default {
             if (shotIndex % 2 === 0) color = '#cccccc'
             if (shot.locked) color = '#eeeeee'
             this.data.push({
+              annotation: (shot.annotation || '').replace('\n', ' ').slice(0, 40),
               fill: color,
               height: 44,
               id: shot.id,
@@ -231,25 +242,19 @@ export default {
                 })
                 .finally(() => {
                   this.unloadedImages -= 1
-                  if (this.unloadedImages % 200 === 0) this.draw()
+                  if (this.unloadedImages % 200 === 0) this.requestDraw()
                 })
             }
           }
         }
       }
 
-      const element = document.createElement('custom')
-      const elements = d3.select(element)
-      const updateSelection = elements.selectAll('.element').data(this.data)
-      const enteringElements = updateSelection.enter().append('custom').attr('class', 'element')
-      this.elements = enteringElements
-
       this.zoom = d3
         .zoom()
         .scaleExtent([1, this.mainStore.videoDuration * 0.15])
         .on('zoom', ({ transform }) => {
           this.transform = transform
-          this.draw()
+          this.requestDraw()
         })
 
       const canvas = d3.select(this.$refs.canvas).call(this.zoom)
@@ -260,7 +265,7 @@ export default {
       const hCanvas = d3.select(this.$refs.hiddenCanvas)
       let colorI = 10
       this.hCtx = hCanvas.node().getContext('2d')
-      this.elements.each((d) => {
+      this.data.forEach((d) => {
         d.hiddenColor = '#' + colorI.toString(16).padStart(6, '0')
         colorI += 20
         d.hiddenLeftHandle = '#' + colorI.toString(16).padStart(6, '0')
@@ -273,19 +278,29 @@ export default {
     },
 
     drawTimelines(rescale) {
-      if (this.elements === null) return
+      if (this.data.length === 0) return
       const { hCtx, ctx } = this
       hCtx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
       const selectedSegments = new Set(this.tempStore.selectedSegments.keys())
+      ctx.textAlign = 'left'
 
-      this.elements.each((d) => {
+      this.data.forEach((d) => {
         hCtx.fillStyle = d.hiddenColor
 
         const x = Math.round(rescale(d.x))
         const xwidth = Math.round(rescale(d.x + d.width))
+        if (xwidth < 0 || x > this.canvasWidth || xwidth - x <= 0) return
         if (d.type === 'shot') {
+          ctx.save()
+          ctx.font = '15px Arial'
+          ctx.beginPath()
           ctx.fillStyle = selectedSegments.has(d.id) ? 'yellow' : d.fill
           ctx.fillRect(x, d.y, xwidth - x, d.height)
+          ctx.rect(x, d.y, xwidth - x, d.height)
+          ctx.fillStyle = 'black'
+          ctx.clip()
+          ctx.fillText(d.annotation, x, d.y + 10)
+          ctx.restore()
           hCtx.fillRect(x, d.y, xwidth - x, d.height)
 
           // Draw handles for grabbing
@@ -410,7 +425,7 @@ export default {
       if (this.tempStore.tmpShot !== null) {
         this.tempStore.tmpShot = null
         this.tempStore.adjacentShot = null
-        this.draw()
+        this.requestDraw()
       }
     },
 
@@ -434,6 +449,7 @@ export default {
         }
       }
 
+      this.requestDraw()
       this.tempStore.playJumpPosition = xNew / this.mainStore.fps
     },
 
@@ -470,7 +486,7 @@ export default {
       if (this.ctx === null) return
 
       this.resize()
-      this.draw()
+      this.requestDraw()
     },
 
     resize() {
