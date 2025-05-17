@@ -84,6 +84,13 @@ export default {
     d3.select(this.$refs.canvas).on('mouseleave', (e) => this.mouseleave(e))
     d3.select(this.$refs.canvas).on('mousemove', (e) => this.mousemove(e))
     d3.select(this.$refs.canvas).on('mouseup', (e) => this.mouseup(e))
+    d3.select(this.$refs.canvas).on('dblclick', (e) => {
+      e.stopImmediatePropagation()
+    })
+    d3.select(this.$refs.canvas).on('wheel', (e) => {
+      this.zoom.translateBy(d3.select(e.currentTarget), e.wheelDeltaX / this.transform.k, 0)
+      this.draw()
+    })
     this.drawSetup()
     this.draw()
   },
