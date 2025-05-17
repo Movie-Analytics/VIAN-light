@@ -100,16 +100,6 @@ export default {
   },
 
   methods: {
-    requestDraw() {
-      if (!this.isDrawingScheduled) {
-        this.isDrawingScheduled = true
-        requestAnimationFrame(() => {
-          this.draw()
-          this.isDrawingScheduled = false
-        });
-      }
-    },
-
     clickHandler(event) {
       const coord = d3.pointer(event, this.$refs.canvas)
       const colorData = this.hCtx.getImageData(coord[0], coord[1], 1, 1).data
@@ -487,6 +477,16 @@ export default {
 
       this.resize()
       this.requestDraw()
+    },
+
+    requestDraw() {
+      if (!this.isDrawingScheduled) {
+        this.isDrawingScheduled = true
+        requestAnimationFrame(() => {
+          this.draw()
+          this.isDrawingScheduled = false
+        })
+      }
     },
 
     resize() {
