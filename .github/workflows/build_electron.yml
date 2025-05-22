@@ -33,15 +33,13 @@ jobs:
           mv onnxruntime* onnxlibs
 
       - name: Download ffmpeg-libs
-        uses: dawidd6/action-download-artifact@v7
-        with:
-          repo: elya5/ffmpeg-build
-          github_token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
-          name: ffmpeg-libs-linux
-          path: ffmpeglibs
-          workflow: blank.yml
-          check_artifacts: true
-          search_artifacts: true
+        env:
+          GH_TOKEN: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+        run: |
+          release_data=$(curl -s -H "Authorization: token $GH_TOKEN" https://api.github.com/repos/Movie-Analytics/ffmpeg-build/releases/latest)
+          asset_url=$(echo "$release_data" | jq -r '.assets[] | select(.name == "ffmpeg-libs-linux.zip") | .url')
+          curl -L -H "Authorization: token $GH_TOKEN" -H "Accept: application/octet-stream" "$asset_url" -o ffmpeglibs.zip
+          unzip -q ffmpeglibs.zip
 
       - name: Fetch transnetv2
         run: |
@@ -88,15 +86,13 @@ jobs:
           mv onnxruntime* onnxlibs
 
       - name: Download ffmpeg-libs
-        uses: dawidd6/action-download-artifact@v7
-        with:
-          repo: elya5/ffmpeg-build
-          github_token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
-          name: ffmpeg-libs-macos
-          path: ffmpeglibs
-          workflow: blank.yml
-          check_artifacts: true
-          search_artifacts: true
+        env:
+          GH_TOKEN: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+        run: |
+          release_data=$(curl -s -H "Authorization: token $GH_TOKEN" https://api.github.com/repos/Movie-Analytics/ffmpeg-build/releases/latest)
+          asset_url=$(echo "$release_data" | jq -r '.assets[] | select(.name == "ffmpeg-libs-macos.zip") | .url')
+          curl -L -H "Authorization: token $GH_TOKEN" -H "Accept: application/octet-stream" "$asset_url" -o ffmpeglibs.zip
+          unzip -q ffmpeglibs.zip
 
       - name: Fetch transnetv2
         run: |
@@ -153,15 +149,13 @@ jobs:
         shell: pwsh
 
       - name: Download ffmpeg-libs
-        uses: dawidd6/action-download-artifact@v7
-        with:
-          repo: elya5/ffmpeg-build
-          github_token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
-          name: ffmpeg-libs-win
-          path: ffmpeglibs
-          workflow: blank.yml
-          check_artifacts: true
-          search_artifacts: true
+        env:
+          GH_TOKEN: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+        run: |
+          release_data=$(curl -s -H "Authorization: token $GH_TOKEN" https://api.github.com/repos/Movie-Analytics/ffmpeg-build/releases/latest)
+          asset_url=$(echo "$release_data" | jq -r '.assets[] | select(.name == "ffmpeg-libs-win.zip") | .url')
+          curl -L -H "Authorization: token $GH_TOKEN" -H "Accept: application/octet-stream" "$asset_url" -o ffmpeglibs.zip
+          unzip -q ffmpeglibs.zip
 
       - name: Fetch transnetv2
         run: |
