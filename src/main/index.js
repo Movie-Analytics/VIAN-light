@@ -153,6 +153,79 @@ app.whenReady().then(() => {
         ]
       },
       {
+        label: 'Playback',
+        submenu: [
+          {
+            label: 'Play/Pause',
+            accelerator: 'Space',
+            click: () => {
+              BrowserWindow.getFocusedWindow()?.webContents.send('toggle-playback')
+            }
+          },
+          {
+            label: 'Frame Forward',
+            accelerator: 'Right',
+            click: () => {
+              BrowserWindow.getFocusedWindow()?.webContents.send('frame-forward')
+            }
+          },
+          {
+            label: 'Frame Backward',
+            accelerator: 'Left',
+            click: () => {
+              BrowserWindow.getFocusedWindow()?.webContents.send('frame-backward')
+            }
+          },
+          { type: 'separator' },
+          {
+            label: 'Play Forward (JKL)',
+            submenu: [
+              {
+                label: 'Play Forward (L)',
+                accelerator: 'L',
+                click: () => {
+                  BrowserWindow.getFocusedWindow()?.webContents.send('playback-forward')
+                }
+              },
+              {
+                label: 'Stop (K)',
+                accelerator: 'K',
+                click: () => {
+                  BrowserWindow.getFocusedWindow()?.webContents.send('stop-playback')
+                }
+              },
+              {
+                label: 'Play Backward (J)',
+                accelerator: 'J',
+                click: () => {
+                  BrowserWindow.getFocusedWindow()?.webContents.send('playback-backward')
+                }
+              }
+            ]
+          },
+          { type: 'separator' },
+          {
+            label: 'Segment Navigation',
+            submenu: [
+              {
+                label: 'Previous Segment (A)',
+                accelerator: 'A',
+                click: () => {
+                  BrowserWindow.getFocusedWindow()?.webContents.send('segment-previous')
+                }
+              },
+              {
+                label: 'Next Segment (S)',
+                accelerator: 'S',
+                click: () => {
+                  BrowserWindow.getFocusedWindow()?.webContents.send('segment-next')
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
         label: 'Window',
         submenu: [
           { role: 'minimize', label: 'Minimize' },
