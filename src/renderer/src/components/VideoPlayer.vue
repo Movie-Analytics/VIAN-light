@@ -17,51 +17,70 @@
       />
     </video>
 
-    <div class="d-flex flex-wrap">
+    <div class="d-flex flex-column">
+      <div class="ma-2 min-wide-control d-flex justify-space-between">
+        <div class="d-flex align-center">
+          <v-btn icon @click="backwardClicked">
+            <v-icon>mdi-skip-backward</v-icon>
+          </v-btn>
+
+          <v-btn icon @click="playPauseClicked">
+            <v-icon v-if="playingState">mdi-pause</v-icon>
+            <v-icon v-else>mdi-play</v-icon>
+          </v-btn>
+
+          <v-btn icon @click="forwardClicked">
+            <v-icon>mdi-skip-forward</v-icon>
+          </v-btn>
+          <v-btn icon disabled class="playback-rate">
+            {{ playbackRate }}x
+          </v-btn>
+          <span class="time-display">{{ readableTime }}</span>
+        </div>
+
+        <div class="d-flex align-center">
+          <v-btn v-if="pictureInPictureEnabled" icon @click="pictureInPictureClicked">
+            <v-icon>mdi-picture-in-picture-top-right</v-icon>
+          </v-btn>
+
+          <v-btn icon @click="screenshotClicked">
+            <v-icon>mdi-camera</v-icon>
+          </v-btn>
+
+          <div class="volume-control">
+            <v-btn icon @click="toggleVolumeSlider" @dblclick="toggleMute">
+              <v-icon>{{ volume === 0 ? 'mdi-volume-mute' : 'mdi-volume-high' }}</v-icon>
+            </v-btn>
+            <div v-if="showVolumeSlider" class="volume-slider-container" @click.stop>
+              <div 
+                class="volume-slider"
+                @mousedown="startVolumeDrag"
+                @mousemove="updateVolumeDrag"
+                @mouseup="stopVolumeDrag"
+                @mouseleave="stopVolumeDrag"
+              >
+                <div class="volume-track">
+                  <div class="volume-fill" :style="{ height: volume + '%' }"></div>
+                </div>
+                <div class="volume-thumb" :style="{ bottom: volume + '%' }"></div>
+              </div>
+            </div>
+          </div>
+
+          <v-btn v-if="undoableStore.subtitles !== null" icon @click="toggleSubtitles">
+            <v-icon v-if="undoableStore.subtitlesVisible">mdi-subtitles</v-icon>
+            <v-icon v-else>mdi-subtitles-outline</v-icon>
+          </v-btn>
+        </div>
+      </div>
+
       <v-slider
         v-model="sliderPosition"
         :step="0.1"
         hide-details="true"
-        class="min-wide-control px-2"
+        class="px-2"
         @update:model-value="sliderMoved"
       ></v-slider>
-
-      <div class="ma-2 min-wide-control">
-        {{ readableTime }}
-        <v-btn icon @click="backwardClicked">
-          <v-icon>mdi-skip-backward</v-icon>
-        </v-btn>
-
-        <v-btn icon @click="playPauseClicked">
-          <v-icon v-if="playingState">mdi-pause</v-icon>
-
-          <v-icon v-else>mdi-play</v-icon>
-        </v-btn>
-
-        <v-btn icon @click="forwardClicked">
-          <v-icon>mdi-skip-forward</v-icon>
-        </v-btn>
-
-        <v-btn v-if="pictureInPictureEnabled" icon @click="pictureInPictureClicked">
-          <v-icon>mdi-picture-in-picture-top-right</v-icon>
-        </v-btn>
-
-        <v-btn icon @click="screenshotClicked">
-          <v-icon>mdi-camera</v-icon>
-        </v-btn>
-
-        <v-btn icon @click="muteClicked">
-          <v-icon v-if="tempStore.muted">mdi-volume-high</v-icon>
-
-          <v-icon v-else>mdi-volume-mute</v-icon>
-        </v-btn>
-
-        <v-btn v-if="undoableStore.subtitles !== null" icon @click="toggleSubtitles">
-          <v-icon v-if="undoableStore.subtitlesVisible">mdi-subtitles</v-icon>
-
-          <v-icon v-else>mdi-subtitles-outline</v-icon>
-        </v-btn>
-      </div>
     </div>
   </v-sheet>
 </template>
@@ -86,7 +105,11 @@ export default {
         key: null,
         timestamp: 0,
         count: 0
-      }
+      },
+      showVolumeSlider: false,
+      volume: 100,
+      isDragging: false,
+      lastVolume: 100
     }
   },
 
@@ -123,6 +146,9 @@ export default {
     window.electronAPI.ipcRenderer.on('playback-forward', this.playForward)
     window.electronAPI.ipcRenderer.on('playback-backward', this.playBackward)
     window.electronAPI.ipcRenderer.on('stop-playback', this.stopPlayback)
+
+    // Add click outside handler for volume slider
+    document.addEventListener('click', this.handleClickOutside)
   },
 
   beforeUnmount() {
@@ -133,6 +159,9 @@ export default {
     window.electronAPI.ipcRenderer.removeListener('playback-forward', this.playForward)
     window.electronAPI.ipcRenderer.removeListener('playback-backward', this.playBackward)
     window.electronAPI.ipcRenderer.removeListener('stop-playback', this.stopPlayback)
+
+    // Remove click outside handler
+    document.removeEventListener('click', this.handleClickOutside)
   },
 
   methods: {
@@ -151,6 +180,11 @@ export default {
     muteClicked() {
       this.$refs.video.muted = !this.tempStore.muted
       this.tempStore.muted = !this.tempStore.muted
+      if (this.tempStore.muted) {
+        this.volume = 0
+      } else {
+        this.volume = 100
+      }
     },
 
     pictureInPictureClicked() {
@@ -256,6 +290,56 @@ export default {
         timestamp: 0,
         count: 0
       }
+    },
+
+    handleClickOutside(event) {
+      const volumeControl = this.$el.querySelector('.volume-control')
+      if (volumeControl && !volumeControl.contains(event.target)) {
+        this.showVolumeSlider = false
+      }
+    },
+
+    toggleVolumeSlider(event) {
+      event.stopPropagation()
+      this.showVolumeSlider = !this.showVolumeSlider
+    },
+
+    startVolumeDrag(event) {
+      this.isDragging = true
+      this.updateVolumeFromEvent(event)
+    },
+
+    updateVolumeDrag(event) {
+      if (this.isDragging) {
+        this.updateVolumeFromEvent(event)
+      }
+    },
+
+    stopVolumeDrag() {
+      this.isDragging = false
+    },
+
+    updateVolumeFromEvent(event) {
+      const slider = event.currentTarget
+      const rect = slider.getBoundingClientRect()
+      // Calculate position relative to the actual slider height (100px)
+      const y = event.clientY - rect.top
+      const percentage = Math.max(0, Math.min(100, 100 - (y / 100 * 100)))
+      this.volume = Math.round(percentage)
+      this.$refs.video.volume = this.volume / 100
+    },
+
+    toggleMute(event) {
+      event.stopPropagation()
+      if (this.volume === 0) {
+        // Unmute: restore last volume
+        this.volume = this.lastVolume
+      } else {
+        // Mute: save current volume and set to 0
+        this.lastVolume = this.volume
+        this.volume = 0
+      }
+      this.$refs.video.volume = this.volume / 100
     }
   }
 }
@@ -268,10 +352,76 @@ video {
 .min-wide-control {
   min-width: 300px;
 }
-.playback-speed {
+.time-display {
+  margin-left: 8px;
   font-family: monospace;
-  font-weight: 500;
-  color: rgb(var(--v-theme-primary));
-  margin-left: 4px;
+  font-size: 0.9em;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+.playback-rate {
+  font-family: monospace;
+  font-size: 0.9em;
+  min-width: 40px !important;
+}
+.volume-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.volume-slider-container {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  height: 120px;
+  margin-bottom: 8px;
+  background: white;
+  padding: 12px 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+}
+.volume-slider {
+  position: relative;
+  height: 100px;
+  width: 20px;
+  cursor: pointer;
+  margin: 0 auto;
+}
+.volume-track {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 100%;
+  background: #e0e0e0;
+  border-radius: 2px;
+}
+.volume-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgb(var(--v-theme-primary));
+  border-radius: 2px;
+}
+.volume-thumb {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: rgb(var(--v-theme-primary));
+  border-radius: 50%;
+  cursor: grab;
+  margin-top: -6px; /* Center the thumb on the track */
+}
+.volume-thumb:active {
+  cursor: grabbing;
 }
 </style>
