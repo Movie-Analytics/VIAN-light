@@ -164,7 +164,8 @@ jobs:
       - name: Unzip ffmpeg
         run: |
           7z x ffmpeg-libs-win.zip
-          Rename-Item -Path ffmpeg-libs* -NewName ffmpeglibs
+          ls
+          Rename-Item -Path ffmpeg-libs-win -NewName ffmpeglibs
 
       - name: Fetch transnetv2
         run: |
