@@ -39,10 +39,17 @@
           <v-btn icon @click="jumpForward">
             <v-icon>mdi-skip-forward</v-icon>
           </v-btn>
-          <v-btn icon disabled class="playback-rate">
+          <v-chip
+            class="playback-rate"
+            variant="text"
+            v-tooltip="{
+              text: 'Playback Rate (JKL System)\n\nJ: Play backward (2x, 4x, 8x, 16x)\nK: Stop\nL: Play forward (2x, 4x, 8x, 16x)\n\nPress multiple times to increase speed',
+              location: 'top'
+            }"
+          >
             {{ playbackRate }}x
-          </v-btn>
-          <span class="time-display">{{ readableTime }}</span>
+          </v-chip>
+          <p>{{ readableTime }}</p>
         </div>
 
         <div class="d-flex align-center">
@@ -114,9 +121,9 @@ export default {
         count: 0
       },
       showVolumeSlider: false,
-      volume: 100,
+      volume: 50,
       isDragging: false,
-      lastVolume: 100
+      lastVolume: 50
     }
   },
 
@@ -126,9 +133,7 @@ export default {
     },
 
     readableTime() {
-      const currentTime = this.mainStore.timeReadableSec(this.tempStore.playPosition)
-      const totalTime = this.mainStore.timeReadableSec(this.mainStore.videoDuration)
-      return `${currentTime} / ${totalTime}`
+      return this.mainStore.timeReadableSec(this.tempStore.playPosition)
     },
 
     ...mapStores(useMainStore, useTempStore, useUndoableStore)
@@ -141,6 +146,14 @@ export default {
       if (newValue !== null) {
         this.$refs.video.currentTime = newValue
         this.tempStore.playJumpPosition = null
+      }
+    },
+    '$refs.video': {
+      immediate: true,
+      handler(video) {
+        if (video) {
+          video.volume = this.volume / 100
+        }
       }
     }
   },
@@ -158,6 +171,11 @@ export default {
 
     // Add click outside handler for volume slider
     document.addEventListener('click', this.handleClickOutside)
+
+    // Set initial volume
+    if (this.$refs.video) {
+      this.$refs.video.volume = this.volume / 100
+    }
   },
 
   beforeUnmount() {
@@ -431,18 +449,12 @@ video {
 .min-wide-control {
   min-width: 300px;
 }
-.time-display {
-  margin-left: 8px;
-  font-family: monospace;
-  font-size: 0.9em;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-}
 .playback-rate {
   font-family: monospace;
   font-size: 0.9em;
   min-width: 40px !important;
+  opacity: 0.7;
+  pointer-events: auto !important;
 }
 .volume-control {
   position: relative;
