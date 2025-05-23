@@ -48,16 +48,17 @@ jobs:
           rm onnxruntime*zip
           mv onnxruntime* onnxlibs
 
-      - name: Download ffmpeg-libs
-        uses: dawidd6/action-download-artifact@v7
+      - name: Download precompiled ffmpeg
+        uses: robinraju/release-downloader@v1
         with:
-          repo: elya5/ffmpeg-build
-          github_token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
-          name: ffmpeg-libs-linux
-          path: ffmpeglibs
-          workflow: blank.yml
-          check_artifacts: true
-          search_artifacts: true
+          repository: 'Movie-Analytics/ffmpeg-build'
+          latest: true
+          fileName: 'ffmpeg-libs-linux.zip'
+
+      - name: Unzip ffmpeg
+        run: |
+          unzip ffmpeg-libs-linux.zip
+          mv ffmpeg-libs-linux ffmpeglibs
 
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v5
