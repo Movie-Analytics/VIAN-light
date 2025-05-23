@@ -153,6 +153,8 @@ export default {
     window.electronAPI.ipcRenderer.on('playback-forward', this.playForward)
     window.electronAPI.ipcRenderer.on('playback-backward', this.playBackward)
     window.electronAPI.ipcRenderer.on('stop-playback', this.stopPlayback)
+    window.electronAPI.ipcRenderer.on('segment-previous', this.navigateToPreviousSegment)
+    window.electronAPI.ipcRenderer.on('segment-next', this.navigateToNextSegment)
 
     // Add click outside handler for volume slider
     document.addEventListener('click', this.handleClickOutside)
@@ -166,6 +168,8 @@ export default {
     window.electronAPI.ipcRenderer.removeListener('playback-forward', this.playForward)
     window.electronAPI.ipcRenderer.removeListener('playback-backward', this.playBackward)
     window.electronAPI.ipcRenderer.removeListener('stop-playback', this.stopPlayback)
+    window.electronAPI.ipcRenderer.removeListener('segment-previous', this.navigateToPreviousSegment)
+    window.electronAPI.ipcRenderer.removeListener('segment-next', this.navigateToNextSegment)
 
     // Remove click outside handler
     document.removeEventListener('click', this.handleClickOutside)
@@ -365,6 +369,56 @@ export default {
         0,
         this.$refs.video.currentTime - 5
       )
+    },
+
+    navigateToPreviousSegment() {
+      const currentTime = this.$refs.video.currentTime * this.mainStore.fps
+      
+      // Get the currently selected timeline
+      const selectedTimelineId = this.tempStore.selectedSegments.size > 0 
+        ? this.tempStore.selectedSegments.values().next().value 
+        : this.undoableStore.shotTimelines[0]?.id
+
+      if (!selectedTimelineId) return
+
+      const timeline = this.undoableStore.timelines.find(t => t.id === selectedTimelineId)
+      if (!timeline || timeline.type !== 'shots') return
+
+      const segments = timeline.data
+      // Find the last segment that starts before current time
+      const prevSegmentIndex = segments.findLastIndex(segment => segment.start < currentTime)
+      if (prevSegmentIndex !== -1) {
+        // Navigate to the previous segment
+        const prevSegment = segments[prevSegmentIndex]
+        this.$refs.video.currentTime = prevSegment.start / this.mainStore.fps
+        // Select the segment
+        this.tempStore.selectedSegments = new Map([[prevSegment.id, timeline.id]])
+      }
+    },
+
+    navigateToNextSegment() {
+      const currentTime = this.$refs.video.currentTime * this.mainStore.fps
+      
+      // Get the currently selected timeline
+      const selectedTimelineId = this.tempStore.selectedSegments.size > 0 
+        ? this.tempStore.selectedSegments.values().next().value 
+        : this.undoableStore.shotTimelines[0]?.id
+
+      if (!selectedTimelineId) return
+
+      const timeline = this.undoableStore.timelines.find(t => t.id === selectedTimelineId)
+      if (!timeline || timeline.type !== 'shots') return
+
+      const segments = timeline.data
+      // Find the first segment that starts after current time
+      const nextSegmentIndex = segments.findIndex(segment => segment.start > currentTime)
+      if (nextSegmentIndex !== -1) {
+        // Navigate to the next segment
+        const nextSegment = segments[nextSegmentIndex]
+        this.$refs.video.currentTime = nextSegment.start / this.mainStore.fps
+        // Select the segment
+        this.tempStore.selectedSegments = new Map([[nextSegment.id, timeline.id]])
+      }
     }
   }
 }

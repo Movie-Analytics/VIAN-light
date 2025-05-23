@@ -107,6 +107,15 @@ app.whenReady().then(() => {
     BrowserWindow.getFocusedWindow()?.webContents.send('playback-forward')
   })
 
+  // A/S for segment navigation
+  globalShortcut.register('a', () => {
+    BrowserWindow.getFocusedWindow()?.webContents.send('segment-previous')
+  })
+  
+  globalShortcut.register('s', () => {
+    BrowserWindow.getFocusedWindow()?.webContents.send('segment-next')
+  })
+
   // Create minimal macOS menu
   if (process.platform === 'darwin') {
     const template = [
