@@ -29,6 +29,16 @@ export default {
         api.logError(`Unhandled Promise Rejection: ${event.reason}`)
       })
 
+      // Add undo action handler
+      window.electronAPI.onUndoAction(() => {
+        useUndoableStore().undo('undoable')
+      })
+
+      // Add redo action handler
+      window.electronAPI.onRedoAction(() => {
+        useUndoableStore().redo('undoable')
+      })
+
       this.$router.push('/')
     } else {
       this.$router.push('login')

@@ -1,6 +1,9 @@
-import { BrowserWindow, app, ipcMain, protocol, shell } from 'electron'
+import { BrowserWindow, app, ipcMain, protocol, shell, Menu } from 'electron'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { join } from 'path'
+
+// Set application name immediately
+app.setName('VIAN-light')
 
 import {
   cleanUp,
@@ -35,7 +38,6 @@ protocol.registerSchemesAsPrivileged([
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    autoHideMenuBar: true,
     height: 670,
     show: false,
     webPreferences: {
@@ -74,7 +76,61 @@ const createWindow = () => {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.vian-light')
+  
+  // Set application name
+  app.setName('VIAN-light')
+  
+  // Create minimal macOS menu
+  if (process.platform === 'darwin') {
+    const template = [
+      {
+        label: 'VIAN-light',
+        submenu: [
+          { role: 'about', label: `About ${app.getName()}` },
+          { type: 'separator' },
+          { role: 'services', label: 'Services' },
+          { type: 'separator' },
+          { role: 'hide', label: `Hide ${app.getName()}` },
+          { role: 'hideOthers', label: 'Hide Others' },
+          { role: 'unhide', label: 'Show All' },
+          { type: 'separator' },
+          { role: 'quit', label: `Quit ${app.getName()}` }
+        ]
+      },
+      {
+        label: 'Edit',
+        submenu: [
+          {
+            label: 'Undo',
+            accelerator: 'CmdOrCtrl+Z',
+            click: () => {
+              BrowserWindow.getFocusedWindow()?.webContents.send('undo-action')
+            }
+          },
+          {
+            label: 'Redo',
+            accelerator: 'CmdOrCtrl+Shift+Z',
+            click: () => {
+              BrowserWindow.getFocusedWindow()?.webContents.send('redo-action')
+            }
+          }
+        ]
+      },
+      {
+        label: 'Window',
+        submenu: [
+          { role: 'minimize', label: 'Minimize' },
+          { role: 'zoom', label: 'Zoom' },
+          { type: 'separator' },
+          { role: 'front', label: 'Bring All to Front' }
+        ]
+      }
+    ]
+
+    const menu = Menu.buildFromTemplate(template)
+    Menu.setApplicationMenu(menu)
+  }
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -108,6 +164,7 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
+// TODO platform handling MAC 
 
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.

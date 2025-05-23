@@ -22,5 +22,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   runScreenshotsGeneration: (v, f, i) => ipcRenderer.send('run-screenshots-generation', v, f, i),
   runShotBoundaryDetection: (arg) => ipcRenderer.send('run-shotboundary-detection', arg),
   saveStore: (arg1, arg2) => ipcRenderer.send('save-store', arg1, arg2),
-  terminateJob: (arg) => ipcRenderer.send('terminate-job', arg)
+  terminateJob: (arg) => ipcRenderer.send('terminate-job', arg),
+  onUndoAction: (callback) => ipcRenderer.on('undo-action', callback),
+  onRedoAction: (callback) => ipcRenderer.on('redo-action', callback)
 })
