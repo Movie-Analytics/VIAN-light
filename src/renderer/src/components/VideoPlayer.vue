@@ -20,8 +20,11 @@
     <div class="d-flex flex-column">
       <div class="ma-2 min-wide-control d-flex justify-space-between">
         <div class="d-flex align-center">
-          <v-btn icon @click="backwardClicked">
+          <v-btn icon @click="jumpBackward">
             <v-icon>mdi-skip-backward</v-icon>
+          </v-btn>
+          <v-btn icon @click="backwardClicked">
+            <v-icon>mdi-step-backward</v-icon>
           </v-btn>
 
           <v-btn icon @click="playPauseClicked">
@@ -30,6 +33,10 @@
           </v-btn>
 
           <v-btn icon @click="forwardClicked">
+            <v-icon>mdi-step-forward</v-icon>
+          </v-btn>
+
+          <v-btn icon @click="jumpForward">
             <v-icon>mdi-skip-forward</v-icon>
           </v-btn>
           <v-btn icon disabled class="playback-rate">
@@ -166,7 +173,9 @@ export default {
 
   methods: {
     backwardClicked() {
-      this.$refs.video.currentTime -= 1 / this.mainStore.fps
+      if (this.$refs.video) {
+        this.$refs.video.currentTime -= 1 / this.mainStore.fps
+      }
     },
 
     durationChange(event) {
@@ -174,7 +183,9 @@ export default {
     },
 
     forwardClicked() {
-      this.$refs.video.currentTime += 1 / this.mainStore.fps
+      if (this.$refs.video) {
+        this.$refs.video.currentTime += 1 / this.mainStore.fps
+      }
     },
 
     muteClicked() {
@@ -340,6 +351,20 @@ export default {
         this.volume = 0
       }
       this.$refs.video.volume = this.volume / 100
+    },
+
+    jumpForward() {
+      this.$refs.video.currentTime = Math.min(
+        this.$refs.video.duration,
+        this.$refs.video.currentTime + 5
+      )
+    },
+
+    jumpBackward() {
+      this.$refs.video.currentTime = Math.max(
+        0,
+        this.$refs.video.currentTime - 5
+      )
     }
   }
 }
