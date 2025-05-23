@@ -79,7 +79,9 @@ export default {
   data() {
     return {
       playingState: false,
-      sliderPosition: 0
+      sliderPosition: 0,
+      playbackRate: 1,
+      backwardInterval: null
     }
   },
 
@@ -106,6 +108,26 @@ export default {
         this.tempStore.playJumpPosition = null
       }
     }
+  },
+
+  mounted() {
+    // Listen for global shortcuts
+    window.electronAPI.ipcRenderer.on('toggle-playback', this.playPauseClicked)
+    window.electronAPI.ipcRenderer.on('frame-forward', this.forwardClicked)
+    window.electronAPI.ipcRenderer.on('frame-backward', this.backwardClicked)
+    window.electronAPI.ipcRenderer.on('playback-forward', this.playForward)
+    window.electronAPI.ipcRenderer.on('playback-backward', this.playBackward)
+    window.electronAPI.ipcRenderer.on('stop-playback', this.stopPlayback)
+  },
+
+  beforeUnmount() {
+    // Clean up event listeners
+    window.electronAPI.ipcRenderer.removeListener('toggle-playback', this.playPauseClicked)
+    window.electronAPI.ipcRenderer.removeListener('frame-forward', this.forwardClicked)
+    window.electronAPI.ipcRenderer.removeListener('frame-backward', this.backwardClicked)
+    window.electronAPI.ipcRenderer.removeListener('playback-forward', this.playForward)
+    window.electronAPI.ipcRenderer.removeListener('playback-backward', this.playBackward)
+    window.electronAPI.ipcRenderer.removeListener('stop-playback', this.stopPlayback)
   },
 
   methods: {
@@ -160,6 +182,45 @@ export default {
     videoTimeUpdate(event) {
       this.tempStore.playPosition = event.target.currentTime
       this.sliderPosition = (event.target.currentTime / event.target.duration) * 100
+    },
+
+    playForward() {
+      this.playbackRate = 2
+      this.$refs.video.playbackRate = this.playbackRate
+      if (!this.playingState) {
+        this.playPauseClicked()
+      }
+    },
+
+    playBackward() {
+      // Clear any existing interval
+      if (this.backwardInterval) {
+        clearInterval(this.backwardInterval)
+      }
+      
+      // Set up interval to update currentTime
+      this.backwardInterval = setInterval(() => {
+        if (this.$refs.video.currentTime > 0) {
+          this.$refs.video.currentTime -= 1/30 // Move backward at roughly 2x speed
+        } else {
+          this.stopPlayback()
+        }
+      }, 1000/60) // Update at 60fps
+      
+      if (!this.playingState) {
+        this.playPauseClicked()
+      }
+    },
+
+    stopPlayback() {
+      this.$refs.video.pause()
+      this.playingState = false
+      this.playbackRate = 1
+      this.$refs.video.playbackRate = 1
+      if (this.backwardInterval) {
+        clearInterval(this.backwardInterval)
+        this.backwardInterval = null
+      }
     }
   }
 }

@@ -23,7 +23,8 @@ export default {
     // eslint-disable-next-line
     if (isElectron) {
       window.addEventListener('error', (event) => {
-        api.logError(`Renderer Error: ${event.error.stack || event.error.message}`)
+        const errorMessage = event.error ? (event.error.stack || event.error.message) : event.message
+        api.logError(`Renderer Error: ${errorMessage}`)
       })
       window.addEventListener('unhandledrejection', (event) => {
         api.logError(`Unhandled Promise Rejection: ${event.reason}`)

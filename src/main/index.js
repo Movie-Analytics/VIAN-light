@@ -1,4 +1,4 @@
-import { BrowserWindow, app, ipcMain, protocol, shell, Menu } from 'electron'
+import { BrowserWindow, app, ipcMain, protocol, shell, Menu, globalShortcut } from 'electron'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { join } from 'path'
 
@@ -81,6 +81,32 @@ app.whenReady().then(() => {
   // Set application name
   app.setName('VIAN-light')
   
+  // Register global shortcuts
+  globalShortcut.register('Space', () => {
+    BrowserWindow.getFocusedWindow()?.webContents.send('toggle-playback')
+  })
+  
+  globalShortcut.register('Right', () => {
+    BrowserWindow.getFocusedWindow()?.webContents.send('frame-forward')
+  })
+  
+  globalShortcut.register('Left', () => {
+    BrowserWindow.getFocusedWindow()?.webContents.send('frame-backward')
+  })
+  
+  // JKL system for playback control
+  globalShortcut.register('j', () => {
+    BrowserWindow.getFocusedWindow()?.webContents.send('playback-backward')
+  })
+  
+  globalShortcut.register('k', () => {
+    BrowserWindow.getFocusedWindow()?.webContents.send('stop-playback')
+  })
+  
+  globalShortcut.register('l', () => {
+    BrowserWindow.getFocusedWindow()?.webContents.send('playback-forward')
+  })
+
   // Create minimal macOS menu
   if (process.platform === 'darwin') {
     const template = [
