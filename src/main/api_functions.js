@@ -85,6 +85,9 @@ class JobManager {
 
 const jobManager = new JobManager()
 
+// Export jobManager instance
+export { jobManager }
+
 // exported functions ↓
 
 export const selectFile = (filters) => {

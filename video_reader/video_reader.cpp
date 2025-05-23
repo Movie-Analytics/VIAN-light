@@ -511,3 +511,34 @@ void VideoReader::setCancelled(bool value) {
 bool VideoReader::isCancelled() {
     return cancelled;
 }
+
+void VideoReader::cleanup() {
+    // Set cancelled flag to stop any ongoing operations
+    setCancelled(true);
+    
+    // Close and free FFmpeg resources
+    if (format_ctx) {
+        avformat_close_input(&format_ctx);
+        format_ctx = nullptr;
+    }
+    if (codec_ctx) {
+        avcodec_free_context(&codec_ctx);
+        codec_ctx = nullptr;
+    }
+    if (frame) {
+        av_frame_free(&frame);
+        frame = nullptr;
+    }
+    if (file) {
+        fclose(file);
+        file = nullptr;
+    }
+    if (parser) {
+        av_parser_close(parser);
+        parser = nullptr;
+    }
+    
+    // Reset state
+    video_stream_index = -1;
+    finished = true;
+}

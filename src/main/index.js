@@ -19,7 +19,8 @@ import {
   runScreenshotsGeneration,
   runShotBoundaryDetection,
   saveStore,
-  terminateJob
+  terminateJob,
+  jobManager
 } from './api_functions'
 import icon from '../../resources/icon.png?asset'
 
@@ -164,6 +165,69 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
+
+// Handle application quit
+let isQuitting = false
+app.on('before-quit', async (event) => {
+  // Prevent recursive calls
+  if (isQuitting) return
+  
+  // Prevent immediate quit
+  event.preventDefault()
+  
+  // Set quitting flag
+  isQuitting = true
+  
+  try {
+    // Get all running jobs
+    const jobs = Array.from(jobManager.jobs.values())
+    const runningJobs = jobs.filter(job => job.status === 'RUNNING')
+    
+    if (runningJobs.length > 0) {
+      console.log('Waiting for jobs to terminate...')
+      
+      // Create an array of cleanup promises
+      const cleanupPromises = runningJobs.map(async (job) => {
+        try {
+          if (job.worker) {
+            // First try to cleanup video reader resources
+            job.worker.postMessage({ type: 'CLEANUP' })
+            
+            // Wait a short moment for cleanup
+            await new Promise(resolve => setTimeout(resolve, 100))
+            
+            // Then terminate the job
+            jobManager.terminateJob(job.id)
+          }
+        } catch (err) {
+          console.error('Error terminating job:', err)
+        }
+      })
+      
+      // Wait for all cleanup operations to complete
+      await Promise.all(cleanupPromises)
+      
+      // Give a final moment for resources to be released
+      await new Promise(resolve => setTimeout(resolve, 500))
+    }
+    
+    // Now quit the application
+    app.quit()
+    
+    // Force exit in development mode
+    if (is.dev) {
+      process.exit(0)
+    }
+  } catch (err) {
+    console.error('Error during quit:', err)
+    // Force quit even if there was an error
+    app.quit()
+    if (is.dev) {
+      process.exit(1)
+    }
+  }
+})
+
 // TODO platform handling MAC 
 
 // In this file you can include the rest of your app"s specific main process

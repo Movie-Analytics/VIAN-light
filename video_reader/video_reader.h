@@ -26,6 +26,7 @@ public:
     bool Open();
     static void setCancelled(bool value);
     static bool isCancelled();
+    void cleanup();
 
 private:
     std::string file_path;
