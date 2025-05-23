@@ -81,7 +81,12 @@ export default {
       playingState: false,
       sliderPosition: 0,
       playbackRate: 1,
-      backwardInterval: null
+      backwardInterval: null,
+      lastKeyPress: {
+        key: null,
+        timestamp: 0,
+        count: 0
+      }
     }
   },
 
@@ -185,14 +190,38 @@ export default {
     },
 
     playForward() {
-      this.playbackRate = 2
+      const now = Date.now()
+      if (this.lastKeyPress.key === 'l' && now - this.lastKeyPress.timestamp < 1000) {
+        this.lastKeyPress.count++
+      } else {
+        this.lastKeyPress.count = 1
+      }
+      this.lastKeyPress.key = 'l'
+      this.lastKeyPress.timestamp = now
+
+      // Calculate speed based on press count
+      const speed = Math.min(Math.pow(2, this.lastKeyPress.count - 1), 16)
+      this.playbackRate = speed
       this.$refs.video.playbackRate = this.playbackRate
+      
       if (!this.playingState) {
         this.playPauseClicked()
       }
     },
 
     playBackward() {
+      const now = Date.now()
+      if (this.lastKeyPress.key === 'j' && now - this.lastKeyPress.timestamp < 1000) {
+        this.lastKeyPress.count++
+      } else {
+        this.lastKeyPress.count = 1
+      }
+      this.lastKeyPress.key = 'j'
+      this.lastKeyPress.timestamp = now
+
+      // Calculate speed based on press count
+      const speed = Math.min(Math.pow(2, this.lastKeyPress.count - 1), 16)
+      
       // Clear any existing interval
       if (this.backwardInterval) {
         clearInterval(this.backwardInterval)
@@ -201,7 +230,7 @@ export default {
       // Set up interval to update currentTime
       this.backwardInterval = setInterval(() => {
         if (this.$refs.video.currentTime > 0) {
-          this.$refs.video.currentTime -= 1/30 // Move backward at roughly 2x speed
+          this.$refs.video.currentTime -= speed/30 // Move backward at calculated speed
         } else {
           this.stopPlayback()
         }
@@ -221,6 +250,12 @@ export default {
         clearInterval(this.backwardInterval)
         this.backwardInterval = null
       }
+      // Reset key press tracking
+      this.lastKeyPress = {
+        key: null,
+        timestamp: 0,
+        count: 0
+      }
     }
   }
 }
@@ -232,5 +267,11 @@ video {
 }
 .min-wide-control {
   min-width: 300px;
+}
+.playback-speed {
+  font-family: monospace;
+  font-weight: 500;
+  color: rgb(var(--v-theme-primary));
+  margin-left: 4px;
 }
 </style>
