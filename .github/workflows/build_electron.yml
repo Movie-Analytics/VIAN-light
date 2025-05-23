@@ -43,11 +43,14 @@ jobs:
         run: ls
 
       - name: Unzip ffmpeg
-        run: unzip ffmpeg-libs-linux.zip -d ffmpeglibs
+        run: |
+          unzip ffmpeg-libs-linux.zip
+          mv ffmpeg-libs-linux ffmpeglibs
 
       - name: Debug
         run: |
           ls
+          echo "---"
           ls ffmpeglibs
 
       - name: Fetch transnetv2
