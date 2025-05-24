@@ -19,7 +19,10 @@ try {
   })
 } catch (err) {
   console.error('Error in shot boundary worker:', err)
-  parentPort.postMessage({ status: 'ERROR', error: err.message })
+  parentPort.postMessage({
+    error: err.message,
+    status: 'ERROR'
+  })
 }
 
 parentPort.on('message', (e) => {
@@ -36,6 +39,9 @@ parentPort.on('message', (e) => {
     }
   } catch (err) {
     console.error('Error handling message in worker:', err)
-    parentPort.postMessage({ status: 'ERROR', error: err.message })
+    parentPort.postMessage({
+      error: err.message,
+      status: 'ERROR'
+    })
   }
 })
