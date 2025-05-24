@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <atomic>
+#include <chrono>
 
 // FFmpeg Headers
 extern "C" {
@@ -26,6 +27,7 @@ public:
     bool Open();
     static void setCancelled(bool value);
     static bool isCancelled();
+    void cleanup();
 
 private:
     std::string file_path;
@@ -37,6 +39,10 @@ private:
     bool finished = false;
     FILE *file = nullptr;
     static std::atomic<bool> cancelled;
+    int64_t frame_counter = 0;  // Counter for processed frames
+    const int FPS_REPORT_INTERVAL = 150;  // Report FPS every 150 frames
+    std::chrono::time_point<std::chrono::high_resolution_clock> last_fps_report_time;  // Time of last FPS report
+    double current_fps = 0.0;  // Current measured FPS
 
     std::vector<uint8_t>& ReadNextFrame(std::vector<uint8_t>& out_frame_data);
     int saveFrameAsJpeg(AVPixelFormat pix_fmt, AVFrame* pFrame, const std::string& path);

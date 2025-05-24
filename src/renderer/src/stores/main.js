@@ -30,8 +30,8 @@ export const useMainStore = defineStore('main', {
       }
     },
     openVideo(id, video) {
-      // TODO could become race condition, meta or backend should create file
-      // and then just loadProject
+      // Note: This operation should be handled by the backend to prevent race conditions
+      // The backend should create the file first, then load the project
       const undoableStore = useUndoableStore()
       this.id = id
       undoableStore.id = id

@@ -123,7 +123,8 @@ export default {
         } else if (this.tempStore.selectedSegments.has(entry.id)) {
           // Click on selected element de-selects it
           this.tempStore.selectedSegments.delete(entry.id)
-        } else if (event.metaKey || event.ctrlKey) { // Try both key and ctrlKey for macOS
+        } else if (event.metaKey || event.ctrlKey) {
+          // Try both key and ctrlKey for macOS
           this.tempStore.selectedSegments.set(entry.id, entry.timeline)
         } else {
           this.tempStore.selectedSegments = new Map([[entry.id, entry.timeline]])

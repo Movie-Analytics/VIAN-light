@@ -24,6 +24,7 @@ private:
     Napi::Value GenerateScreenshots(const Napi::CallbackInfo& info);
     Napi::Value GenerateScreenshot(const Napi::CallbackInfo& info);
     Napi::Value CancelOperation(const Napi::CallbackInfo& info);
+    Napi::Value Cleanup(const Napi::CallbackInfo& info);
     Napi::Value QueueWorker(const Napi::CallbackInfo& info,
                             WorkerFunction execFunc,
                             ResultHandler resultFunc);

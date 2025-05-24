@@ -1,4 +1,4 @@
-import { BrowserWindow, app, ipcMain, protocol, shell, Menu, globalShortcut } from 'electron'
+import { BrowserWindow, Menu, app, ipcMain, protocol, shell, globalShortcut } from 'electron'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { join } from 'path'
 
@@ -11,6 +11,7 @@ import {
   exportScreenshots,
   getVideoInfo,
   importProject,
+  jobManager,
   loadStore,
   loadSubtitles,
   logError,
@@ -36,6 +37,7 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 const createWindow = () => {
+  console.log('Creating window...')
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     height: 670,
@@ -49,11 +51,14 @@ const createWindow = () => {
     width: 900,
     ...(process.platform === 'linux' ? { icon } : {})
   })
+  console.log('Window created')
+
   if (is.dev) {
     mainWindow.webContents.openDevTools()
   }
 
   mainWindow.on('ready-to-show', () => {
+    console.log('Window ready to show')
     mainWindow.show()
   })
 
@@ -65,8 +70,10 @@ const createWindow = () => {
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
+    console.log('Loading dev URL:', process.env.ELECTRON_RENDERER_URL)
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
   } else {
+    console.log('Loading production file:', join(__dirname, '../renderer/index.html'))
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
@@ -77,168 +84,16 @@ const createWindow = () => {
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.vian-light')
-  
+
   // Set application name
   app.setName('VIAN-light')
-  
-  // Register global shortcuts
-  globalShortcut.register('Space', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('toggle-playback')
-  })
-  
-  globalShortcut.register('Right', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('frame-forward')
-  })
-  
-  globalShortcut.register('Left', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('frame-backward')
-  })
-  
-  // JKL system for playback control
-  globalShortcut.register('j', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('playback-backward')
-  })
-  
-  globalShortcut.register('k', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('stop-playback')
-  })
-  
-  globalShortcut.register('l', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('playback-forward')
-  })
 
-  // A/S for segment navigation
-  globalShortcut.register('a', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('segment-previous')
-  })
-  
-  globalShortcut.register('s', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('segment-next')
-  })
-
-  // Create minimal macOS menu
-  if (process.platform === 'darwin') {
-    const template = [
-      {
-        label: 'VIAN-light',
-        submenu: [
-          { role: 'about', label: `About ${app.getName()}` },
-          { type: 'separator' },
-          { role: 'services', label: 'Services' },
-          { type: 'separator' },
-          { role: 'hide', label: `Hide ${app.getName()}` },
-          { role: 'hideOthers', label: 'Hide Others' },
-          { role: 'unhide', label: 'Show All' },
-          { type: 'separator' },
-          { role: 'quit', label: `Quit ${app.getName()}` }
-        ]
-      },
-      {
-        label: 'Edit',
-        submenu: [
-          {
-            label: 'Undo',
-            accelerator: 'CmdOrCtrl+Z',
-            click: () => {
-              BrowserWindow.getFocusedWindow()?.webContents.send('undo-action')
-            }
-          },
-          {
-            label: 'Redo',
-            accelerator: 'CmdOrCtrl+Shift+Z',
-            click: () => {
-              BrowserWindow.getFocusedWindow()?.webContents.send('redo-action')
-            }
-          }
-        ]
-      },
-      {
-        label: 'Playback',
-        submenu: [
-          {
-            label: 'Play/Pause',
-            accelerator: 'Space',
-            click: () => {
-              BrowserWindow.getFocusedWindow()?.webContents.send('toggle-playback')
-            }
-          },
-          {
-            label: 'Frame Forward',
-            accelerator: 'Right',
-            click: () => {
-              BrowserWindow.getFocusedWindow()?.webContents.send('frame-forward')
-            }
-          },
-          {
-            label: 'Frame Backward',
-            accelerator: 'Left',
-            click: () => {
-              BrowserWindow.getFocusedWindow()?.webContents.send('frame-backward')
-            }
-          },
-          { type: 'separator' },
-          {
-            label: 'Play Forward (JKL)',
-            submenu: [
-              {
-                label: 'Play Forward (L)',
-                accelerator: 'L',
-                click: () => {
-                  BrowserWindow.getFocusedWindow()?.webContents.send('playback-forward')
-                }
-              },
-              {
-                label: 'Stop (K)',
-                accelerator: 'K',
-                click: () => {
-                  BrowserWindow.getFocusedWindow()?.webContents.send('stop-playback')
-                }
-              },
-              {
-                label: 'Play Backward (J)',
-                accelerator: 'J',
-                click: () => {
-                  BrowserWindow.getFocusedWindow()?.webContents.send('playback-backward')
-                }
-              }
-            ]
-          },
-          { type: 'separator' },
-          {
-            label: 'Segment Navigation',
-            submenu: [
-              {
-                label: 'Previous Segment (A)',
-                accelerator: 'A',
-                click: () => {
-                  BrowserWindow.getFocusedWindow()?.webContents.send('segment-previous')
-                }
-              },
-              {
-                label: 'Next Segment (S)',
-                accelerator: 'S',
-                click: () => {
-                  BrowserWindow.getFocusedWindow()?.webContents.send('segment-next')
-                }
-              }
-            ]
-          }
-        ]
-      },
-      {
-        label: 'Window',
-        submenu: [
-          { role: 'minimize', label: 'Minimize' },
-          { role: 'zoom', label: 'Zoom' },
-          { type: 'separator' },
-          { role: 'front', label: 'Bring All to Front' }
-        ]
-      }
-    ]
-
-    const menu = Menu.buildFromTemplate(template)
+  // Create menu and register shortcuts
+  import('./menu.js').then(({ createMenu, registerShortcuts }) => {
+    const menu = Menu.buildFromTemplate(createMenu())
     Menu.setApplicationMenu(menu)
-  }
+    registerShortcuts()
+  })
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -257,7 +112,7 @@ app.whenReady().then(() => {
 
   // Using deprecated method until this bug is solved:
   // https://github.com/electron/electron/issues/38749
-  // TODO: access filter
+  // Note: This is a temporary solution until the protocol.registerFileProtocol bug is fixed
   protocol.registerFileProtocol('app', (request, callback) => {
     const filePath = request.url.slice('app://'.length)
     callback(filePath)
@@ -272,7 +127,72 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
-// TODO platform handling MAC 
+
+// Handle application quit
+let isQuitting = false
+app.on('before-quit', async (event) => {
+  // Prevent recursive calls
+  if (isQuitting) return
+
+  // Prevent immediate quit
+  event.preventDefault()
+
+  // Set quitting flag
+  isQuitting = true
+
+  try {
+    // Get all running jobs
+    const jobs = Array.from(jobManager.jobs.values())
+    const runningJobs = jobs.filter((job) => job.status === 'RUNNING')
+
+    if (runningJobs.length > 0) {
+      console.log('Waiting for jobs to terminate...')
+
+      // Create an array of cleanup promises
+      const cleanupPromises = runningJobs.map(async (job) => {
+        try {
+          if (job.worker) {
+            // First try to cleanup video reader resources
+            job.worker.postMessage({ type: 'CLEANUP' })
+
+            // Wait a short moment for cleanup
+            await new Promise((resolve) => {
+              setTimeout(resolve, 100)
+            })
+
+            // Then terminate the job
+            jobManager.terminateJob(job.id)
+          }
+        } catch (err) {
+          console.error('Error terminating job:', err)
+        }
+      })
+
+      // Wait for all cleanup operations to complete
+      await Promise.all(cleanupPromises)
+
+      // Give a final moment for resources to be released
+      await new Promise((resolve) => {
+        setTimeout(resolve, 500)
+      })
+    }
+
+    // Now quit the application
+    app.quit()
+
+    // Force exit in development mode
+    if (is.dev) {
+      process.exit(0)
+    }
+  } catch (err) {
+    console.error('Error during quit:', err)
+    // Force quit even if there was an error
+    app.quit()
+    if (is.dev) {
+      process.exit(1)
+    }
+  }
+})
 
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.

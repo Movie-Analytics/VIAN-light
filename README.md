@@ -63,3 +63,13 @@ $ uv run fastapi run main.py
 $ cd docker
 $ docker compose up --build
 ```
+
+### Linting
+
+Before committing, run:
+```bash
+# Check JavaScript/TypeScript code style
+npm run lint
+
+# TODO Linting Python
+```
