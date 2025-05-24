@@ -18,17 +18,19 @@
     </video>
 
     <div class="d-flex flex-column">
-      <div class="ma-2 min-wide-control d-flex justify-space-between">
-        <div class="d-flex align-center">
+      <div class="d-flex justify-space-between ma-2 min-wide-control">
+        <div class="align-center d-flex">
           <v-btn icon @click="jumpBackward">
             <v-icon>mdi-skip-backward</v-icon>
           </v-btn>
+
           <v-btn icon @click="backwardClicked">
             <v-icon>mdi-step-backward</v-icon>
           </v-btn>
 
           <v-btn icon @click="playPauseClicked">
             <v-icon v-if="playingState">mdi-pause</v-icon>
+
             <v-icon v-else>mdi-play</v-icon>
           </v-btn>
 
@@ -39,20 +41,22 @@
           <v-btn icon @click="jumpForward">
             <v-icon>mdi-skip-forward</v-icon>
           </v-btn>
+
           <v-chip
-            class="playback-rate"
-            variant="text"
             v-tooltip="{
               text: 'Playback Rate (JKL System)\n\nJ: Play backward (2x, 4x, 8x, 16x)\nK: Stop\nL: Play forward (2x, 4x, 8x, 16x)\n\nPress multiple times to increase speed',
               location: 'top'
             }"
+            class="playback-rate"
+            variant="text"
           >
             {{ playbackRate }}x
           </v-chip>
+
           <p>{{ readableTime }}</p>
         </div>
 
-        <div class="d-flex align-center">
+        <div class="align-center d-flex">
           <v-btn v-if="pictureInPictureEnabled" icon @click="pictureInPictureClicked">
             <v-icon>mdi-picture-in-picture-top-right</v-icon>
           </v-btn>
@@ -65,8 +69,9 @@
             <v-btn icon @click="toggleVolumeSlider" @dblclick="toggleMute">
               <v-icon>{{ volume === 0 ? 'mdi-volume-mute' : 'mdi-volume-high' }}</v-icon>
             </v-btn>
+
             <div v-if="showVolumeSlider" class="volume-slider-container" @click.stop>
-              <div 
+              <div
                 class="volume-slider"
                 @mousedown="startVolumeDrag"
                 @mousemove="updateVolumeDrag"
@@ -76,6 +81,7 @@
                 <div class="volume-track">
                   <div class="volume-fill" :style="{ height: volume + '%' }"></div>
                 </div>
+
                 <div class="volume-thumb" :style="{ bottom: volume + '%' }"></div>
               </div>
             </div>
@@ -83,6 +89,7 @@
 
           <v-btn v-if="undoableStore.subtitles !== null" icon @click="toggleSubtitles">
             <v-icon v-if="undoableStore.subtitlesVisible">mdi-subtitles</v-icon>
+
             <v-icon v-else>mdi-subtitles-outline</v-icon>
           </v-btn>
         </div>
@@ -106,24 +113,26 @@ import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
 
+const createLastKeyPress = () => ({
+  count: 0,
+  key: null,
+  timestamp: 0
+})
+
 export default {
   name: 'VideoPlayer',
 
   data() {
     return {
-      playingState: false,
-      sliderPosition: 0,
-      playbackRate: 1,
       backwardInterval: null,
-      lastKeyPress: {
-        key: null,
-        timestamp: 0,
-        count: 0
-      },
-      showVolumeSlider: false,
-      volume: 50,
       isDragging: false,
-      lastVolume: 50
+      lastKeyPress: createLastKeyPress(),
+      lastVolume: 50,
+      playbackRate: 1,
+      playingState: false,
+      showVolumeSlider: false,
+      sliderPosition: 0,
+      volume: 50
     }
   },
 
@@ -140,20 +149,22 @@ export default {
   },
 
   watch: {
+    '$refs.video': {
+      immediate: true,
+
+      handler(video) {
+        if (video) {
+          video.volume = this.volume / 100
+        }
+      }
+    },
+
     'tempStore.playJumpPosition'(newValue) {
       // Use a proxy value because updating currentTime based on playPosition
       // directly is prone to timing issues
       if (newValue !== null) {
         this.$refs.video.currentTime = newValue
         this.tempStore.playJumpPosition = null
-      }
-    },
-    '$refs.video': {
-      immediate: true,
-      handler(video) {
-        if (video) {
-          video.volume = this.volume / 100
-        }
       }
     }
   },
@@ -186,7 +197,10 @@ export default {
     window.electronAPI.ipcRenderer.removeListener('playback-forward', this.playForward)
     window.electronAPI.ipcRenderer.removeListener('playback-backward', this.playBackward)
     window.electronAPI.ipcRenderer.removeListener('stop-playback', this.stopPlayback)
-    window.electronAPI.ipcRenderer.removeListener('segment-previous', this.navigateToPreviousSegment)
+    window.electronAPI.ipcRenderer.removeListener(
+      'segment-previous',
+      this.navigateToPreviousSegment
+    )
     window.electronAPI.ipcRenderer.removeListener('segment-next', this.navigateToNextSegment)
 
     // Remove click outside handler
@@ -210,6 +224,27 @@ export default {
       }
     },
 
+    handleClickOutside(event) {
+      if (!event.target.closest('.volume-control')) {
+        this.showVolumeSlider = false
+      }
+    },
+
+    jumpBackward() {
+      if (this.$refs.video) {
+        this.$refs.video.currentTime = Math.max(0, this.$refs.video.currentTime - 5)
+      }
+    },
+
+    jumpForward() {
+      if (this.$refs.video) {
+        this.$refs.video.currentTime = Math.min(
+          this.$refs.video.duration,
+          this.$refs.video.currentTime + 5
+        )
+      }
+    },
+
     muteClicked() {
       this.$refs.video.muted = !this.tempStore.muted
       this.tempStore.muted = !this.tempStore.muted
@@ -220,8 +255,50 @@ export default {
       }
     },
 
+    navigateToNextSegment() {
+      const currentTime = this.$refs.video.currentTime
+      const nextSegment = this.tempStore.selectedSegments.size > 0
+        ? this.tempStore.selectedSegments.values().next().value
+        : null
+
+      if (nextSegment) {
+        const t = nextSegment.start
+        if (t > currentTime) {
+          this.$refs.video.currentTime = t
+        }
+      }
+    },
+
+    navigateToPreviousSegment() {
+      const currentTime = this.$refs.video.currentTime
+      const nextSegment = this.tempStore.selectedSegments.size > 0
+        ? this.tempStore.selectedSegments.values().next().value
+        : null
+
+      if (nextSegment) {
+        const t = nextSegment.start
+        if (t < currentTime) {
+          this.$refs.video.currentTime = t
+        }
+      }
+    },
+
     pictureInPictureClicked() {
       this.$refs.video.requestPictureInPicture()
+    },
+
+    playBackward() {
+      if (this.$refs.video) {
+        this.$refs.video.playbackRate = -this.playbackRate
+        this.$refs.video.play()
+      }
+    },
+
+    playForward() {
+      if (this.$refs.video) {
+        this.$refs.video.playbackRate = this.playbackRate
+        this.$refs.video.play()
+      }
     },
 
     playPauseClicked() {
@@ -240,106 +317,44 @@ export default {
       )
     },
 
-    sliderMoved(n) {
-      this.$refs.video.currentTime = (this.$refs.video.duration / 100) * n
-    },
-
-    toggleSubtitles() {
-      if (this.undoableStore.subtitlesVisible) this.$refs.video.textTracks[0].mode = 'hidden'
-      else this.$refs.video.textTracks[0].mode = 'showing'
-
-      this.undoableStore.subtitlesVisible = !this.undoableStore.subtitlesVisible
-    },
-
-    videoTimeUpdate(event) {
-      this.tempStore.playPosition = event.target.currentTime
-      this.sliderPosition = (event.target.currentTime / event.target.duration) * 100
-    },
-
-    playForward() {
-      const now = Date.now()
-      if (this.lastKeyPress.key === 'l' && now - this.lastKeyPress.timestamp < 1000) {
-        this.lastKeyPress.count++
-      } else {
-        this.lastKeyPress.count = 1
+    sliderMoved(value) {
+      if (this.$refs.video) {
+        this.$refs.video.currentTime = value
       }
-      this.lastKeyPress.key = 'l'
-      this.lastKeyPress.timestamp = now
-
-      // Calculate speed based on press count
-      const speed = Math.min(Math.pow(2, this.lastKeyPress.count - 1), 16)
-      this.playbackRate = speed
-      this.$refs.video.playbackRate = this.playbackRate
-      
-      if (!this.playingState) {
-        this.playPauseClicked()
-      }
-    },
-
-    playBackward() {
-      const now = Date.now()
-      if (this.lastKeyPress.key === 'j' && now - this.lastKeyPress.timestamp < 1000) {
-        this.lastKeyPress.count++
-      } else {
-        this.lastKeyPress.count = 1
-      }
-      this.lastKeyPress.key = 'j'
-      this.lastKeyPress.timestamp = now
-
-      // Calculate speed based on press count
-      const speed = Math.min(Math.pow(2, this.lastKeyPress.count - 1), 16)
-      
-      // Clear any existing interval
-      if (this.backwardInterval) {
-        clearInterval(this.backwardInterval)
-      }
-      
-      // Set up interval to update currentTime
-      this.backwardInterval = setInterval(() => {
-        if (this.$refs.video.currentTime > 0) {
-          this.$refs.video.currentTime -= speed/30 // Move backward at calculated speed
-        } else {
-          this.stopPlayback()
-        }
-      }, 1000/60) // Update at 60fps
-      
-      if (!this.playingState) {
-        this.playPauseClicked()
-      }
-    },
-
-    stopPlayback() {
-      this.$refs.video.pause()
-      this.playingState = false
-      this.playbackRate = 1
-      this.$refs.video.playbackRate = 1
-      if (this.backwardInterval) {
-        clearInterval(this.backwardInterval)
-        this.backwardInterval = null
-      }
-      // Reset key press tracking
-      this.lastKeyPress = {
-        key: null,
-        timestamp: 0,
-        count: 0
-      }
-    },
-
-    handleClickOutside(event) {
-      const volumeControl = this.$el.querySelector('.volume-control')
-      if (volumeControl && !volumeControl.contains(event.target)) {
-        this.showVolumeSlider = false
-      }
-    },
-
-    toggleVolumeSlider(event) {
-      event.stopPropagation()
-      this.showVolumeSlider = !this.showVolumeSlider
     },
 
     startVolumeDrag(event) {
       this.isDragging = true
       this.updateVolumeFromEvent(event)
+    },
+
+    stopPlayback() {
+      if (this.$refs.video) {
+        this.$refs.video.pause()
+        this.playingState = false
+      }
+    },
+
+    stopVolumeDrag() {
+      this.isDragging = false
+    },
+
+    toggleMute() {
+      if (this.volume === 0) {
+        this.volume = this.lastVolume
+      } else {
+        this.lastVolume = this.volume
+        this.volume = 0
+      }
+      this.$refs.video.volume = this.volume / 100
+    },
+
+    toggleSubtitles() {
+      this.undoableStore.subtitlesVisible = !this.undoableStore.subtitlesVisible
+    },
+
+    toggleVolumeSlider() {
+      this.showVolumeSlider = !this.showVolumeSlider
     },
 
     updateVolumeDrag(event) {
@@ -348,94 +363,18 @@ export default {
       }
     },
 
-    stopVolumeDrag() {
-      this.isDragging = false
-    },
-
     updateVolumeFromEvent(event) {
-      const slider = event.currentTarget
-      const rect = slider.getBoundingClientRect()
-      // Calculate position relative to the actual slider height (100px)
-      const y = event.clientY - rect.top
-      const percentage = Math.max(0, Math.min(100, 100 - (y / 100 * 100)))
-      this.volume = Math.round(percentage)
+      const rect = event.currentTarget.getBoundingClientRect()
+      const y = rect.bottom - event.clientY
+      const percentage = (y / rect.height) * 100
+      this.volume = Math.max(0, Math.min(100, percentage))
       this.$refs.video.volume = this.volume / 100
     },
 
-    toggleMute(event) {
-      event.stopPropagation()
-      if (this.volume === 0) {
-        // Unmute: restore last volume
-        this.volume = this.lastVolume
-      } else {
-        // Mute: save current volume and set to 0
-        this.lastVolume = this.volume
-        this.volume = 0
-      }
-      this.$refs.video.volume = this.volume / 100
-    },
-
-    jumpForward() {
-      this.$refs.video.currentTime = Math.min(
-        this.$refs.video.duration,
-        this.$refs.video.currentTime + 5
-      )
-    },
-
-    jumpBackward() {
-      this.$refs.video.currentTime = Math.max(
-        0,
-        this.$refs.video.currentTime - 5
-      )
-    },
-
-    navigateToPreviousSegment() {
-      const currentTime = this.$refs.video.currentTime * this.mainStore.fps
-      
-      // Get the currently selected timeline
-      const selectedTimelineId = this.tempStore.selectedSegments.size > 0 
-        ? this.tempStore.selectedSegments.values().next().value 
-        : this.undoableStore.shotTimelines[0]?.id
-
-      if (!selectedTimelineId) return
-
-      const timeline = this.undoableStore.timelines.find(t => t.id === selectedTimelineId)
-      if (!timeline || timeline.type !== 'shots') return
-
-      const segments = timeline.data
-      // Find the last segment that starts before current time
-      const prevSegmentIndex = segments.findLastIndex(segment => segment.start < currentTime)
-      if (prevSegmentIndex !== -1) {
-        // Navigate to the previous segment
-        const prevSegment = segments[prevSegmentIndex]
-        this.$refs.video.currentTime = prevSegment.start / this.mainStore.fps
-        // Select the segment
-        this.tempStore.selectedSegments = new Map([[prevSegment.id, timeline.id]])
-      }
-    },
-
-    navigateToNextSegment() {
-      const currentTime = this.$refs.video.currentTime * this.mainStore.fps
-      
-      // Get the currently selected timeline
-      const selectedTimelineId = this.tempStore.selectedSegments.size > 0 
-        ? this.tempStore.selectedSegments.values().next().value 
-        : this.undoableStore.shotTimelines[0]?.id
-
-      if (!selectedTimelineId) return
-
-      const timeline = this.undoableStore.timelines.find(t => t.id === selectedTimelineId)
-      if (!timeline || timeline.type !== 'shots') return
-
-      const segments = timeline.data
-      // Find the first segment that starts after current time
-      const nextSegmentIndex = segments.findIndex(segment => segment.start > currentTime)
-      if (nextSegmentIndex !== -1) {
-        // Navigate to the next segment
-        const nextSegment = segments[nextSegmentIndex]
-        this.$refs.video.currentTime = nextSegment.start / this.mainStore.fps
-        // Select the segment
-        this.tempStore.selectedSegments = new Map([[nextSegment.id, timeline.id]])
+    videoTimeUpdate() {
+      if (this.$refs.video) {
+        this.sliderPosition = this.$refs.video.currentTime
+        this.tempStore.playPosition = this.$refs.video.currentTime
       }
     }
   }
@@ -471,7 +410,7 @@ video {
   background: white;
   padding: 12px 8px;
   border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 100;
   display: flex;
   align-items: center;

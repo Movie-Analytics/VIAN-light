@@ -5,6 +5,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   exportScreenshots: (p, f) => ipcRenderer.send('export-screenshots', p, f),
   getVideoInfo: (arg) => ipcRenderer.send('get-video-info', arg),
   importProject: (arg, v, z) => ipcRenderer.send('import-project', arg, v, z),
+  ipcRenderer: {
+    on: (channel, callback) => ipcRenderer.on(channel, callback),
+    removeListener: (channel, callback) => ipcRenderer.removeListener(channel, callback)
+  },
   loadStore: (arg1, arg2) => ipcRenderer.invoke('load-store', arg1, arg2),
   loadSubtitles: (p) => ipcRenderer.invoke('load-subtitles', p),
   logError: (msg) => ipcRenderer.send('log-error', msg),
@@ -24,9 +28,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   runScreenshotsGeneration: (v, f, i) => ipcRenderer.send('run-screenshots-generation', v, f, i),
   runShotBoundaryDetection: (arg) => ipcRenderer.send('run-shotboundary-detection', arg),
   saveStore: (arg1, arg2) => ipcRenderer.send('save-store', arg1, arg2),
-  terminateJob: (arg) => ipcRenderer.send('terminate-job', arg),
-  ipcRenderer: {
-    on: (channel, callback) => ipcRenderer.on(channel, callback),
-    removeListener: (channel, callback) => ipcRenderer.removeListener(channel, callback)
-  }
+  terminateJob: (arg) => ipcRenderer.send('terminate-job', arg)
 })

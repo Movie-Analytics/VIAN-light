@@ -5,24 +5,24 @@ const registerShortcuts = () => {
   globalShortcut.register('Space', () => {
     BrowserWindow.getFocusedWindow()?.webContents.send('toggle-playback')
   })
-  
+
   globalShortcut.register('Right', () => {
     BrowserWindow.getFocusedWindow()?.webContents.send('frame-forward')
   })
-  
+
   globalShortcut.register('Left', () => {
     BrowserWindow.getFocusedWindow()?.webContents.send('frame-backward')
   })
-  
+
   // JKL system for playback control
   globalShortcut.register('j', () => {
     BrowserWindow.getFocusedWindow()?.webContents.send('playback-backward')
   })
-  
+
   globalShortcut.register('k', () => {
     BrowserWindow.getFocusedWindow()?.webContents.send('stop-playback')
   })
-  
+
   globalShortcut.register('l', () => {
     BrowserWindow.getFocusedWindow()?.webContents.send('playback-forward')
   })
@@ -31,7 +31,7 @@ const registerShortcuts = () => {
   globalShortcut.register('a', () => {
     BrowserWindow.getFocusedWindow()?.webContents.send('segment-previous')
   })
-  
+
   globalShortcut.register('s', () => {
     BrowserWindow.getFocusedWindow()?.webContents.send('segment-next')
   })
@@ -62,47 +62,47 @@ const createMenu = () => {
       label: 'Playback',
       submenu: [
         {
-          label: 'Play/Pause',
           accelerator: 'Space',
           click: () => {
             BrowserWindow.getFocusedWindow()?.webContents.send('toggle-playback')
-          }
+          },
+          label: 'Play/Pause'
         },
         {
-          label: 'Frame Forward',
           accelerator: 'Right',
           click: () => {
             BrowserWindow.getFocusedWindow()?.webContents.send('frame-forward')
-          }
+          },
+          label: 'Frame Forward'
         },
         {
-          label: 'Frame Backward',
           accelerator: 'Left',
           click: () => {
             BrowserWindow.getFocusedWindow()?.webContents.send('frame-backward')
-          }
+          },
+          label: 'Frame Backward'
         },
         { type: 'separator' },
         {
-          label: 'Play Backward (J)',
           accelerator: 'j',
           click: () => {
             BrowserWindow.getFocusedWindow()?.webContents.send('playback-backward')
-          }
+          },
+          label: 'Play Backward (J)'
         },
         {
-          label: 'Stop (K)',
           accelerator: 'k',
           click: () => {
             BrowserWindow.getFocusedWindow()?.webContents.send('stop-playback')
-          }
+          },
+          label: 'Stop (K)'
         },
         {
-          label: 'Play Forward (L)',
           accelerator: 'l',
           click: () => {
             BrowserWindow.getFocusedWindow()?.webContents.send('playback-forward')
-          }
+          },
+          label: 'Play Forward (L)'
         }
       ]
     },
@@ -110,18 +110,18 @@ const createMenu = () => {
       label: 'Navigation',
       submenu: [
         {
-          label: 'Previous Segment',
           accelerator: 'a',
           click: () => {
             BrowserWindow.getFocusedWindow()?.webContents.send('segment-previous')
-          }
+          },
+          label: 'Previous Segment'
         },
         {
-          label: 'Next Segment',
           accelerator: 's',
           click: () => {
             BrowserWindow.getFocusedWindow()?.webContents.send('segment-next')
-          }
+          },
+          label: 'Next Segment'
         }
       ]
     }

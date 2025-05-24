@@ -1,4 +1,5 @@
-import { BrowserWindow, Menu, app, ipcMain, protocol, shell, globalShortcut } from 'electron'
+// eslint-disable-next-line sort-imports
+import { app, BrowserWindow, ipcMain, Menu, protocol, shell } from 'electron'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { join } from 'path'
 
