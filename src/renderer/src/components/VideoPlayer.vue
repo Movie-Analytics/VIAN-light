@@ -97,6 +97,7 @@
 
       <v-slider
         v-model="sliderPosition"
+        :max="mainStore.videoDuration"
         :step="0.1"
         hide-details="true"
         class="px-2"
