@@ -1,10 +1,7 @@
-// eslint-disable-next-line sort-imports
-import { app, BrowserWindow, ipcMain, Menu, protocol, shell } from 'electron'
+import { BrowserWindow, Menu, app, ipcMain, protocol, shell } from 'electron'
+import { createMenu, registerShortcuts } from './menu.js'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { join } from 'path'
-
-// Set application name immediately
-app.setName('VIAN-light')
 
 import {
   cleanUp,
@@ -23,7 +20,9 @@ import {
   saveStore,
   terminateJob
 } from './api_functions'
-import icon from '../../resources/icon.png?asset'
+import icon from '../../resources/icon.png?asset&asarUnpack'
+
+app.setName('VIAN-light')
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -38,8 +37,6 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 const createWindow = () => {
-  console.log('Creating window...')
-  // Create the browser window.
   const mainWindow = new BrowserWindow({
     height: 670,
     show: false,
@@ -52,14 +49,12 @@ const createWindow = () => {
     width: 900,
     ...(process.platform === 'linux' ? { icon } : {})
   })
-  console.log('Window created')
 
   if (is.dev) {
     mainWindow.webContents.openDevTools()
   }
 
   mainWindow.on('ready-to-show', () => {
-    console.log('Window ready to show')
     mainWindow.show()
   })
 
@@ -83,18 +78,11 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  // Set app user model id for windows
-  electronApp.setAppUserModelId('com.vian-light')
+  electronApp.setAppUserModelId('ch.uzh.vian')
 
-  // Set application name
-  app.setName('VIAN-light')
-
-  // Create menu and register shortcuts
-  import('./menu.js').then(({ createMenu, registerShortcuts }) => {
-    const menu = Menu.buildFromTemplate(createMenu())
-    Menu.setApplicationMenu(menu)
-    registerShortcuts()
-  })
+  const menu = Menu.buildFromTemplate(createMenu())
+  Menu.setApplicationMenu(menu)
+  registerShortcuts()
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -113,7 +101,7 @@ app.whenReady().then(() => {
 
   // Using deprecated method until this bug is solved:
   // https://github.com/electron/electron/issues/38749
-  // Note: This is a temporary solution until the protocol.registerFileProtocol bug is fixed
+  // TODO: access filter
   protocol.registerFileProtocol('app', (request, callback) => {
     const filePath = request.url.slice('app://'.length)
     callback(filePath)
@@ -138,41 +126,29 @@ app.on('before-quit', async (event) => {
   // Prevent immediate quit
   event.preventDefault()
 
-  // Set quitting flag
+  
   isQuitting = true
 
   try {
-    // Get all running jobs
     const jobs = Array.from(jobManager.jobs.values())
     const runningJobs = jobs.filter((job) => job.status === 'RUNNING')
 
     if (runningJobs.length > 0) {
-      console.log('Waiting for jobs to terminate...')
-
-      // Create an array of cleanup promises
       const cleanupPromises = runningJobs.map(async (job) => {
         try {
           if (job.worker) {
-            // First try to cleanup video reader resources
             job.worker.postMessage({ type: 'CLEANUP' })
-
-            // Wait a short moment for cleanup
             await new Promise((resolve) => {
               setTimeout(resolve, 100)
             })
-
-            // Then terminate the job
             jobManager.terminateJob(job.id)
           }
         } catch (err) {
           console.error('Error terminating job:', err)
         }
       })
-
-      // Wait for all cleanup operations to complete
       await Promise.all(cleanupPromises)
 
-      // Give a final moment for resources to be released
       await new Promise((resolve) => {
         setTimeout(resolve, 500)
       })
@@ -187,7 +163,6 @@ app.on('before-quit', async (event) => {
     }
   } catch (err) {
     console.error('Error during quit:', err)
-    // Force quit even if there was an error
     app.quit()
     if (is.dev) {
       process.exit(1)
