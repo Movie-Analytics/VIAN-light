@@ -120,53 +120,19 @@ app.on('window-all-closed', () => {
 // Handle application quit
 let isQuitting = false
 app.on('before-quit', async (event) => {
-  // Prevent recursive calls
   if (isQuitting) return
-
-  // Prevent immediate quit
   event.preventDefault()
-
   
   isQuitting = true
 
   try {
-    const jobs = Array.from(jobManager.jobs.values())
-    const runningJobs = jobs.filter((job) => job.status === 'RUNNING')
-
-    if (runningJobs.length > 0) {
-      const cleanupPromises = runningJobs.map(async (job) => {
-        try {
-          if (job.worker) {
-            job.worker.postMessage({ type: 'CLEANUP' })
-            await new Promise((resolve) => {
-              setTimeout(resolve, 100)
-            })
-            jobManager.terminateJob(job.id)
-          }
-        } catch (err) {
-          console.error('Error terminating job:', err)
-        }
-      })
-      await Promise.all(cleanupPromises)
-
-      await new Promise((resolve) => {
-        setTimeout(resolve, 500)
-      })
-    }
-
-    // Now quit the application
+    await jobManager.cancelAllOperations()
     app.quit()
-
-    // Force exit in development mode
-    if (is.dev) {
-      process.exit(0)
-    }
+    process.exit(0)
   } catch (err) {
     console.error('Error during quit:', err)
     app.quit()
-    if (is.dev) {
-      process.exit(1)
-    }
+    process.exit(1)
   }
 })
 

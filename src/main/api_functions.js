@@ -81,6 +81,32 @@ class JobManager {
     this.sendJobsUpdate(channel)
     return job
   }
+
+  async cancelAllOperations() {
+    const jobs = Array.from(this.jobs.values())
+    const runningJobs = jobs.filter((job) => job.status === 'RUNNING')
+
+    if (runningJobs.length > 0) {
+      const cleanupPromises = runningJobs.map(async (job) => {
+        try {
+          if (job.worker) {
+            job.worker.postMessage({ type: 'CLEANUP' })
+            await new Promise((resolve) => {
+              setTimeout(resolve, 100)
+            })
+            this.terminateJob(job.id)
+          }
+        } catch (err) {
+          console.error('Error terminating job:', err)
+        }
+      })
+
+      await Promise.all(cleanupPromises)
+      await new Promise((resolve) => {
+        setTimeout(resolve, 500)
+      })
+    }
+  }
 }
 
 const jobManager = new JobManager()
