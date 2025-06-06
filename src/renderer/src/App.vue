@@ -31,12 +31,12 @@ export default {
       })
 
       // Add undo action handler
-      window.electronAPI.onUndoAction(() => {
+      api.onUndoAction(() => {
         useUndoableStore().undo('undoable')
       })
 
       // Add redo action handler
-      window.electronAPI.onRedoAction(() => {
+      api.onRedoAction(() => {
         useUndoableStore().redo('undoable')
       })
 
