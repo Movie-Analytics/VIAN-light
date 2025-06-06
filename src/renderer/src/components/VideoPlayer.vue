@@ -115,9 +115,7 @@ import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
 
 const createLastKeyPress = () => ({
-  count: 0,
-  key: null,
-  timestamp: 0
+  count: 0
 })
 
 export default {
@@ -125,7 +123,6 @@ export default {
 
   data() {
     return {
-      backwardInterval: null,
       isDragging: false,
       lastKeyPress: createLastKeyPress(),
       lastVolume: 50,
