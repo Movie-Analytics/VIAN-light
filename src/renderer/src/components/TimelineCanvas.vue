@@ -110,13 +110,12 @@ export default {
       const entries = this.data.filter((d) => d.hiddenColor === color)
 
       // Convert coordinates back to logical space for calculations
-      const coordX = (event.clientX - rect.left)
-      const coordY = (event.clientY - rect.top)
+      const coordX = event.clientX - rect.left
+      const coordY = event.clientY - rect.top
 
       if (entries.length === 0 && coordY < 40) {
         // Set player position
-        const timePosition =
-          this.transform.rescaleX(this.scale).invert(coordX) / this.mainStore.fps
+        const timePosition = this.transform.rescaleX(this.scale).invert(coordX) / this.mainStore.fps
         this.tempStore.playJumpPosition = timePosition
       } else if (entries.length > 0) {
         // Select shots
@@ -355,8 +354,8 @@ export default {
       const rect = this.$refs.canvas.getBoundingClientRect()
       const x = (e.clientX - rect.left) * this.dpr
       const y = (e.clientY - rect.top) * this.dpr
-      const coordX = (e.clientX - rect.left)
-      const coordY = (e.clientY - rect.top)
+      const coordX = e.clientX - rect.left
+      const coordY = e.clientY - rect.top
 
       // New timeline segment
       if (e.altKey) {
@@ -439,7 +438,7 @@ export default {
       if (e.altKey || e.shiftKey) e.stopImmediatePropagation()
 
       const rect = this.$refs.canvas.getBoundingClientRect()
-      const coordX = (e.clientX - rect.left)
+      const coordX = e.clientX - rect.left
       const xNew = Math.round(this.transform.rescaleX(this.scale).invert(coordX))
 
       this.tempStore.tmpShot.start = Math.min(this.tempStore.tmpShot.origin, xNew)
