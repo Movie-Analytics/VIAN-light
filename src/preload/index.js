@@ -5,23 +5,27 @@ contextBridge.exposeInMainWorld('electronAPI', {
   exportScreenshots: (p, f) => ipcRenderer.send('export-screenshots', p, f),
   getVideoInfo: (arg) => ipcRenderer.send('get-video-info', arg),
   importProject: (arg, v, z) => ipcRenderer.send('import-project', arg, v, z),
-  ipcRenderer: {
-    on: (channel, callback) => ipcRenderer.on(channel, callback),
-    removeListener: (channel, callback) => ipcRenderer.removeListener(channel, callback)
-  },
   loadStore: (arg1, arg2) => ipcRenderer.invoke('load-store', arg1, arg2),
   loadSubtitles: (p) => ipcRenderer.invoke('load-subtitles', p),
   logError: (msg) => ipcRenderer.send('log-error', msg),
+  onFrameBackward: (cb) => ipcRenderer.on('frame-backward', (c, ...args) => cb(...args)),
+  onFrameForward: (cb) => ipcRenderer.on('frame-forward', (c, ...args) => cb(...args)),
   onImportProject: (cb) => ipcRenderer.on('imported-project', (c, ...args) => cb(...args)),
   onJobsUpdate: (cb) => ipcRenderer.on('jobs-update', (c, ...args) => cb(...args)),
-  onRedoAction: (callback) => ipcRenderer.on('redo-action', callback),
+  onPlaybackBackward: (cb) => ipcRenderer.on('playback-backward', (c, ...args) => cb(...args)),
+  onPlaybackForward: (cb) => ipcRenderer.on('playback-forward', (c, ...args) => cb(...args)),
+  onRedoAction: (cb) => ipcRenderer.on('redo-action', (c, ...args) => cb(...args)),
   onScreenshotGeneration: (cb) =>
     ipcRenderer.on('screenshot-generated', (c, ...args) => cb(...args)),
   onScreenshotsGeneration: (cb) =>
     ipcRenderer.on('screenshots-generated', (c, ...args) => cb(...args)),
+  onSegmentNext: (cb) => ipcRenderer.on('segment-next', (c, ...args) => cb(...args)),
+  onSegmentPrevious: (cb) => ipcRenderer.on('segment-previous', (c, ...args) => cb(...args)),
   onShotBoundaryDetection: (cb) =>
     ipcRenderer.on('shotboundary-detected', (c, ...args) => cb(...args)),
-  onUndoAction: (callback) => ipcRenderer.on('undo-action', callback),
+  onStopPlayback: (cb) => ipcRenderer.on('stop-playback', (c, ...args) => cb(...args)),
+  onTogglePlayback: (cb) => ipcRenderer.on('toggle-playback', (c, ...args) => cb(...args)),
+  onUndoAction: (cb) => ipcRenderer.on('undo-action', (c, ...args) => cb(...args)),
   onVideoInfo: (cb) => ipcRenderer.on('video-info', (c, ...args) => cb(...args)),
   openVideo: () => ipcRenderer.invoke('open-video'),
   runScreenshotGeneration: (v, f, i) => ipcRenderer.send('run-screenshot-generation', v, f, i),

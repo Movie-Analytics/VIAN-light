@@ -1,41 +1,4 @@
-import { BrowserWindow, app, globalShortcut } from 'electron'
-
-const registerShortcuts = () => {
-  // Playback control
-  globalShortcut.register('Space', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('toggle-playback')
-  })
-
-  globalShortcut.register('Right', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('frame-forward')
-  })
-
-  globalShortcut.register('Left', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('frame-backward')
-  })
-
-  // JKL system for playback control
-  globalShortcut.register('j', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('playback-backward')
-  })
-
-  globalShortcut.register('k', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('stop-playback')
-  })
-
-  globalShortcut.register('l', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('playback-forward')
-  })
-
-  // A/S for segment navigation
-  globalShortcut.register('a', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('segment-previous')
-  })
-
-  globalShortcut.register('s', () => {
-    BrowserWindow.getFocusedWindow()?.webContents.send('segment-next')
-  })
-}
+import { BrowserWindow, app } from 'electron'
 
 const createMenu = () => {
   const template = [
@@ -148,4 +111,4 @@ const createMenu = () => {
   return template
 }
 
-export { createMenu, registerShortcuts }
+export { createMenu }

@@ -22,6 +22,58 @@ class RemoteApi {
     }
   }
 
+  // Dummy implementations for shortcut handlers
+  onFrameBackward() {
+    return () => {
+      // Dummy
+    }
+  }
+  onFrameForward() {
+    return () => {
+      // Dummy
+    }
+  }
+  onPlaybackBackward() {
+    return () => {
+      // Dummy
+    }
+  }
+  onPlaybackForward() {
+    return () => {
+      // Dummy
+    }
+  }
+  onSegmentNext() {
+    return () => {
+      // Dummy
+    }
+  }
+  onSegmentPrevious() {
+    return () => {
+      // Dummy
+    }
+  }
+  onStopPlayback() {
+    return () => {
+      // Dummy
+    }
+  }
+  onTogglePlayback() {
+    return () => {
+      // Dummy
+    }
+  }
+  onRedoAction() {
+    return () => {
+      // Dummy
+    }
+  }
+  onUndoAction() {
+    return () => {
+      // Dummy
+    }
+  }
+
   async login(email, password) {
     const formData = new FormData()
     formData.append('username', email)

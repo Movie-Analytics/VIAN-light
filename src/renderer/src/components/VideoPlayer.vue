@@ -108,8 +108,8 @@
 </template>
 
 <script>
+import api from '@renderer/api'
 import { mapStores } from 'pinia'
-
 import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
@@ -171,15 +171,15 @@ export default {
   },
 
   mounted() {
-    // Listen for global shortcuts
-    window.electronAPI.ipcRenderer.on('toggle-playback', this.playPauseClicked)
-    window.electronAPI.ipcRenderer.on('frame-forward', this.forwardClicked)
-    window.electronAPI.ipcRenderer.on('frame-backward', this.backwardClicked)
-    window.electronAPI.ipcRenderer.on('playback-forward', this.playForward)
-    window.electronAPI.ipcRenderer.on('playback-backward', this.playBackward)
-    window.electronAPI.ipcRenderer.on('stop-playback', this.stopPlayback)
-    window.electronAPI.ipcRenderer.on('segment-previous', this.navigateToPreviousSegment)
-    window.electronAPI.ipcRenderer.on('segment-next', this.navigateToNextSegment)
+    // Register event handlers directly
+    api.onTogglePlayback(this.playPauseClicked)
+    api.onFrameForward(this.forwardClicked)
+    api.onFrameBackward(this.backwardClicked)
+    api.onPlaybackForward(this.playForward)
+    api.onPlaybackBackward(this.playBackward)
+    api.onStopPlayback(this.stopPlayback)
+    api.onSegmentPrevious(this.navigateToPreviousSegment)
+    api.onSegmentNext(this.navigateToNextSegment)
 
     // Add click outside handler for volume slider
     document.addEventListener('click', this.handleClickOutside)
@@ -191,19 +191,6 @@ export default {
   },
 
   beforeUnmount() {
-    // Clean up event listeners
-    window.electronAPI.ipcRenderer.removeListener('toggle-playback', this.playPauseClicked)
-    window.electronAPI.ipcRenderer.removeListener('frame-forward', this.forwardClicked)
-    window.electronAPI.ipcRenderer.removeListener('frame-backward', this.backwardClicked)
-    window.electronAPI.ipcRenderer.removeListener('playback-forward', this.playForward)
-    window.electronAPI.ipcRenderer.removeListener('playback-backward', this.playBackward)
-    window.electronAPI.ipcRenderer.removeListener('stop-playback', this.stopPlayback)
-    window.electronAPI.ipcRenderer.removeListener(
-      'segment-previous',
-      this.navigateToPreviousSegment
-    )
-    window.electronAPI.ipcRenderer.removeListener('segment-next', this.navigateToNextSegment)
-
     // Remove click outside handler
     document.removeEventListener('click', this.handleClickOutside)
   },
@@ -257,30 +244,129 @@ export default {
     },
 
     navigateToNextSegment() {
-      const currentTime = this.$refs.video.currentTime
-      const nextSegment = this.tempStore.selectedSegments.size > 0
-        ? this.tempStore.selectedSegments.values().next().value
-        : null
+      const currentTime = this.$refs.video.currentTime * this.mainStore.fps
+
+      // Get the currently selected timeline
+      const selectedTimelineId =
+        this.tempStore.selectedSegments.size > 0
+          ? this.tempStore.selectedSegments.values().next().value
+          : this.undoableStore.shotTimelines[0]?.id
+
+      if (!selectedTimelineId) return
+
+      const timeline = this.undoableStore.timelines.find((t) => t.id === selectedTimelineId)
+      if (!timeline || timeline.type !== 'shots') return
+
+      // Filter out invalid segments (those without start/end)
+      const segments = timeline.data.filter(
+        (s) =>
+          Object.hasOwn(s, 'start') &&
+          typeof s.start === 'number' &&
+          s.start >= 0 &&
+          Object.hasOwn(s, 'end') &&
+          typeof s.end === 'number' &&
+          s.end >= 0
+      )
+      if (segments.length === 0) return
+
+      // First try to find the currently selected segment's index
+      let currentSegmentId = null
+      if (this.tempStore.selectedSegments.size > 0) {
+        currentSegmentId = Array.from(this.tempStore.selectedSegments.keys())[0]
+      }
+
+      let nextSegment = null
+      if (currentSegmentId) {
+        // If we have a selected segment, find its index and get the next one
+        const currentIndex = segments.findIndex((s) => s.id === currentSegmentId)
+        if (currentIndex !== -1 && currentIndex < segments.length - 1) {
+          nextSegment = segments[currentIndex + 1]
+        } else if (currentIndex === segments.length - 1) {
+          // If we're at the last segment, loop back to the first one
+          nextSegment = segments[0]
+        }
+      }
 
       if (nextSegment) {
-        const t = nextSegment.start
-        if (t > currentTime) {
-          this.$refs.video.currentTime = t
+        // Navigate to the found segment
+        this.$refs.video.currentTime = nextSegment.start / this.mainStore.fps
+        this.tempStore.selectedSegments = new Map([[nextSegment.id, timeline.id]])
+      } else {
+        const nextIndex = segments.findIndex((segment) => segment.start > currentTime)
+        if (nextIndex === -1) {
+          // If no segment after current time, loop back to first segment
+          nextSegment = segments[0]
+        } else {
+          nextSegment = segments[nextIndex]
+        }
+        // Jump to the found segment
+        if (nextSegment) {
+          this.$refs.video.currentTime = nextSegment.start / this.mainStore.fps
+          this.tempStore.selectedSegments = new Map([[nextSegment.id, timeline.id]])
         }
       }
     },
 
     navigateToPreviousSegment() {
-      const currentTime = this.$refs.video.currentTime
-      const nextSegment = this.tempStore.selectedSegments.size > 0
-        ? this.tempStore.selectedSegments.values().next().value
-        : null
+      const currentTime = this.$refs.video.currentTime * this.mainStore.fps
 
-      if (nextSegment) {
-        const t = nextSegment.start
-        if (t < currentTime) {
-          this.$refs.video.currentTime = t
+      // Get the currently selected timeline
+      const selectedTimelineId =
+        this.tempStore.selectedSegments.size > 0
+          ? this.tempStore.selectedSegments.values().next().value
+          : this.undoableStore.shotTimelines[0]?.id
+
+      if (!selectedTimelineId) return
+
+      const timeline = this.undoableStore.timelines.find((t) => t.id === selectedTimelineId)
+      if (!timeline || timeline.type !== 'shots') return
+
+      // Filter out invalid segments (those without start/end)
+      const segments = timeline.data.filter(
+        (s) =>
+          Object.hasOwn(s, 'start') &&
+          typeof s.start === 'number' &&
+          s.start >= 0 &&
+          Object.hasOwn(s, 'end') &&
+          typeof s.end === 'number' &&
+          s.end >= 0
+      )
+      if (segments.length === 0) return
+
+      // First try to find the currently selected segment's index
+      let currentSegmentId = null
+      if (this.tempStore.selectedSegments.size > 0) {
+        currentSegmentId = Array.from(this.tempStore.selectedSegments.keys())[0]
+      }
+
+      let prevSegment = null
+      if (currentSegmentId) {
+        // If we have a selected segment, find its index and get the previous one
+        const currentIndex = segments.findIndex((s) => s.id === currentSegmentId)
+        if (currentIndex > 0) {
+          prevSegment = segments[currentIndex - 1]
+        } else if (currentIndex === 0) {
+          // If we're at the first segment, loop to the last one
+          prevSegment = segments[segments.length - 1]
         }
+      }
+
+      // If we don't have a selected segment or couldn't find previous from selection,
+      // find the last segment that starts before current time
+      if (!prevSegment) {
+        const currentIndex = segments.findIndex((segment) => segment.start > currentTime) - 1
+        if (currentIndex >= 0) {
+          prevSegment = segments[currentIndex]
+        } else {
+          // If no segment before current time, go to last segment
+          prevSegment = segments[segments.length - 1]
+        }
+      }
+
+      // Navigate to the found segment
+      if (prevSegment) {
+        this.$refs.video.currentTime = prevSegment.start / this.mainStore.fps
+        this.tempStore.selectedSegments = new Map([[prevSegment.id, timeline.id]])
       }
     },
 

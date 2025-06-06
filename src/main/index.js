@@ -1,6 +1,6 @@
 import { BrowserWindow, Menu, app, ipcMain, protocol, shell } from 'electron'
-import { createMenu, registerShortcuts } from './menu.js'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
+import { createMenu } from './menu.js'
 import { join } from 'path'
 
 import {
@@ -82,7 +82,6 @@ app.whenReady().then(() => {
 
   const menu = Menu.buildFromTemplate(createMenu())
   Menu.setApplicationMenu(menu)
-  registerShortcuts()
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -122,7 +121,7 @@ let isQuitting = false
 app.on('before-quit', async (event) => {
   if (isQuitting) return
   event.preventDefault()
-  
+
   isQuitting = true
 
   try {
