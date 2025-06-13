@@ -10,6 +10,8 @@ files:
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
 asarUnpack:
   - resources/**
+  - "**/*.node"
+  - "**/*.a"
 win:
   executableName: vian-light
 nsis:
@@ -18,21 +20,18 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
-  entitlementsInherit: build/entitlements.mac.plist
-  extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
-    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
-    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  hardenedRuntime: true
+  gatekeeperAssess: false
   notarize: false
+  entitlements: "entitlements.mac.plist"
+  entitlementsInherit: "entitlements.mac.plist"
+  extendInfo:
+    CFBundleDocumentTypes: []
+    CFBundleURLTypes:
+      - CFBundleURLSchemes:
+        - app
+  type: distribution # development
 dmg:
-  artifactName: ${name}-${version}.${ext}
-linux:
-  target:
-    - AppImage
-  maintainer: electronjs.org
-  category: Utility
-appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
