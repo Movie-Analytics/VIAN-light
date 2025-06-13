@@ -66,25 +66,34 @@
           </v-btn>
 
           <div class="volume-control">
-            <v-btn icon @click="toggleVolumeSlider" @dblclick="toggleMute">
+            <v-btn icon @click.stop="toggleVolumeSlider" @dblclick.stop.prevent="toggleMute">
               <v-icon>{{ volume === 0 ? 'mdi-volume-mute' : 'mdi-volume-high' }}</v-icon>
             </v-btn>
 
-            <div v-if="showVolumeSlider" class="volume-slider-container" @click.stop>
-              <div
-                class="volume-slider"
-                @mousedown="startVolumeDrag"
-                @mousemove="updateVolumeDrag"
-                @mouseup="stopVolumeDrag"
-                @mouseleave="stopVolumeDrag"
-              >
-                <div class="volume-track">
-                  <div class="volume-fill" :style="{ height: volume + '%' }"></div>
-                </div>
+            <v-menu
+              v-model="showVolumeSlider"
+              :close-on-content-click="false"
+              location="top"
+              offset="10"
+            >
+              <template #activator="{ props }">
+                <div v-bind="props"></div>
+              </template>
 
-                <div class="volume-thumb" :style="{ bottom: volume + '%' }"></div>
-              </div>
-            </div>
+              <v-card min-width="50" class="pa-2">
+                <v-slider
+                  v-model="volume"
+                  direction="vertical"
+                  :step="1"
+                  :min="0"
+                  :max="100"
+                  height="120"
+                  hide-details
+                  @update:model-value="updateVolume"
+                >
+                </v-slider>
+              </v-card>
+            </v-menu>
           </div>
 
           <v-btn v-if="undoableStore.subtitles !== null" icon @click="toggleSubtitles">
@@ -178,18 +187,10 @@ export default {
     api.onSegmentPrevious(this.navigateToPreviousSegment)
     api.onSegmentNext(this.navigateToNextSegment)
 
-    // Add click outside handler for volume slider
-    document.addEventListener('click', this.handleClickOutside)
-
     // Set initial volume
     if (this.$refs.video) {
       this.$refs.video.volume = this.volume / 100
     }
-  },
-
-  beforeUnmount() {
-    // Remove click outside handler
-    document.removeEventListener('click', this.handleClickOutside)
   },
 
   methods: {
@@ -206,12 +207,6 @@ export default {
     forwardClicked() {
       if (this.$refs.video) {
         this.$refs.video.currentTime += 1 / this.mainStore.fps
-      }
-    },
-
-    handleClickOutside(event) {
-      if (!event.target.closest('.volume-control')) {
-        this.showVolumeSlider = false
       }
     },
 
@@ -407,20 +402,11 @@ export default {
       }
     },
 
-    startVolumeDrag(event) {
-      this.isDragging = true
-      this.updateVolumeFromEvent(event)
-    },
-
     stopPlayback() {
       if (this.$refs.video) {
         this.$refs.video.pause()
         this.playingState = false
       }
-    },
-
-    stopVolumeDrag() {
-      this.isDragging = false
     },
 
     toggleMute() {
@@ -437,22 +423,16 @@ export default {
       this.undoableStore.subtitlesVisible = !this.undoableStore.subtitlesVisible
     },
 
-    toggleVolumeSlider() {
+    toggleVolumeSlider(event) {
+      // Don't show slider if it's a double click
+      if (event?.detail === 2) return
       this.showVolumeSlider = !this.showVolumeSlider
     },
 
-    updateVolumeDrag(event) {
-      if (this.isDragging) {
-        this.updateVolumeFromEvent(event)
+    updateVolume(value) {
+      if (this.$refs.video) {
+        this.$refs.video.volume = value / 100
       }
-    },
-
-    updateVolumeFromEvent(event) {
-      const rect = event.currentTarget.getBoundingClientRect()
-      const y = rect.bottom - event.clientY
-      const percentage = (y / rect.height) * 100
-      this.volume = Math.max(0, Math.min(100, percentage))
-      this.$refs.video.volume = this.volume / 100
     },
 
     videoTimeUpdate() {
@@ -483,59 +463,5 @@ video {
   position: relative;
   display: flex;
   align-items: center;
-}
-.volume-slider-container {
-  position: absolute;
-  left: 50%;
-  bottom: 100%;
-  transform: translateX(-50%);
-  height: 120px;
-  margin-bottom: 8px;
-  background: white;
-  padding: 12px 8px;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 100;
-  display: flex;
-  align-items: center;
-}
-.volume-slider {
-  position: relative;
-  height: 100px;
-  width: 20px;
-  cursor: pointer;
-  margin: 0 auto;
-}
-.volume-track {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 4px;
-  height: 100%;
-  background: #e0e0e0;
-  border-radius: 2px;
-}
-.volume-fill {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: rgb(var(--v-theme-primary));
-  border-radius: 2px;
-}
-.volume-thumb {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 12px;
-  height: 12px;
-  background: rgb(var(--v-theme-primary));
-  border-radius: 50%;
-  cursor: grab;
-  margin-top: -6px; /* Center the thumb on the track */
-}
-.volume-thumb:active {
-  cursor: grabbing;
 }
 </style>
