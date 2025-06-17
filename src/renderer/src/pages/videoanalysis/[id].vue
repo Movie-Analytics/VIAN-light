@@ -98,6 +98,22 @@
             </v-list>
           </v-menu>
         </v-list-item>
+      </v-list>
+    </v-menu>
+
+    <v-menu>
+      <template #activator="{ props }">
+        <v-btn v-tooltip="'Analysis tools'" icon v-bind="props">
+          <v-icon>mdi-cog</v-icon>
+        </v-btn>
+      </template>
+
+      <v-list>
+        <v-list-item @click="switchLightMode">
+          <v-list-item-title v-if="darkMode">Switch to light mode</v-list-item-title>
+
+          <v-list-item-title v-else>Switch to dark mode</v-list-item-title>
+        </v-list-item>
 
         <v-list-item>
           <v-list-item-title>Layout</v-list-item-title>
@@ -117,12 +133,6 @@
               </v-list-item>
             </v-list>
           </v-menu>
-        </v-list-item>
-
-        <v-list-item @click="switchLightMode">
-          <v-list-item-title v-if="darkMode">Switch to light mode</v-list-item-title>
-
-          <v-list-item-title v-else>Switch to dark mode</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
