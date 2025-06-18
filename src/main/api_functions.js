@@ -219,7 +219,7 @@ export const exportProject = (channel, projectId) => {
     defaultPath: 'vian_project.zip',
     title: 'Select export location'
   })
-  if (location === '') return
+  if (location === '' || location === 'undefined') return
   const projectPath = getDataPath(projectId)
 
   const worker = exportProjectWorker({ workerData: { location, projectPath } })
