@@ -71,6 +71,10 @@
           <v-list-item-title>Import Annotations</v-list-item-title>
         </v-list-item>
 
+        <v-list-item @click="manageVocabulary">
+          <v-list-item-title>Manage Vocabulary</v-list-item-title>
+        </v-list-item>
+
         <v-list-item>
           <v-list-item-title>Export</v-list-item-title>
 
@@ -213,6 +217,8 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <VocabularyDialog ref="vocabularyDialog"></VocabularyDialog>
   </v-main>
 </template>
 
@@ -221,6 +227,7 @@ import { mapStores } from 'pinia'
 
 import LayoutDraggable from '@renderer/components/LayoutDraggable.vue'
 import LayoutTibava from '@renderer/components/LayoutTibava.vue'
+import VocabularyDialog from '@renderer/components/VocabularyDialog.vue'
 import api from '@renderer/api'
 import { exportAnnotations } from '@renderer/importexport'
 import { useMainStore } from '@renderer/stores/main'
@@ -230,7 +237,7 @@ import { useUndoableStore } from '@renderer/stores/undoable'
 
 export default {
   name: 'Id',
-  components: { LayoutDraggable, LayoutTibava },
+  components: { LayoutDraggable, LayoutTibava, VocabularyDialog },
 
   data: () => ({
     exportScreenshotsDialog: false,
@@ -349,6 +356,10 @@ export default {
 
     loadSubtitles() {
       this.undoableStore.loadSubtitles()
+    },
+
+    manageVocabulary() {
+      this.$refs.vocabularyDialog.show()
     },
 
     redo() {

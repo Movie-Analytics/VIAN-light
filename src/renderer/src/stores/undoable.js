@@ -11,7 +11,8 @@ export const useUndoableStore = defineStore('undoable', {
     id: null,
     subtitles: null,
     subtitlesVisible: true,
-    timelines: []
+    timelines: [],
+    vocabularies: []
   }),
   /* eslint-disable-next-line vue/sort-keys */
   getters: {
@@ -38,6 +39,25 @@ export const useUndoableStore = defineStore('undoable', {
       data.sort((a, b) => a.start - b.start)
       this.timelines[n].data = data
     },
+    addVocabulary(name) {
+      const id = crypto.randomUUID()
+      this.vocabularies.push({
+        id,
+        name,
+        tags: []
+      })
+      return id
+    },
+    addVocabularyTag(vocabId, name) {
+      const id = crypto.randomUUID()
+      this.vocabularies
+        .find((v) => v.id === vocabId)
+        .tags.push({
+          id,
+          name
+        })
+      return id
+    },
     changeShotBoundaries(shotId, start, end) {
       for (const timeline of this.timelines) {
         if (timeline.type === 'shots') {
@@ -58,6 +78,13 @@ export const useUndoableStore = defineStore('undoable', {
     deleteTimeline(id) {
       this.timelines = this.timelines.filter((t) => t.id !== id)
       useTempStore().validateSelectedSegments()
+    },
+    deleteVocabulary(id) {
+      this.vocabularies = this.vocabularies.filter((v) => v.id !== id)
+    },
+    deleteVocabularyTag(vocabId, tagId){
+      const vocab = this.vocabularies.find((v) => v.id === vocabId)
+      vocab.tags = vocab.tags.filter((t) => t.id !== tagId)
     },
     duplicateTimeline(id) {
       const timeline = this.getTimelineById(id)
@@ -172,6 +199,20 @@ export const useUndoableStore = defineStore('undoable', {
     },
     renameTimeline(id, name) {
       this.getTimelineById(id).name = name
+    },
+    renameVocabulary(id, name) {
+      for (const vocab of this.vocabularies) {
+        if (vocab.id === id) {
+          vocab.name = name
+          break
+        }
+        for (const tag of vocab.tags) {
+          if (tag.id === id) {
+            tag.name = name
+            break
+          }
+        }
+      }
     },
     runShotBoundaryDetection() {
       api.runShotBoundaryDetection(useMainStore().video)

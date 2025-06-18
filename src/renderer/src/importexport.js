@@ -130,3 +130,42 @@ export const exportAnnotations = (csv) => {
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
 }
+
+export const exportVocabCsv = (vocab) => {
+  const csvText = vocab.tags.map((t) => `"${t.name}","${t.id}"`).join('\n')
+  const blob = new Blob([csvText], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = vocab.name
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+export const importVocabCsv = () => {
+  const fileInput = document.createElement('input')
+  fileInput.type = 'file'
+  fileInput.accept = '.csv'
+  fileInput.addEventListener('change', (event) => {
+    const [file] = event.target.files
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const content = e.target.result
+      const tags = content.split('\n').map((line) => {
+        const [name, id] = line.split(',')
+        return { id: id.slice(1, id.length - 1), name: name.slice(1, name.length - 1)  }
+      })
+      useUndoableStore().vocabularies.push({
+        id: crypto.randomUUID(),
+        name: file.name.replace('.csv', ''),
+        tags
+      })
+    }
+    reader.readAsText(file)
+  })
+  fileInput.click()
+}
