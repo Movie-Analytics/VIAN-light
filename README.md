@@ -71,5 +71,8 @@ Before committing, run:
 # Check JavaScript/TypeScript code style
 npm run lint
 
-# TODO Linting Python
+# Linting Python
+cd server
+uvx ruff check
+uvx pyright
 ```
