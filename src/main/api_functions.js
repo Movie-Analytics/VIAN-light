@@ -90,11 +90,22 @@ class JobManager {
       const cleanupPromises = runningJobs.map(async (job) => {
         try {
           if (job.worker) {
-            job.worker.postMessage({ type: 'CLEANUP' })
-            await new Promise((resolve) => {
-              setTimeout(resolve, 100)
+            return new Promise((resolve) => {
+              const cleanup = (data) => {
+                if (data.status === 'CLEANED') {
+                  job.worker.off('message', cleanup)
+                  this.terminateJob(job.id)
+                  resolve()
+                }
+              }
+              job.worker.on('message', cleanup)
+              job.worker.postMessage({ type: 'CLEANUP' })
+              setTimeout(() => {
+                job.worker.off('message', cleanup)
+                this.terminateJob(job.id)
+                resolve()
+              }, 1000)
             })
-            this.terminateJob(job.id)
           }
         } catch (err) {
           console.error('Error terminating job:', err)
@@ -102,9 +113,7 @@ class JobManager {
       })
 
       await Promise.all(cleanupPromises)
-      await new Promise((resolve) => {
-        setTimeout(resolve, 500)
-      })
+      await new Promise((resolve) => setTimeout(resolve, 500))
     }
   }
 }
@@ -177,8 +186,17 @@ export const runShotBoundaryDetection = (channel, videoPath) => {
       jobManager.updateJobStatus(channel, job.id, 'DONE')
       channel.sender.send('shotboundary-detected', data.shots)
     } else {
-      jobManager.updateJobStatus(channel, job.id, 'CANCELED')
+      jobManager.updateJobStatus(channel, job.id, 'ERROR')
+      if (data.error) {
+        logError(`Shot detection error: ${data.error}`)
+      }
     }
+  })
+
+  worker.on('error', (error) => {
+    console.error('Shot detection worker error:', error)
+    logError(`Shot detection worker error: ${error.stack || error.message}`)
+    jobManager.updateJobStatus(channel, job.id, 'ERROR')
   })
 }
 

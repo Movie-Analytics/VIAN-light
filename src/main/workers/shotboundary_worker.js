@@ -18,14 +18,12 @@ reader.detectShots(onnxPath, (err, result) => {
 })
 
 parentPort.on('message', (e) => {
-  if (e.type === 'TERMINATE') {
+  if (e.type === 'TERMINATE' || e.type === 'CLEANUP') {
     if (reader) {
-      reader.cancelOperation()
-    }
-  } else if (e.type === 'CLEANUP') {
-    if (reader) {
+      reader.setCancelled(true)
       reader.cleanup()
       reader = null
+      parentPort.postMessage({ status: 'CLEANED' })
     }
   }
 })

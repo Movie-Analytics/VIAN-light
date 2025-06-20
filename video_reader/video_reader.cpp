@@ -4,23 +4,24 @@ using namespace std;
 #include <cmath>
 #include <csignal>
 #include <iomanip>
-#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
+#include <chrono>
+
+// FFmpeg Headers
+extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
-#include <onnxruntime_cxx_api.h>
-#include <onnxruntime_cxx_api.h>
-#include <chrono>
+#include <libavutil/imgutils.h>
+}
 
-
-std::atomic<bool> VideoReader::cancelled(false);
+#include <onnxruntime_cxx_api.h>
 
 VideoReader::VideoReader(const std::string& file_path) : file_path(file_path) {
-    setCancelled(0);
+    cancelled = false;
     signal(SIGTERM, VideoReader::signalHandler);
     signal(SIGINT, VideoReader::signalHandler);
     last_fps_report_time = std::chrono::high_resolution_clock::now();
@@ -46,7 +47,8 @@ VideoReader::~VideoReader() {
 
 void VideoReader::signalHandler(int signum) {
     std::cout << "Received signal " << signum << ". Terminating gracefully..." << std::endl;
-    setCancelled(true);
+    // Note: We can't access instance members from a static handler
+    // This is just for debug output
 }
 
 
@@ -336,8 +338,8 @@ int VideoReader::generateScreenshot(const std::string& directory, int frame_num)
                                    AV_TIME_BASE_Q,
                                    format_ctx->streams[video_stream_index]->time_base);
     
-    // Remove printf statement and replace with more informative logging
-    fprintf(stderr, "Seeking to frame %d (target: %ld)\n", frame_num, target);
+    // Fix format specifier for int64_t
+    fprintf(stderr, "Seeking to frame %d (target: %lld)\n", frame_num, target);
     
     response = av_seek_frame(format_ctx, video_stream_index, target_jump, AVSEEK_FLAG_BACKWARD);
     avcodec_flush_buffers(codec_ctx);
@@ -526,17 +528,9 @@ int VideoReader::saveFrameAsJpeg(AVPixelFormat pix_fmt, AVFrame* pFrame, const s
     return 0;
 }
 
-void VideoReader::setCancelled(bool value) {
-    cancelled = value;
-}
-
-bool VideoReader::isCancelled() {
-    return cancelled;
-}
-
 void VideoReader::cleanup() {
     // Set cancelled flag to stop any ongoing operations
-    setCancelled(true);
+    cancelled = true;
     
     // Close and free FFmpeg resources
     if (format_ctx) {

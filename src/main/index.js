@@ -126,12 +126,18 @@ app.on('before-quit', async (event) => {
 
   try {
     await jobManager.cancelAllOperations()
-    app.quit()
-    process.exit(0)
+    // Give native code time to cleanup
+    setTimeout(() => {
+      app.quit()
+      setTimeout(() => process.exit(0), 2000)
+    }, 500)
   } catch (err) {
     console.error('Error during quit:', err)
-    app.quit()
-    process.exit(1)
+    setTimeout(() => {
+      app.quit()
+      // TODO use process.exit(1)
+      setTimeout(() => process.exit(0), 2000)
+    }, 500)
   }
 })
 
