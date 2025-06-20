@@ -3,15 +3,21 @@ productName: vian-light
 directories:
   buildResources: build
 files:
+  - 'out/**/*'
   - '!**/.vscode/*'
   - '!src/*'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - 'resources/video_reader.node'
+  - 'resources/transnetv2.onnx'
+  - 'ffmpeglibs/lib/*.a'
+  - 'onnxlibs/lib/libonnxruntime.a'
 asarUnpack:
-  - resources/**
-  - "**/*.node"
-  - "**/*.a"
+  - "resources/video_reader.node"
+  - "resources/transnetv2.onnx"
+  - "ffmpeglibs/lib/*.a"
+  - "onnxlibs/lib/libonnxruntime.a"
 win:
   executableName: vian-light
 nsis:
@@ -30,10 +36,7 @@ mac:
     CFBundleURLTypes:
       - CFBundleURLSchemes:
         - app
-  type: distribution # development
+  type: distribution
 dmg:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://example.com/auto-updates
