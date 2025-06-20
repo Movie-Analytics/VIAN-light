@@ -139,7 +139,11 @@ export default {
       playingState: false,
       showVolumeSlider: false,
       sliderPosition: 0,
-      volume: 50
+      volume: 50,
+      lastKeyPressTime: 0,
+      keyPressCount: 0,
+      backwardInterval: null,
+      isPlayingBackward: false
     }
   },
 
@@ -367,26 +371,69 @@ export default {
     },
 
     playBackward() {
+      //HTML5 video elements don't support negative playback rates, hence we use a workaround of intervals
       if (this.$refs.video) {
-        this.$refs.video.playbackRate = -this.playbackRate
-        this.$refs.video.play()
+        const now = Date.now();
+        if (now - this.lastKeyPressTime < 500) {
+          this.keyPressCount++;
+          this.playbackRate = Math.min(16, Math.pow(2, this.keyPressCount - 1));
+        } else {
+          this.keyPressCount = 1;
+          this.playbackRate = 1;
+        }
+        this.lastKeyPressTime = now;
+        
+        if (this.backwardInterval) {
+          clearInterval(this.backwardInterval);
+        }
+        
+        this.$refs.video.pause();
+        
+        const jumpInterval = Math.max(16, 1000 / (this.mainStore.fps * this.playbackRate));
+        const jumpAmount = 1 / this.mainStore.fps;
+        
+        this.isPlayingBackward = true;
+        this.playingState = true;
+        
+        // Start backward playback interval
+        this.backwardInterval = setInterval(() => {
+          if (this.$refs.video.currentTime <= 0) {
+            this.stopPlayback();
+            return;
+          }
+          this.$refs.video.currentTime = Math.max(0, this.$refs.video.currentTime - jumpAmount);
+        }, jumpInterval);
       }
     },
 
     playForward() {
       if (this.$refs.video) {
-        this.$refs.video.playbackRate = this.playbackRate
-        this.$refs.video.play()
+        const now = Date.now();
+        if (now - this.lastKeyPressTime < 500) {
+          this.keyPressCount++;
+          this.playbackRate = Math.min(16, Math.pow(2, this.keyPressCount - 1));
+        } else {
+          this.keyPressCount = 1;
+          this.playbackRate = 1;
+        }
+        this.lastKeyPressTime = now;
+        
+        this.$refs.video.playbackRate = this.playbackRate;
+        this.$refs.video.play();
+        this.playingState = true;
       }
     },
 
     playPauseClicked() {
       if (this.playingState) {
-        this.$refs.video.pause()
-        this.playingState = false
+        this.stopPlayback();
       } else {
-        this.$refs.video.play()
-        this.playingState = true
+        if (this.isPlayingBackward) {
+          this.playBackward();
+        } else {
+          this.$refs.video.play();
+          this.playingState = true;
+        }
       }
     },
 
@@ -404,8 +451,15 @@ export default {
 
     stopPlayback() {
       if (this.$refs.video) {
-        this.$refs.video.pause()
-        this.playingState = false
+        if (this.backwardInterval) {
+          clearInterval(this.backwardInterval);
+          this.backwardInterval = null;
+        }
+        this.isPlayingBackward = false;
+        this.$refs.video.pause();
+        this.playingState = false;
+        this.playbackRate = 1;
+        this.keyPressCount = 0;
       }
     },
 
