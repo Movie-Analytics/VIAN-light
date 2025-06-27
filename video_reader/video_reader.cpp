@@ -4,24 +4,27 @@ using namespace std;
 #include <cmath>
 #include <csignal>
 #include <iomanip>
-#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
+#include <chrono>
+
+// FFmpeg Headers
+extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
-#include <onnxruntime_cxx_api.h>
-#include <onnxruntime_cxx_api.h>
+#include <libavutil/imgutils.h>
+}
 
-
-std::atomic<bool> VideoReader::cancelled(false);
+#include <onnxruntime_cxx_api.h>
 
 VideoReader::VideoReader(const std::string& file_path) : file_path(file_path) {
-    setCancelled(0);
+    cancelled = false;
     signal(SIGTERM, VideoReader::signalHandler);
     signal(SIGINT, VideoReader::signalHandler);
+    last_fps_report_time = std::chrono::high_resolution_clock::now();
 }
 
 VideoReader::~VideoReader() {
@@ -44,7 +47,8 @@ VideoReader::~VideoReader() {
 
 void VideoReader::signalHandler(int signum) {
     std::cout << "Received signal " << signum << ". Terminating gracefully..." << std::endl;
-    setCancelled(true);
+    // Note: We can't access instance members from a static handler
+    // This is just for debug output
 }
 
 
@@ -130,7 +134,16 @@ std::vector<uint8_t>& VideoReader::ReadNextFrame(std::vector<uint8_t>& out_frame
                 finished = true;
                 return out_frame_data;
             }
-            fprintf(stderr, "frame num %" PRId64 "\n", codec_ctx->frame_num);
+
+            // Update frame counter and report FPS
+            frame_counter++;
+            if (frame_counter % FPS_REPORT_INTERVAL == 0) {
+                auto current_time = std::chrono::high_resolution_clock::now();
+                auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_fps_report_time).count();
+                current_fps = (FPS_REPORT_INTERVAL * 1000.0) / elapsed;  // Convert to frames per second
+                fprintf(stderr, "Processing frame %lld, Measured FPS: %.2f\n", frame_counter, current_fps);
+                last_fps_report_time = current_time;
+            }
 
             // TODO get cache sws context?
             SwsContext* sws_ctx = sws_getContext(
@@ -314,7 +327,6 @@ int VideoReader::generateScreenshot(const std::string& directory, int frame_num)
     int64_t target;
     int frame_num_jump;
 
-
     frame_num_jump = frame_num - 100;
     if (frame_num_jump < 0) {
         frame_num_jump = 0;
@@ -325,8 +337,10 @@ int VideoReader::generateScreenshot(const std::string& directory, int frame_num)
     target_jump = av_rescale_q(frame_num_jump / av_q2d(format_ctx->streams[video_stream_index]->r_frame_rate) * AV_TIME_BASE,
                                    AV_TIME_BASE_Q,
                                    format_ctx->streams[video_stream_index]->time_base);
-    printf("target %ld %d %f %f %d\n", target, frame_num, av_q2d(format_ctx->streams[video_stream_index]->r_frame_rate),
-        frame_num / av_q2d(format_ctx->streams[video_stream_index]->r_frame_rate), AV_TIME_BASE);
+    
+    // Fix format specifier for int64_t
+    fprintf(stderr, "Seeking to frame %d (target: %lld)\n", frame_num, target);
+    
     response = av_seek_frame(format_ctx, video_stream_index, target_jump, AVSEEK_FLAG_BACKWARD);
     avcodec_flush_buffers(codec_ctx);
 
@@ -346,10 +360,9 @@ int VideoReader::generateScreenshot(const std::string& directory, int frame_num)
                 av_packet_unref(&packet);
                 return -1;
             }
-            fprintf(stderr, "%ld ", packet.pts);
 
             if (packet.pts == target) {
-                cout << "got frame" << endl;
+                fprintf(stderr, "Found target frame %d\n", frame_num);
                 response = saveFrame(directory, frame_num);
                 av_packet_unref(&packet);
                 return response;
@@ -413,10 +426,22 @@ int VideoReader::generateScreenshots(const std::string& directory, const std::ve
     AVPacket packet;
     int response;
     unsigned int n_frames_extracted = 0;
+    frame_counter = 0;  // Reset frame counter
+    last_fps_report_time = std::chrono::high_resolution_clock::now();  // Reset timing
 
     while (av_read_frame(format_ctx, &packet) >= 0 && n_frames_extracted < frameStamps.size() && !isCancelled()) {
         if (packet.stream_index == video_stream_index) {
-            fprintf(stderr, "frame num %" PRId64 "\n", codec_ctx->frame_num);
+            frame_counter++;
+            
+            // Report FPS every FPS_REPORT_INTERVAL frames
+            if (frame_counter % FPS_REPORT_INTERVAL == 0) {
+                auto current_time = std::chrono::high_resolution_clock::now();
+                auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_fps_report_time).count();
+                current_fps = (FPS_REPORT_INTERVAL * 1000.0) / elapsed;  // Convert to frames per second
+                fprintf(stderr, "Processing frame %lld, Measured FPS: %.2f\n", frame_counter, current_fps);
+                last_fps_report_time = current_time;
+            }
+
             response = avcodec_send_packet(codec_ctx, &packet);
             if (response < 0) {
                 av_packet_unref(&packet);
@@ -433,9 +458,8 @@ int VideoReader::generateScreenshots(const std::string& directory, const std::ve
             }
 
             if (std::find(frameStamps.begin(), frameStamps.end(), codec_ctx->frame_num -1) != frameStamps.end()) {
-                fprintf(stderr, "frame num %" PRId64 "\n", codec_ctx->frame_num);
+                fprintf(stderr, "Extracting frame %lld\n", (int64_t)(codec_ctx->frame_num - 1));
                 n_frames_extracted++;
-
                 saveFrame(directory, codec_ctx->frame_num-1);
             }
             av_packet_unref(&packet);
@@ -504,10 +528,33 @@ int VideoReader::saveFrameAsJpeg(AVPixelFormat pix_fmt, AVFrame* pFrame, const s
     return 0;
 }
 
-void VideoReader::setCancelled(bool value) {
-    cancelled = value;
-}
-
-bool VideoReader::isCancelled() {
-    return cancelled;
+void VideoReader::cleanup() {
+    // Set cancelled flag to stop any ongoing operations
+    cancelled = true;
+    
+    // Close and free FFmpeg resources
+    if (format_ctx) {
+        avformat_close_input(&format_ctx);
+        format_ctx = nullptr;
+    }
+    if (codec_ctx) {
+        avcodec_free_context(&codec_ctx);
+        codec_ctx = nullptr;
+    }
+    if (frame) {
+        av_frame_free(&frame);
+        frame = nullptr;
+    }
+    if (file) {
+        fclose(file);
+        file = nullptr;
+    }
+    if (parser) {
+        av_parser_close(parser);
+        parser = nullptr;
+    }
+    
+    // Reset state
+    video_stream_index = -1;
+    finished = true;
 }

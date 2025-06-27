@@ -1,3 +1,5 @@
+/* eslint-disable no-promise-executor-return */
+// FIXME: remove eslint-disable no-promise-executor-return
 import { parse, stringify } from 'subtitle'
 const { dialog } = require('electron')
 import { app } from 'electron'
@@ -81,9 +83,51 @@ class JobManager {
     this.sendJobsUpdate(channel)
     return job
   }
+
+  async cancelAllOperations() {
+    const jobs = Array.from(this.jobs.values())
+    const runningJobs = jobs.filter((job) => job.status === 'RUNNING')
+
+    if (runningJobs.length > 0) {
+      const cleanupPromises = runningJobs.map((job) => {
+        try {
+          if (job.worker) {
+            const promise = new Promise((resolve) => {
+              const cleanup = (data) => {
+                if (data.status === 'CLEANED') {
+                  job.worker.off('message', cleanup)
+                  this.terminateJob(job.id)
+                  resolve()
+                }
+              }
+              job.worker.on('message', cleanup)
+              job.worker.postMessage({ type: 'CLEANUP' })
+              setTimeout(() => {
+                job.worker.off('message', cleanup)
+                this.terminateJob(job.id)
+                resolve()
+              }, 1000)
+            })
+            return promise
+          }
+          return Promise.resolve()
+        } catch (err) {
+          console.error('Error terminating job:', err)
+          return Promise.resolve()
+        }
+      })
+
+      await Promise.all(cleanupPromises)
+      await new Promise((resolve) => setTimeout(resolve, 500))
+    }
+    return true
+  }
 }
 
 const jobManager = new JobManager()
+
+// Export jobManager instance
+export { jobManager }
 
 // exported functions ↓
 
@@ -148,8 +192,17 @@ export const runShotBoundaryDetection = (channel, videoPath) => {
       jobManager.updateJobStatus(channel, job.id, 'DONE')
       channel.sender.send('shotboundary-detected', data.shots)
     } else {
-      jobManager.updateJobStatus(channel, job.id, 'CANCELED')
+      jobManager.updateJobStatus(channel, job.id, 'ERROR')
+      if (data.error) {
+        logError(`Shot detection error: ${data.error}`)
+      }
     }
+  })
+
+  worker.on('error', (error) => {
+    console.error('Shot detection worker error:', error)
+    logError(`Shot detection worker error: ${error.stack || error.message}`)
+    jobManager.updateJobStatus(channel, job.id, 'ERROR')
   })
 }
 

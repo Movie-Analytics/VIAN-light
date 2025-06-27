@@ -24,6 +24,7 @@ export default {
       canvasWidth: 500,
       ctx: null,
       data: [],
+      dpr: window.devicePixelRatio || 1,
       hCtx: null,
       isDrawingScheduled: false,
       resizeoberserver: null,
@@ -101,15 +102,20 @@ export default {
 
   methods: {
     clickHandler(event) {
-      const coord = d3.pointer(event, this.$refs.canvas)
-      const colorData = this.hCtx.getImageData(coord[0], coord[1], 1, 1).data
+      const rect = this.$refs.canvas.getBoundingClientRect()
+      const x = (event.clientX - rect.left) * this.dpr
+      const y = (event.clientY - rect.top) * this.dpr
+      const colorData = this.hCtx.getImageData(x, y, 1, 1).data
       const color = this.rgbToHex(colorData[0], colorData[1], colorData[2])
       const entries = this.data.filter((d) => d.hiddenColor === color)
 
-      if (entries.length === 0 && coord[1] < 40) {
+      // Convert coordinates back to logical space for calculations
+      const coordX = event.clientX - rect.left
+      const coordY = event.clientY - rect.top
+
+      if (entries.length === 0 && coordY < 40) {
         // Set player position
-        const timePosition =
-          this.transform.rescaleX(this.scale).invert(coord[0]) / this.mainStore.fps
+        const timePosition = this.transform.rescaleX(this.scale).invert(coordX) / this.mainStore.fps
         this.tempStore.playJumpPosition = timePosition
       } else if (entries.length > 0) {
         // Select shots
@@ -123,7 +129,8 @@ export default {
         } else if (this.tempStore.selectedSegments.has(entry.id)) {
           // Click on selected element de-selects it
           this.tempStore.selectedSegments.delete(entry.id)
-        } else if (event.ctrlKey) {
+        } else if (event.metaKey || event.ctrlKey) {
+          // Try both key and ctrlKey for macOS
           this.tempStore.selectedSegments.set(entry.id, entry.timeline)
         } else {
           this.tempStore.selectedSegments = new Map([[entry.id, entry.timeline]])
@@ -249,12 +256,14 @@ export default {
 
       const canvas = d3.select(this.$refs.canvas).call(this.zoom)
       this.ctx = canvas.node().getContext('2d')
+      this.ctx.scale(this.dpr, this.dpr)
 
       // Picking: selection happens via a hidden canvas that has the same
       // elements with each in a different color
       const hCanvas = d3.select(this.$refs.hiddenCanvas)
       let colorI = 10
       this.hCtx = hCanvas.node().getContext('2d')
+      this.hCtx.scale(this.dpr, this.dpr)
       this.data.forEach((d) => {
         d.hiddenColor = '#' + colorI.toString(16).padStart(6, '0')
         colorI += 20
@@ -342,14 +351,19 @@ export default {
     mousedown(e) {
       this.tempStore.tmpShot = null
       if (e.altKey || e.shiftKey) e.stopImmediatePropagation()
+      const rect = this.$refs.canvas.getBoundingClientRect()
+      const x = (e.clientX - rect.left) * this.dpr
+      const y = (e.clientY - rect.top) * this.dpr
+      const coordX = e.clientX - rect.left
+      const coordY = e.clientY - rect.top
+
       // New timeline segment
       if (e.altKey) {
-        const coord = d3.pointer(e, this.$refs.canvas)
-        if (coord[1] < 40) return
-        const nTimeline = Math.floor((coord[1] - 32) / 48)
+        if (coordY < 40) return
+        const nTimeline = Math.floor((coordY - 32) / 48)
         if (this.undoableStore.timelines[nTimeline].type !== 'shots') return
         const height = nTimeline * 48 + 32
-        const start = this.transform.rescaleX(this.scale).invert(coord[0])
+        const start = this.transform.rescaleX(this.scale).invert(coordX)
         this.tempStore.tmpShot = {
           end: start,
           height: 44,
@@ -360,9 +374,9 @@ export default {
         }
         return
       }
+
       // Move boundary of existing segment
-      const coord = d3.pointer(e, this.$refs.canvas)
-      const colorData = this.hCtx.getImageData(coord[0], coord[1], 1, 1).data
+      const colorData = this.hCtx.getImageData(x, y, 1, 1).data
       const color = this.rgbToHex(colorData[0], colorData[1], colorData[2])
       if (color === '#000000') return
       const entries = this.data.filter(
@@ -423,8 +437,9 @@ export default {
       if (e.buttons !== 1 || this.tempStore.tmpShot === null) return
       if (e.altKey || e.shiftKey) e.stopImmediatePropagation()
 
-      const coord = d3.pointer(e, this.$refs.canvas)
-      const xNew = Math.round(this.transform.rescaleX(this.scale).invert(coord[0]))
+      const rect = this.$refs.canvas.getBoundingClientRect()
+      const coordX = e.clientX - rect.left
+      const xNew = Math.round(this.transform.rescaleX(this.scale).invert(coordX))
 
       this.tempStore.tmpShot.start = Math.min(this.tempStore.tmpShot.origin, xNew)
       this.tempStore.tmpShot.end = Math.max(this.tempStore.tmpShot.origin, xNew)
@@ -490,12 +505,29 @@ export default {
     },
 
     resize() {
-      this.canvasWidth = this.$refs.canvas.parentElement.offsetWidth
-      this.canvasHeight = this.undoableStore.timelines.length * 48 + 30
-      d3.select(this.$refs.canvas).attr('width', this.canvasWidth).attr('height', this.canvasHeight)
-      d3.select(this.$refs.hiddenCanvas)
-        .attr('width', this.canvasWidth)
-        .attr('height', this.canvasHeight)
+      // Get the display size of the canvas
+      const container = this.$refs.canvas.parentElement
+      const displayWidth = container.clientWidth
+      const displayHeight = this.undoableStore.timelines.length * 48 + 30
+
+      // Set the canvas display size
+      this.canvasWidth = displayWidth
+      this.canvasHeight = displayHeight
+
+      // Set the canvas internal (buffer) size
+      this.$refs.canvas.width = Math.floor(displayWidth * this.dpr)
+      this.$refs.canvas.height = Math.floor(displayHeight * this.dpr)
+      this.$refs.canvas.style.width = '100%'
+      this.$refs.canvas.style.height = `${displayHeight}px`
+
+      // Same for hidden canvas
+      this.$refs.hiddenCanvas.width = Math.floor(displayWidth * this.dpr)
+      this.$refs.hiddenCanvas.height = Math.floor(displayHeight * this.dpr)
+
+      // Scale the context
+      this.ctx.scale(this.dpr, this.dpr)
+      this.hCtx.scale(this.dpr, this.dpr)
+
       const timelineLength = this.mainStore.videoDuration * this.mainStore.fps
       this.scale = d3.scaleLinear([0, timelineLength], [0, this.canvasWidth])
       this.zoom.translateExtent([

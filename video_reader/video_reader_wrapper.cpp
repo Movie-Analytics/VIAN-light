@@ -87,6 +87,17 @@ Napi::Value VideoReaderWrapper::GenerateScreenshot(const Napi::CallbackInfo& inf
     return Napi::Boolean::New(env, true);
 }
 
+Napi::Value VideoReaderWrapper::Cleanup(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    try {
+        this->videoReader->cleanup();
+        return env.Undefined();
+    } catch (const std::exception& e) {
+        Napi::Error::New(env, e.what()).ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+}
 
 Napi::FunctionReference* VideoReaderWrapper::constructor = nullptr;
 
@@ -99,6 +110,7 @@ Napi::Object VideoReaderWrapper::Init(Napi::Env env, Napi::Object exports) {
         InstanceMethod<&VideoReaderWrapper::GenerateScreenshot>("generateScreenshot"),
         InstanceMethod<&VideoReaderWrapper::Done>("done"),
         InstanceMethod<&VideoReaderWrapper::CancelOperation>("cancelOperation"),
+        InstanceMethod<&VideoReaderWrapper::Cleanup>("cleanup")
     });
 
     constructor = new Napi::FunctionReference();

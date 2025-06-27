@@ -7,3 +7,6 @@ out
 build
 ffmpeglibs
 onnxlibs
+*.node
+resources
+typed-router.d.ts

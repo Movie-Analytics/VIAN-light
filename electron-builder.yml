@@ -3,13 +3,21 @@ productName: vian-light
 directories:
   buildResources: build
 files:
+  - 'out/**/*'
   - '!**/.vscode/*'
   - '!src/*'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - 'resources/video_reader.node'
+  - 'resources/transnetv2.onnx'
+  - 'ffmpeglibs/lib/*.a'
+  - 'onnxlibs/lib/libonnxruntime.a'
 asarUnpack:
-  - resources/**
+  - "resources/video_reader.node"
+  - "resources/transnetv2.onnx"
+  - "ffmpeglibs/lib/*.a"
+  - "onnxlibs/lib/libonnxruntime.a"
 win:
   executableName: vian-light
 nsis:
@@ -18,23 +26,17 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
-  entitlementsInherit: build/entitlements.mac.plist
-  extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
-    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
-    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  hardenedRuntime: true
+  gatekeeperAssess: false
   notarize: false
+  entitlements: "entitlements.mac.plist"
+  entitlementsInherit: "entitlements.mac.plist"
+  extendInfo:
+    CFBundleDocumentTypes: []
+    CFBundleURLTypes:
+      - CFBundleURLSchemes:
+        - app
+  type: distribution
 dmg:
   artifactName: ${name}-${version}.${ext}
-linux:
-  target:
-    - AppImage
-  maintainer: electronjs.org
-  category: Utility
-appImage:
-  artifactName: ${name}-${version}.${ext}
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://example.com/auto-updates

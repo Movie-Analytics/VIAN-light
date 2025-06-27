@@ -1,5 +1,6 @@
-import { BrowserWindow, app, ipcMain, protocol, shell } from 'electron'
+import { BrowserWindow, Menu, app, ipcMain, protocol, shell } from 'electron'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
+import { createMenu } from './menu.js'
 import { join } from 'path'
 
 import {
@@ -8,6 +9,7 @@ import {
   exportScreenshots,
   getVideoInfo,
   importProject,
+  jobManager,
   loadStore,
   loadSubtitles,
   logError,
@@ -18,7 +20,9 @@ import {
   saveStore,
   terminateJob
 } from './api_functions'
-import icon from '../../resources/icon.png?asset'
+import icon from '../../resources/icon.png?asset&asarUnpack'
+
+app.setName('VIAN-light')
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -33,9 +37,7 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 const createWindow = () => {
-  // Create the browser window.
   const mainWindow = new BrowserWindow({
-    autoHideMenuBar: true,
     height: 670,
     show: false,
     webPreferences: {
@@ -47,6 +49,7 @@ const createWindow = () => {
     width: 900,
     ...(process.platform === 'linux' ? { icon } : {})
   })
+
   if (is.dev) {
     mainWindow.webContents.openDevTools()
   }
@@ -63,8 +66,10 @@ const createWindow = () => {
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
+    console.log('Loading dev URL:', process.env.ELECTRON_RENDERER_URL)
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
   } else {
+    console.log('Loading production file:', join(__dirname, '../renderer/index.html'))
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
@@ -73,8 +78,10 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('ch.uzh.vian')
+
+  const menu = Menu.buildFromTemplate(createMenu())
+  Menu.setApplicationMenu(menu)
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -106,6 +113,31 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
+  }
+})
+
+// Handle application quit
+let isQuitting = false
+app.on('before-quit', async (event) => {
+  if (isQuitting) return
+  event.preventDefault()
+
+  isQuitting = true
+
+  try {
+    await jobManager.cancelAllOperations()
+    // Give native code time to cleanup
+    setTimeout(() => {
+      app.quit()
+      setTimeout(() => process.exit(0), 2000)
+    }, 500)
+  } catch (err) {
+    console.error('Error during quit:', err)
+    setTimeout(() => {
+      app.quit()
+      // TODO use process.exit(1)
+      setTimeout(() => process.exit(0), 2000)
+    }, 500)
   }
 })
 
