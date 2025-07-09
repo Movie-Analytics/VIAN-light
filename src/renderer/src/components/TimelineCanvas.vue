@@ -203,7 +203,7 @@ export default {
             if (shotIndex % 2 === 0) color = '#cccccc'
             if (shot.locked) color = '#eeeeee'
             this.data.push({
-              annotation: (shot.annotation || '').replace('\n', ' ').slice(0, 40),
+              annotation: shotIndex + ': ' + (shot.annotation || '').slice(0, 40),
               fill: color,
               height: 44,
               id: shot.id,
@@ -292,13 +292,16 @@ export default {
         if (d.type === 'shot') {
           ctx.save()
           ctx.font = '15px Arial'
+          ctx.textBaseline = 'top'
           ctx.beginPath()
           ctx.fillStyle = selectedSegments.has(d.id) ? 'yellow' : d.fill
           ctx.fillRect(x, d.y, xwidth - x, d.height)
-          ctx.rect(x, d.y, xwidth - x, d.height)
-          ctx.fillStyle = 'black'
-          ctx.clip()
-          ctx.fillText(d.annotation, x, d.y + 10)
+          if (xwidth - x > 20) {
+            ctx.rect(x, d.y, xwidth - x, d.height)
+            ctx.fillStyle = 'black'
+            ctx.clip()
+            ctx.fillText(d.annotation, x, d.y + 13)
+          }
           ctx.restore()
           hCtx.fillRect(x, d.y, xwidth - x, d.height)
 
