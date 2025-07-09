@@ -395,7 +395,7 @@ export default {
         height: 44,
         origin: entry.hiddenLeftHandle === color ? entry.x + entry.width : entry.x,
         originalShot: entry,
-        start: entry.start,
+        start: entry.x,
         y: entry.y
       }
 
