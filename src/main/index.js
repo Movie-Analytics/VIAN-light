@@ -102,7 +102,7 @@ app.whenReady().then(() => {
   // https://github.com/electron/electron/issues/38749
   // TODO: access filter
   protocol.registerFileProtocol('app', (request, callback) => {
-    const filePath = request.url.slice('app://'.length)
+    const filePath = decodeURIComponent(request.url).slice('app://'.length)
     callback(filePath)
   })
 })
