@@ -259,7 +259,7 @@ export default {
       if (this.tempStore.selectedSegments.size === 0) return true
       const [shotid, timelineid] = this.tempStore.selectedSegments.entries().next().value
       const segment = this.undoableStore.getSegmentForId(timelineid, shotid)
-      return 'image' in segment
+      return !('image' in segment)
     },
 
     genScreenshotButtonDisabled() {
