@@ -39,4 +39,13 @@ mac:
   type: distribution
 dmg:
   artifactName: ${name}-${version}.${ext}
+linux:
+  target:
+    - AppImage
+  maintainer: Movie-Analytics Team
+  category: Utility
+appImage:
+  artifactName: ${name}-${version}.${ext}
 npmRebuild: false
+publish:
+  provider: generic
