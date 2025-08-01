@@ -10,7 +10,7 @@
       <source v-if="mainStore.video !== null" :src="mainStore.video" type="video/mp4" />
 
       <track
-        v-if="undoableStore.subtitles !== null"
+        v-if="undoableStore.subtitles !== null && undoableStore.subtitlesVisible"
         kind="subtitles"
         :src="undoableStore.subtitles"
         default
