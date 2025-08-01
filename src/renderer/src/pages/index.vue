@@ -12,7 +12,7 @@
       <v-container id="main-container" class="d-sm-flex flex-column" max-width="1000">
         <v-row justify="center">
           <v-col cols="auto" align-self="center">
-            <p class="text-h1">VIAN light</p>
+            <p class="text-h1">VIAN Light</p>
           </v-col>
         </v-row>
 

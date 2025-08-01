@@ -1,9 +1,9 @@
 <template>
   <v-container max-width="600">
     <div class="my-10">
-      <h1 class="mb-3 text-center text-h1">VIAN-light</h1>
+      <h1 class="mb-3 text-center text-h1">VIAN Light</h1>
 
-      <p>VIAN-light is an open video annotation application. Some of it features are:</p>
+      <p>VIAN Light is an open video annotation application. Some of it features are:</p>
 
       <ul class="ms-5 mt-1">
         <li>automatic shotboundary detection</li>
