@@ -17,7 +17,17 @@ export const useUndoableStore = defineStore('undoable', {
   /* eslint-disable-next-line vue/sort-keys */
   getters: {
     screenshotTimelines: (state) => state.timelines.filter((t) => t.type.startsWith('screenshot')),
-    shotTimelines: (state) => state.timelines.filter((t) => t.type === 'shots')
+    shotTimelines: (state) => state.timelines.filter((t) => t.type === 'shots'),
+    vocabById: (state) =>
+      new Map(
+        state.vocabularies.flatMap((vocab) => [
+          [vocab.id, vocab],
+          ...vocab.categories.flatMap((category) => [
+            [category.id, category],
+            ...category.tags.map((tag) => [tag.id, tag])
+          ])
+        ])
+      )
   },
   /* eslint-disable-next-line vue/sort-keys */
   actions: {
@@ -26,12 +36,14 @@ export const useUndoableStore = defineStore('undoable', {
         data: [],
         id: crypto.randomUUID(),
         name: 'New Track ' + this.timelines.length,
-        type: 'shots'
+        type: 'shots',
+        vocabulary: null
       })
     },
     addShotToNth(n, start, end) {
       const data = this.timelines[n].data.slice()
       data.push({
+        annotation: '',
         end: Math.round(end),
         id: crypto.randomUUID(),
         start: Math.round(start)
@@ -139,6 +151,13 @@ export const useUndoableStore = defineStore('undoable', {
       api.onScreenshotGeneration(this.onScreenshotGeneration)
       api.onShotBoundaryDetection(this.onShotBoundaryDetection)
     },
+    linkTimelineToVocabulary(timelineId, vocabId) {
+      const timeline = this.getTimelineById(timelineId)
+      timeline.vocabulary = vocabId
+      timeline.data.forEach((s) => {
+        s.vocabAnnotation = []
+      })
+    },
     async loadStore(projectId) {
       const state = await api.loadStore('undoable', projectId)
       if (state === null) {
@@ -188,10 +207,16 @@ export const useUndoableStore = defineStore('undoable', {
     },
     onShotBoundaryDetection(data) {
       this.timelines.push({
-        data: data.map((shot) => ({ end: shot[1], id: crypto.randomUUID(), start: shot[0] })),
+        data: data.map((shot) => ({
+          annotation: '',
+          end: shot[1],
+          id: crypto.randomUUID(),
+          start: shot[0]
+        })),
         id: crypto.randomUUID(),
         name: 'Shots',
-        type: 'shots'
+        type: 'shots',
+        vocabulary: null
       })
     },
     redo() {
@@ -230,6 +255,43 @@ export const useUndoableStore = defineStore('undoable', {
     },
     undo() {
       this.$patch(useUndoStore().undo('undoable'))
+    },
+    vocabularyAdd(id, name) {
+      const newId = crypto.randomUUID()
+
+      if (id === null) {
+        this.vocabularies.push({
+          categories: [],
+          id: newId,
+          name
+        })
+      } else if ('categories' in this.vocabById.get(id)) {
+        this.vocabById.get(id).categories.push({
+          id: newId,
+          name,
+          tags: []
+        })
+      } else {
+        this.vocabById.get(id).tags.push({
+          id: newId,
+          name
+        })
+      }
+      return newId
+    },
+    vocabularyDelete(id) {
+      this.vocabularies = this.vocabularies.filter((v) => v.id !== id)
+      this.vocabularies.forEach((v) => {
+        v.categories = v.categories.filter((c) => c.id !== id)
+        v.categories.forEach((c) => {
+          c.tags = c.tags.filter((t) => t.id !== id)
+        })
+      })
+    },
+    vocabularyRename(id, name) {
+      if (this.vocabById.has(id)) {
+        this.vocabById.get(id).name = name
+      }
     }
   }
 })

@@ -131,23 +131,23 @@ export const exportAnnotations = (csv) => {
   URL.revokeObjectURL(url)
 }
 
-export const exportVocabCsv = (vocab) => {
-  const csvText = vocab.tags.map((t) => `"${t.name}","${t.id}"`).join('\n')
-  const blob = new Blob([csvText], { type: 'text/csv' })
+export const exportVocabJson = (vocab) => {
+  const jsonText = JSON.stringify(vocab.categories)
+  const blob = new Blob([jsonText], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = vocab.name
+  a.download = vocab.name + '.json'
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
 }
 
-export const importVocabCsv = () => {
+export const importVocabJson = () => {
   const fileInput = document.createElement('input')
   fileInput.type = 'file'
-  fileInput.accept = '.csv'
+  fileInput.accept = '.json'
   fileInput.addEventListener('change', (event) => {
     const [file] = event.target.files
     if (!file) return
@@ -155,14 +155,39 @@ export const importVocabCsv = () => {
     const reader = new FileReader()
     reader.onload = (e) => {
       const content = e.target.result
-      const tags = content.split('\n').map((line) => {
-        const [name, id] = line.split(',')
-        return { id: id.slice(1, id.length - 1), name: name.slice(1, name.length - 1)  }
-      })
+      let vocab = JSON.parse(content)
+      if ('vocabularies' in vocab) {
+        // Old VIAN vocabulary export format
+        vocab = vocab.vocabularies
+        for (const category of vocab) {
+          category.id = category.uuid
+          category.tags = category.words
+          delete category.uuid
+          delete category.category
+          delete category.unique_id
+          delete category.words
+          delete category.image_urls
+          delete category.comment
+          delete category.visible
+
+          for (const tag of category.tags) {
+            tag.id = tag.uuid
+            delete tag.unique_id
+            delete tag.uuid
+            delete tag.parent
+            delete tag.children
+            delete tag.organization_group
+            delete tag.complexity_lvl
+            delete tag.complexity_group
+            delete tag.image_urls
+            delete tag.comment
+          }
+        }
+      }
       useUndoableStore().vocabularies.push({
+        categories: vocab,
         id: crypto.randomUUID(),
-        name: file.name.replace('.csv', ''),
-        tags
+        name: file.name.replace('.json', '')
       })
     }
     reader.readAsText(file)
