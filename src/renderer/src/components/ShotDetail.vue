@@ -2,8 +2,8 @@
   <div>
     <p v-if="tempStore.selectedSegments.size == 0">No elements in timeline selected</p>
 
-    <v-sheet v-else-if="tempStore.selectedSegments.size == 1">
-      <div v-if="selectedTimelineSegment && selectedTimelineSegment.image">
+    <v-sheet v-else-if="selectedTimelineSegment !== null">
+      <div v-if="selectedTimelineSegment.image">
         <v-img :src="selectedTimelineSegment.image" />
       </div>
 
@@ -17,7 +17,34 @@
           label="Annotations"
         ></v-text-field>
 
-        <v-checkbox v-model="selectedTimelineSegment.locked" label="Lock segment"></v-checkbox>
+        <div if="segmentVocabulary">
+          <p>Timeline linked to: {{ segmentVocabulary.name }}</p>
+
+          <v-autocomplete
+            v-model="selectedTimelineSegment.vocabAnnotation"
+            :items="vocabularyItems"
+            label="Vocabulary annotations"
+            chips
+            clearable
+            multiple
+          ></v-autocomplete>
+        </div>
+
+        <v-checkbox v-model="selectedTimelineSegment.locked">
+          <template #label>
+            <div>
+              Lock segment
+              <v-tooltip location="bottom">
+                <template #activator="{ props: activatorProps }">
+                  <v-btn density="compact" variant="text" icon v-bind="activatorProps">
+                    <v-icon>mdi-information-outline</v-icon>
+                  </v-btn>
+                </template>
+                Locking a segment prevents its deletion, movement, and changing the annotation.
+              </v-tooltip>
+            </div>
+          </template>
+        </v-checkbox>
       </div>
     </v-sheet>
 
@@ -42,12 +69,28 @@ export default {
   computed: {
     ...mapStores(useMainStore, useUndoableStore, useTempStore),
 
+    segmentVocabulary() {
+      if (this.tempStore.selectedSegments.size !== 1) return null
+      const timelineid = this.tempStore.selectedSegments.values().next().value
+      const timeline = this.undoableStore.getTimelineById(timelineid)
+      if (typeof timeline.vocabulary !== 'string') return null
+      return this.undoableStore.vocabularies.find((v) => v.id === timeline.vocabulary)
+    },
+
     selectedTimelineSegment() {
       if (this.tempStore.selectedSegments.size !== 1) return null
       const [shotid, timelineid] = this.tempStore.selectedSegments.entries().next().value
-      return this.undoableStore.timelines
-        .find((t) => t.id === timelineid)
-        .data.find((s) => s.id === shotid)
+      return this.undoableStore.getSegmentForId(timelineid, shotid)
+    },
+
+    vocabularyItems() {
+      if (this.segmentVocabulary === null) return []
+      return this.segmentVocabulary.categories
+        .map((c) => [
+          { title: c.name, type: 'subheader' },
+          c.tags.map((t) => ({ title: t.name, value: t.id }))
+        ])
+        .flat(2)
     }
   },
 
