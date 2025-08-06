@@ -63,7 +63,7 @@
               <img
                 v-for="img in getShotImages(item)"
                 :key="img.id"
-                :src="getThumbSrc(img)"
+                :src="img.image"
                 :style="thumbZoomStyle"
                 loading="lazy"
               />
@@ -120,13 +120,6 @@ export default {
       return timeline
         ? timeline.data.filter((s) => s.frame >= shot.start && s.frame < shot.end)
         : []
-    },
-
-    getThumbSrc(img) {
-      if (this.thumbZoom < 80) {
-        return img.thumbnail
-      }
-      return img.image
     }
   }
 }
