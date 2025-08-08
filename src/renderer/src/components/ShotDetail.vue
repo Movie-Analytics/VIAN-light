@@ -17,7 +17,7 @@
           label="Annotations"
         ></v-text-field>
 
-        <div if="segmentVocabulary">
+        <div v-if="segmentVocabulary">
           <p>Timeline linked to: {{ segmentVocabulary.name }}</p>
 
           <v-autocomplete
