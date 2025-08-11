@@ -110,18 +110,20 @@ jobs:
 
       - name: Decode Certificate
         run: echo $CERTIFICATE | base64 -d > Certificate.p12
-
-      - name: debug
-        run: ls
-
-      - name: debug2
-        run: export
+        env:
+          CERTIFICATE: ${{ secrets.CERTIFICATE }}
 
       - name: Install Dependencies
         run: npm install
 
       - name: Build
         run: npm run build:mac
+        env:
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_ID$: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
 
       - uses: actions/upload-artifact@v4
         with:
