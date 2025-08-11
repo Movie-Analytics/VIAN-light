@@ -111,6 +111,12 @@ jobs:
       - name: Decode Certificate
         run: echo $CERTIFICATE | base64 -d > Certificate.p12
 
+      - name: debug
+        run: ls
+
+      - name: debug2
+        run: export
+
       - name: Install Dependencies
         run: npm install
 
