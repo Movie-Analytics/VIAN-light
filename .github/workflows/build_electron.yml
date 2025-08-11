@@ -52,6 +52,15 @@ jobs:
       - name: Move model
         run: mv transnetv2/transnetv2.onnx resources/
 
+      - name: debug
+        run: ls
+        
+      - name: debug
+        run: ls .git
+        
+      - name: debug
+        run: cat .git/config
+
       - name: Install Dependencies
         run: npm install
 
