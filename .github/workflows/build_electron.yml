@@ -108,6 +108,9 @@ jobs:
       - name: Move model
         run: mv transnetv2/transnetv2.onnx resources/
 
+      - name: Decode Certificate
+        run: echo $CERTIFICATE | base64 -d > Certificate.p12
+
       - name: Install Dependencies
         run: npm install
 

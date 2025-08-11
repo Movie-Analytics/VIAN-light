@@ -28,7 +28,7 @@ nsis:
 mac:
   hardenedRuntime: true
   gatekeeperAssess: false
-  notarize: false
+  notarize: true
   entitlements: "entitlements.mac.plist"
   entitlementsInherit: "entitlements.mac.plist"
   extendInfo:
