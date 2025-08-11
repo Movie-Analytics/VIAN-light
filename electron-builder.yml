@@ -25,8 +25,12 @@ nsis:
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  differentialPackage: false
 mac:
   hardenedRuntime: true
+  target: dmg
+  dmg:
+    writeUpdateInfo: false
   gatekeeperAssess: false
   notarize: true
   entitlements: "entitlements.mac.plist"
