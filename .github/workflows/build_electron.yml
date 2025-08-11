@@ -60,7 +60,7 @@ jobs:
       - name: Build
         run: npm run build:linux
         env:
-          GH_TOKEN: ${{ ACCESS_TOKEN_GITHUB }}
+          GH_TOKEN: ${{ secrets.ACCESS_TOKEN_GITHUB }}
 
       - uses: actions/upload-artifact@v4
         with:
