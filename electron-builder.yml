@@ -49,4 +49,4 @@ appImage:
 npmRebuild: false
 publish:
   provider: github
-    publishAutoUpdate: false
+  publishAutoUpdate: false
