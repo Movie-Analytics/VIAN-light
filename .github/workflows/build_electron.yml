@@ -10,6 +10,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Install build tools
         run: apt-get update && apt-get install -y build-essential cmake zip python3 git git-lfs
