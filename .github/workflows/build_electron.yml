@@ -62,13 +62,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.ACCESS_TOKEN_GITHUB }}
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: vian-light-linux
-          path: ${{ github.workspace }}/dist/*AppImage
-          retention-days: 90
-          overwrite: true
-
   build-mac:
     runs-on: macos-13
     steps:
@@ -130,13 +123,6 @@ jobs:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           GH_TOKEN: ${{ secrets.ACCESS_TOKEN_GITHUB }}
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: vian-light-macos
-          path: ${{ github.workspace }}/dist/*.dmg
-          retention-days: 90
-          overwrite: true
-
   build-windows:
     runs-on: windows-2022
     steps:
@@ -197,10 +183,3 @@ jobs:
         run: npm run build:win
         env:
           GH_TOKEN: ${{ secrets.ACCESS_TOKEN_GITHUB }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: vian-light-win
-          path: ${{ github.workspace }}/dist/*.exe
-          retention-days: 90
-          overwrite: true
