@@ -1,6 +1,6 @@
 {
   "name": "vian-light",
-  "version": "1.0.0",
+  "version": "2025-08-12",
   "description": "A video annotation and anylsis software",
   "main": "./out/main/index.js",
   "author": "example.com",
