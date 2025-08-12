@@ -29,8 +29,6 @@ nsis:
 mac:
   hardenedRuntime: true
   target: dmg
-  dmg:
-    writeUpdateInfo: false
   gatekeeperAssess: false
   notarize: true
   entitlements: "entitlements.mac.plist"
@@ -43,6 +41,7 @@ mac:
   type: distribution
 dmg:
   artifactName: ${name}-${version}.${ext}
+  writeUpdateInfo: false
 linux:
   target:
     - AppImage
