@@ -20,8 +20,11 @@ extern "C" {
 
 #include <onnxruntime_cxx_api.h>
 
+std::atomic<bool> VideoReader::cancelled(false);
+
+
 VideoReader::VideoReader(const std::string& file_path) : file_path(file_path) {
-    cancelled = false;
+    setCancelled(false);
     signal(SIGTERM, VideoReader::signalHandler);
     signal(SIGINT, VideoReader::signalHandler);
     last_fps_report_time = std::chrono::high_resolution_clock::now();
@@ -47,8 +50,7 @@ VideoReader::~VideoReader() {
 
 void VideoReader::signalHandler(int signum) {
     std::cout << "Received signal " << signum << ". Terminating gracefully..." << std::endl;
-    // Note: We can't access instance members from a static handler
-    // This is just for debug output
+    setCancelled(true);
 }
 
 
@@ -526,4 +528,12 @@ int VideoReader::saveFrameAsJpeg(AVPixelFormat pix_fmt, AVFrame* pFrame, const s
     avcodec_free_context(&jpegContext);
 
     return 0;
+}
+
+void VideoReader::setCancelled(bool value) {
+    cancelled = value;
+}
+
+bool VideoReader::isCancelled() {
+    return cancelled;
 }

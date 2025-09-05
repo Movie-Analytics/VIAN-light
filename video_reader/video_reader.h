@@ -25,8 +25,8 @@ public:
     int generateScreenshot(const std::string& directory, int frame);
     double getFrameRate();
     bool Open();
-    void setCancelled(bool value) { cancelled = value; }
-    bool isCancelled() const { return cancelled; }
+    static void setCancelled(bool value);
+    static bool isCancelled();
 
 private:
     std::string file_path;
@@ -37,7 +37,7 @@ private:
     int video_stream_index = -1;
     bool finished = false;
     FILE *file = nullptr;
-    std::atomic<bool> cancelled{false};
+    static std::atomic<bool> cancelled;
     int64_t frame_counter = 0;  // Counter for processed frames
     const int FPS_REPORT_INTERVAL = 150;  // Report FPS every 150 frames
     std::chrono::time_point<std::chrono::high_resolution_clock> last_fps_report_time;  // Time of last FPS report
