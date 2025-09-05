@@ -123,8 +123,9 @@ app.on('before-quit', async (e) => {
 
   await jobManager.cancelAllOperations()
   // Necessary or Mac OS complains about crashed application
-  global.gc()
+  if (global.gc) global.gc()
   app.quit()
+  process.exit(0)
 })
 
 // In this file you can include the rest of your app"s specific main process

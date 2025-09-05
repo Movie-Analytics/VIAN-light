@@ -92,7 +92,7 @@ class JobManager {
       })
 
       await new Promise((resolve) => {
-        setTimeout(resolve, 500)
+        setTimeout(resolve, 1500)
       })
     }
     return true
@@ -159,11 +159,9 @@ export const runShotBoundaryDetection = (channel, videoPath) => {
   const job = jobManager.createWorkerJob(channel, 'shotboundary-detection', worker)
 
   worker.on('message', (data) => {
+    jobManager.updateJobStatus(channel, job.id, data.status)
     if (data.status === 'DONE') {
-      jobManager.updateJobStatus(channel, job.id, 'DONE')
       channel.sender.send('shotboundary-detected', data.shots)
-    } else {
-      jobManager.updateJobStatus(channel, job.id, 'ERROR')
     }
   })
 }
@@ -178,11 +176,9 @@ export const runScreenshotsGeneration = (channel, videoPath, frames, videoId) =>
   const job = jobManager.createWorkerJob(channel, 'screenshots-generation', worker)
 
   worker.on('message', (data) => {
+    jobManager.updateJobStatus(channel, job.id, data.status)
     if (data.status === 'DONE') {
-      jobManager.updateJobStatus(channel, job.id, 'DONE')
       channel.sender.send('screenshots-generated', data.data)
-    } else {
-      jobManager.updateJobStatus(channel, job.id, 'CANCELED')
     }
   })
 }
