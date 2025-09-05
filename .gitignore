@@ -9,4 +9,9 @@ ffmpeglibs
 onnxlibs
 *.node
 resources
-typed-router.d.ts
+typed-router.d.tsresources/*node
+server/uploads
+__pycache__
+resources/*wasm
+resources/*onnx
+server/database.db

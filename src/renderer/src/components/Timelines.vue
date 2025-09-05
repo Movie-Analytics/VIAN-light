@@ -100,6 +100,8 @@
 import { mapStores } from 'pinia'
 
 import TimelineCanvas from '@renderer/components/TimelineCanvas.vue'
+import api from '@renderer/api'
+import shortcuts from '@renderer/shortcuts'
 import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
@@ -149,6 +151,22 @@ export default {
       return Array.from(this.tempStore.selectedSegments.entries())
         .map((shot) => this.undoableStore.getSegmentForId(shot[1], shot[0]).locked)
         .some((v) => v)
+    },
+  },
+
+  mounted() {
+    // Register shorcuts and menu actions
+    shortcuts.register('Delete', this.segmentDelete)
+    shortcuts.register('m', this.segmentMerge)
+    shortcuts.register('s', this.segmentSplit)
+    api.onSegmentDelete(this.segmentDelete)
+    api.onSegmentMerge(this.segmentMerge)
+    api.onSegmentSplit(this.segmentSplit)
+  },
+
+  beforeUnmount() {
+    for (const key of ['m', 's', 'Delete']) {
+      shortcuts.clear(key)
     }
   },
 
@@ -177,18 +195,21 @@ export default {
     },
 
     segmentDelete() {
+      if (!this.segmentDeletable) return
       const segments = this.tempStore.selectedSegments
       this.undoableStore.deleteSegments(segments.values().next().value, Array.from(segments.keys()))
       this.tempStore.selectedSegments = new Map()
     },
 
     segmentMerge() {
+      if (!this.segmentMergable) return
       const segments = this.tempStore.selectedSegments
       this.undoableStore.mergeSegments(segments.values().next().value, Array.from(segments.keys()))
       this.tempStore.selectedSegments = new Map()
     },
 
     segmentSplit() {
+      if (!this.segmentSplitable) return
       const [shotid, timelineid] = this.tempStore.selectedSegments.entries().next().value
       this.undoableStore.splitSegment(
         timelineid,

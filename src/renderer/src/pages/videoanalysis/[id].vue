@@ -230,6 +230,7 @@ import LayoutTibava from '@renderer/components/LayoutTibava.vue'
 import VocabularyDialog from '@renderer/components/VocabularyDialog.vue'
 import api from '@renderer/api'
 import { exportAnnotations } from '@renderer/importexport'
+import shortcuts from '@renderer/shortcuts'
 import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoStore } from '@renderer/stores/undo'
@@ -286,6 +287,36 @@ export default {
   created() {
     this.mainStore.loadStore(this.$route.params.id)
     this.undoableStore.loadStore(this.$route.params.id)
+
+    // Register shortcuts / menu bar actions
+    api.onUndoAction(() => {
+      useUndoableStore().undo('undoable')
+    })
+    api.onRedoAction(() => {
+      useUndoableStore().redo('undoable')
+    })
+    shortcuts.register(
+      'z',
+      () => {
+        useUndoableStore().undo('undoable')
+      },
+      false,
+      true
+    )
+    shortcuts.register(
+      'z',
+      () => {
+        useUndoableStore().redo('undoable')
+      },
+      true,
+      true
+    )
+  },
+
+  beforeUnmount() {
+    shortcuts.clear('z', false, true)
+    shortcuts.clear('z', true, true)
+    api.unregisterVideoViewCallbacks()
   },
 
   methods: {

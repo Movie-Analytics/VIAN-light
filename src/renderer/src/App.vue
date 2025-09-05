@@ -22,24 +22,6 @@ export default {
 
     // eslint-disable-next-line
     if (isElectron) {
-      window.addEventListener('error', (event) => {
-        const errorMessage = event.error ? event.error.stack || event.error.message : event.message
-        api.logError(`Renderer Error: ${errorMessage}`)
-      })
-      window.addEventListener('unhandledrejection', (event) => {
-        api.logError(`Unhandled Promise Rejection: ${event.reason}`)
-      })
-
-      // Add undo action handler
-      api.onUndoAction(() => {
-        useUndoableStore().undo('undoable')
-      })
-
-      // Add redo action handler
-      api.onRedoAction(() => {
-        useUndoableStore().redo('undoable')
-      })
-
       this.$router.push('/')
     } else {
       this.$router.push('login')
@@ -50,6 +32,14 @@ export default {
         }
       })
     }
+
+    window.addEventListener('error', (event) => {
+      const errorMessage = event.error ? event.error.stack || event.error.message : event.message
+      api.logError(`Renderer Error: ${errorMessage}`)
+    })
+    window.addEventListener('unhandledrejection', (event) => {
+      api.logError(`Unhandled Promise Rejection: ${event.reason}`)
+    })
   }
 }
 </script>

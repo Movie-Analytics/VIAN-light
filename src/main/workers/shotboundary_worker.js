@@ -6,8 +6,7 @@ const videoReader = require(videoReaderPath)
 
 console.log('Started worker to detect shot boundaries')
 
-let reader = null
-reader = new videoReader.VideoReader(workerData)
+const reader = new videoReader.VideoReader(workerData)
 reader.open()
 reader.detectShots(onnxPath, (err, result) => {
   if (err) {
@@ -18,12 +17,7 @@ reader.detectShots(onnxPath, (err, result) => {
 })
 
 parentPort.on('message', (e) => {
-  if (e.type === 'TERMINATE' || e.type === 'CLEANUP') {
-    if (reader) {
-      reader.setCancelled(true)
-      reader.cleanup()
-      reader = null
-      parentPort.postMessage({ status: 'CLEANED' })
-    }
+  if (e.type === 'TERMINATE') {
+    reader.cancelOperation()
   }
 })

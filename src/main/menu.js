@@ -1,21 +1,25 @@
 import { BrowserWindow, app } from 'electron'
 
-const createMenu = () => {
+export const createMenu = () => {
   const template = [
     {
       label: 'Edit',
       submenu: [
         {
           accelerator: 'CmdOrCtrl+Z',
-          click: () => {
-            BrowserWindow.getFocusedWindow()?.webContents.send('undo-action')
+          click: (_item, _window, event) => {
+            if (!event.triggeredByAccelerator) {
+              BrowserWindow.getFocusedWindow()?.webContents.send('undo-action')
+            }
           },
           label: 'Undo'
         },
         {
           accelerator: 'CmdOrCtrl+Shift+Z',
-          click: () => {
-            BrowserWindow.getFocusedWindow()?.webContents.send('redo-action')
+          click: (_item, _window, event) => {
+            if (!event.triggeredByAccelerator) {
+              BrowserWindow.getFocusedWindow()?.webContents.send('redo-action')
+            }
           },
           label: 'Redo'
         }
@@ -26,65 +30,100 @@ const createMenu = () => {
       submenu: [
         {
           accelerator: 'Space',
-          click: () => {
-            BrowserWindow.getFocusedWindow()?.webContents.send('toggle-playback')
+          click: (_item, _window, event) => {
+            if (!event.triggeredByAccelerator) {
+              BrowserWindow.getFocusedWindow()?.webContents.send('toggle-playback')
+            }
           },
           label: 'Play/Pause'
         },
         {
           accelerator: 'Right',
-          click: () => {
-            BrowserWindow.getFocusedWindow()?.webContents.send('frame-forward')
+          click: (_item, _window, event) => {
+            if (!event.triggeredByAccelerator) {
+              BrowserWindow.getFocusedWindow()?.webContents.send('frame-forward')
+            }
           },
           label: 'Frame Forward'
         },
         {
           accelerator: 'Left',
-          click: () => {
-            BrowserWindow.getFocusedWindow()?.webContents.send('frame-backward')
+          click: (_item, _window, event) => {
+            if (!event.triggeredByAccelerator) {
+              BrowserWindow.getFocusedWindow()?.webContents.send('frame-backward')
+            }
           },
           label: 'Frame Backward'
         },
         { type: 'separator' },
         {
-          accelerator: 'j',
-          click: () => {
-            BrowserWindow.getFocusedWindow()?.webContents.send('playback-backward')
-          },
-          label: 'Play Backward (J)'
-        },
-        {
           accelerator: 'k',
-          click: () => {
-            BrowserWindow.getFocusedWindow()?.webContents.send('stop-playback')
+          click: (_item, _window, event) => {
+            if (!event.triggeredByAccelerator) {
+              BrowserWindow.getFocusedWindow()?.webContents.send('stop-playback')
+            }
           },
-          label: 'Stop (K)'
+          label: 'Stop'
         },
         {
           accelerator: 'l',
-          click: () => {
-            BrowserWindow.getFocusedWindow()?.webContents.send('playback-forward')
+          click: (_item, _window, event) => {
+            if (!event.triggeredByAccelerator) {
+              BrowserWindow.getFocusedWindow()?.webContents.send('playback-forward')
+            }
           },
-          label: 'Play Forward (L)'
+          label: 'Play Forward'
         }
       ]
     },
     {
-      label: 'Navigation',
+      label: 'Timeline',
       submenu: [
         {
-          accelerator: 'a',
-          click: () => {
-            BrowserWindow.getFocusedWindow()?.webContents.send('segment-previous')
+          accelerator: 'Down',
+          click: (_item, _window, event) => {
+            if (!event.triggeredByAccelerator) {
+              BrowserWindow.getFocusedWindow()?.webContents.send('segment-previous')
+            }
           },
           label: 'Previous Segment'
         },
         {
-          accelerator: 's',
-          click: () => {
-            BrowserWindow.getFocusedWindow()?.webContents.send('segment-next')
+          accelerator: 'Up',
+          click: (_item, _window, event) => {
+            if (!event.triggeredByAccelerator) {
+              BrowserWindow.getFocusedWindow()?.webContents.send('segment-next')
+            }
           },
           label: 'Next Segment'
+        },
+        { type: 'separator' },
+        {
+          accelerator: 'Delete',
+          click: (_item, _window, event) => {
+            if (!event.triggeredByAccelerator) {
+              BrowserWindow.getFocusedWindow()?.webContents.send('segment-delete')
+            }
+          },
+          label: 'Delete Segment'
+        },
+        {
+          accelerator: 's',
+          click: (_item, _window, event) => {
+            if (!event.triggeredByAccelerator) {
+              BrowserWindow.getFocusedWindow()?.webContents.send('segment-split')
+            }
+          },
+          label: 'Split Segment'
+        },
+        {
+          accelerator: 'm',
+          click: (_item, _window, event) => {
+            if (!event.triggeredByAccelerator) {
+              BrowserWindow.getFocusedWindow()?.webContents.send('segment-merge')
+            }
+          },
+          label: 'Merge Segments'
         }
       ]
     }
@@ -110,5 +149,3 @@ const createMenu = () => {
 
   return template
 }
-
-export { createMenu }

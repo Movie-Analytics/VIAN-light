@@ -44,7 +44,7 @@
 
           <v-chip
             v-tooltip="{
-              text: 'Playback Rate (JKL System)\n\nJ: Play backward (2x, 4x, 8x, 16x)\nK: Stop\nL: Play forward (2x, 4x, 8x, 16x)\n\nPress multiple times to increase speed',
+              text: 'Playback Rate (KL System)\n\nK: Stop\nL: Play forward (2x, 4x, 8x, 16x)\n\nPress multiple times to increase speed',
               location: 'top'
             }"
             class="playback-rate"
@@ -66,7 +66,7 @@
           </v-btn>
 
           <div class="volume-control">
-            <v-btn icon @click.stop="toggleVolumeSlider" @dblclick.stop.prevent="toggleMute">
+            <v-btn icon @click.stop="toggleVolumeSlider">
               <v-icon>{{ volume === 0 ? 'mdi-volume-mute' : 'mdi-volume-high' }}</v-icon>
             </v-btn>
 
@@ -80,14 +80,13 @@
                 <div v-bind="props"></div>
               </template>
 
-              <v-card min-width="50" class="pa-2">
+              <v-card min-width="50" class="overflow-hidden pa-2">
                 <v-slider
                   v-model="volume"
                   direction="vertical"
                   :step="1"
                   :min="0"
                   :max="100"
-                  height="120"
                   hide-details
                   @update:model-value="updateVolume"
                 >
@@ -119,31 +118,21 @@
 <script>
 import api from '@renderer/api'
 import { mapStores } from 'pinia'
+import shortcuts from '@renderer/shortcuts'
 import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
-
-const createLastKeyPress = () => ({
-  count: 0
-})
 
 export default {
   name: 'VideoPlayer',
 
   data() {
     return {
-      backwardInterval: null,
-      isDragging: false,
-      isPlayingBackward: false,
-      keyPressCount: 0,
-      lastKeyPress: createLastKeyPress(),
-      lastKeyPressTime: 0,
-      lastVolume: 50,
       playbackRate: 1,
       playingState: false,
       showVolumeSlider: false,
       sliderPosition: 0,
-      volume: 50
+      volume: 100
     }
   },
 
@@ -160,16 +149,6 @@ export default {
   },
 
   watch: {
-    '$refs.video': {
-      immediate: true,
-
-      handler(video) {
-        if (video) {
-          video.volume = this.volume / 100
-        }
-      }
-    },
-
     'tempStore.playJumpPosition'(newValue) {
       // Use a proxy value because updating currentTime based on playPosition
       // directly is prone to timing issues
@@ -181,27 +160,33 @@ export default {
   },
 
   mounted() {
-    // Register event handlers directly
+    // Register event handlers for menu buttons
     api.onTogglePlayback(this.playPauseClicked)
     api.onFrameForward(this.forwardClicked)
     api.onFrameBackward(this.backwardClicked)
     api.onPlaybackForward(this.playForward)
-    api.onPlaybackBackward(this.playBackward)
     api.onStopPlayback(this.stopPlayback)
     api.onSegmentPrevious(this.navigateToPreviousSegment)
     api.onSegmentNext(this.navigateToNextSegment)
 
-    // Set initial volume
-    if (this.$refs.video) {
-      this.$refs.video.volume = this.volume / 100
+    shortcuts.register(' ', this.playPauseClicked)
+    shortcuts.register('ArrowRight', this.forwardClicked)
+    shortcuts.register('ArrowLeft', this.backwardClicked)
+    shortcuts.register('k', this.stopPlayback)
+    shortcuts.register('l', this.playForward)
+    shortcuts.register('ArrowDown', this.navigateToPreviousSegment)
+    shortcuts.register('ArrowUp', this.navigateToNextSegment)
+  },
+
+  beforeUnmount() {
+    for (const key of [' ', 'ArrowRight', 'ArrowLeft', 'j', 'k', 'l', 'a', 's']) {
+      shortcuts.clear(key)
     }
   },
 
   methods: {
     backwardClicked() {
-      if (this.$refs.video) {
-        this.$refs.video.currentTime -= 1 / this.mainStore.fps
-      }
+      this.$refs.video.currentTime -= 1 / this.mainStore.fps
     },
 
     durationChange(event) {
@@ -209,160 +194,58 @@ export default {
     },
 
     forwardClicked() {
-      if (this.$refs.video) {
-        this.$refs.video.currentTime += 1 / this.mainStore.fps
-      }
+      this.$refs.video.currentTime += 1 / this.mainStore.fps
     },
 
     jumpBackward() {
-      if (this.$refs.video) {
-        this.$refs.video.currentTime = Math.max(0, this.$refs.video.currentTime - 5)
-      }
+      this.$refs.video.currentTime = Math.max(0, this.$refs.video.currentTime - 5)
     },
 
     jumpForward() {
-      if (this.$refs.video) {
-        this.$refs.video.currentTime = Math.min(
-          this.$refs.video.duration,
-          this.$refs.video.currentTime + 5
-        )
-      }
-    },
-
-    muteClicked() {
-      this.$refs.video.muted = !this.tempStore.muted
-      this.tempStore.muted = !this.tempStore.muted
-      if (this.tempStore.muted) {
-        this.volume = 0
-      } else {
-        this.volume = 100
-      }
+      this.$refs.video.currentTime = Math.min(
+        this.$refs.video.duration,
+        this.$refs.video.currentTime + 5
+      )
     },
 
     navigateToNextSegment() {
-      const currentTime = this.$refs.video.currentTime * this.mainStore.fps
+      const currentTime = Math.ceil(this.$refs.video.currentTime * this.mainStore.fps)
 
-      // Get the currently selected timeline
-      const selectedTimelineId =
-        this.tempStore.selectedSegments.size > 0
-          ? this.tempStore.selectedSegments.values().next().value
-          : this.undoableStore.shotTimelines[0]?.id
-
-      if (!selectedTimelineId) return
-
-      const timeline = this.undoableStore.timelines.find((t) => t.id === selectedTimelineId)
-      if (!timeline || timeline.type !== 'shots') return
-
-      // Filter out invalid segments (those without start/end)
-      const segments = timeline.data.filter(
-        (s) =>
-          Object.hasOwn(s, 'start') &&
-          typeof s.start === 'number' &&
-          s.start >= 0 &&
-          Object.hasOwn(s, 'end') &&
-          typeof s.end === 'number' &&
-          s.end >= 0
-      )
-      if (segments.length === 0) return
-
-      // First try to find the currently selected segment's index
-      let currentSegmentId = null
       if (this.tempStore.selectedSegments.size > 0) {
-        currentSegmentId = Array.from(this.tempStore.selectedSegments.keys())[0]
-      }
-
-      let nextSegment = null
-      if (currentSegmentId) {
-        // If we have a selected segment, find its index and get the next one
-        const currentIndex = segments.findIndex((s) => s.id === currentSegmentId)
-        if (currentIndex !== -1 && currentIndex < segments.length - 1) {
-          nextSegment = segments[currentIndex + 1]
-        } else if (currentIndex === segments.length - 1) {
-          // If we're at the last segment, loop back to the first one
-          nextSegment = segments[0]
-        }
-      }
-
-      if (nextSegment) {
-        // Navigate to the found segment
+        const [selectedSegId, selectedTimelId] = this.tempStore.selectedSegments
+          .entries()
+          .next().value
+        const timeline = this.undoableStore.timelines.find((t) => t.id === selectedTimelId)
+        const segmentIndex = timeline.data.findIndex((s) => s.id === selectedSegId)
+        const nextSegment = timeline.data[segmentIndex + 1] || timeline.data[0]
         this.$refs.video.currentTime = nextSegment.start / this.mainStore.fps
         this.tempStore.selectedSegments = new Map([[nextSegment.id, timeline.id]])
-      } else {
-        const nextIndex = segments.findIndex((segment) => segment.start > currentTime)
-        if (nextIndex === -1) {
-          // If no segment after current time, loop back to first segment
-          nextSegment = segments[0]
-        } else {
-          nextSegment = segments[nextIndex]
-        }
-        // Jump to the found segment
-        if (nextSegment) {
-          this.$refs.video.currentTime = nextSegment.start / this.mainStore.fps
-          this.tempStore.selectedSegments = new Map([[nextSegment.id, timeline.id]])
-        }
+      } else if (this.undoableStore.shotTimelines.length > 0) {
+        const timeline = this.undoableStore.shotTimelines[0]
+        const segment = timeline.data.filter((s) => s.start > currentTime)[0] || timeline.data[0]
+        this.$refs.video.currentTime = segment.start / this.mainStore.fps
+        this.tempStore.selectedSegments = new Map([[segment.id, timeline.id]])
       }
     },
 
     navigateToPreviousSegment() {
-      const currentTime = this.$refs.video.currentTime * this.mainStore.fps
+      const currentTime = Math.floor(this.$refs.video.currentTime * this.mainStore.fps)
 
-      // Get the currently selected timeline
-      const selectedTimelineId =
-        this.tempStore.selectedSegments.size > 0
-          ? this.tempStore.selectedSegments.values().next().value
-          : this.undoableStore.shotTimelines[0]?.id
-
-      if (!selectedTimelineId) return
-
-      const timeline = this.undoableStore.timelines.find((t) => t.id === selectedTimelineId)
-      if (!timeline || timeline.type !== 'shots') return
-
-      // Filter out invalid segments (those without start/end)
-      const segments = timeline.data.filter(
-        (s) =>
-          Object.hasOwn(s, 'start') &&
-          typeof s.start === 'number' &&
-          s.start >= 0 &&
-          Object.hasOwn(s, 'end') &&
-          typeof s.end === 'number' &&
-          s.end >= 0
-      )
-      if (segments.length === 0) return
-
-      // First try to find the currently selected segment's index
-      let currentSegmentId = null
       if (this.tempStore.selectedSegments.size > 0) {
-        currentSegmentId = Array.from(this.tempStore.selectedSegments.keys())[0]
-      }
-
-      let prevSegment = null
-      if (currentSegmentId) {
-        // If we have a selected segment, find its index and get the previous one
-        const currentIndex = segments.findIndex((s) => s.id === currentSegmentId)
-        if (currentIndex > 0) {
-          prevSegment = segments[currentIndex - 1]
-        } else if (currentIndex === 0) {
-          // If we're at the first segment, loop to the last one
-          prevSegment = segments[segments.length - 1]
-        }
-      }
-
-      // If we don't have a selected segment or couldn't find previous from selection,
-      // find the last segment that starts before current time
-      if (!prevSegment) {
-        const currentIndex = segments.findIndex((segment) => segment.start > currentTime) - 1
-        if (currentIndex >= 0) {
-          prevSegment = segments[currentIndex]
-        } else {
-          // If no segment before current time, go to last segment
-          prevSegment = segments[segments.length - 1]
-        }
-      }
-
-      // Navigate to the found segment
-      if (prevSegment) {
-        this.$refs.video.currentTime = prevSegment.start / this.mainStore.fps
-        this.tempStore.selectedSegments = new Map([[prevSegment.id, timeline.id]])
+        const [selectedSegId, selectedTimelId] = this.tempStore.selectedSegments
+          .entries()
+          .next().value
+        const timeline = this.undoableStore.timelines.find((t) => t.id === selectedTimelId)
+        const segIndex = timeline.data.findIndex((s) => s.id === selectedSegId)
+        const nextSegment = timeline.data[segIndex - 1] || timeline.data[timeline.data.length - 1]
+        this.$refs.video.currentTime = nextSegment.start / this.mainStore.fps
+        this.tempStore.selectedSegments = new Map([[nextSegment.id, timeline.id]])
+      } else if (this.undoableStore.shotTimelines.length > 0) {
+        const timeline = this.undoableStore.shotTimelines[0]
+        const filtered = timeline.data.filter((s) => s.start < currentTime)
+        const segment = filtered[filtered.length - 1] || timeline.data[timeline.data.length - 1]
+        this.$refs.video.currentTime = segment.start / this.mainStore.fps
+        this.tempStore.selectedSegments = new Map([[segment.id, timeline.id]])
       }
     },
 
@@ -370,64 +253,20 @@ export default {
       this.$refs.video.requestPictureInPicture()
     },
 
-    playBackward() {
-      if (this.$refs.video) {
-        const now = Date.now()
-        if (now - this.lastKeyPressTime < 500) {
-          this.keyPressCount += 1
-          this.playbackRate = Math.min(16, 2 ** (this.keyPressCount - 1))
-        } else {
-          this.keyPressCount = 1
-          this.playbackRate = 1
-        }
-        this.lastKeyPressTime = now
-
-        if (this.backwardInterval) {
-          clearInterval(this.backwardInterval)
-        }
-
-        this.$refs.video.pause()
-
-        const jumpInterval = Math.max(16, 1000 / (this.mainStore.fps * this.playbackRate))
-        const jumpAmount = 1 / this.mainStore.fps
-
-        this.isPlayingBackward = true
-        this.playingState = true
-
-        // Start backward playback interval
-        this.backwardInterval = setInterval(() => {
-          if (this.$refs.video.currentTime <= 0) {
-            this.stopPlayback()
-            return
-          }
-          this.$refs.video.currentTime = Math.max(0, this.$refs.video.currentTime - jumpAmount)
-        }, jumpInterval)
-      }
-    },
-
     playForward() {
-      if (this.$refs.video) {
-        const now = Date.now()
-        if (now - this.lastKeyPressTime < 500) {
-          this.keyPressCount += 1
-          this.playbackRate = Math.min(16, 2 ** (this.keyPressCount - 1))
-        } else {
-          this.keyPressCount = 1
-          this.playbackRate = 1
-        }
-        this.lastKeyPressTime = now
-
-        this.$refs.video.playbackRate = this.playbackRate
-        this.$refs.video.play()
-        this.playingState = true
+      if (this.playbackRate === 16 || this.playingState === false) {
+        this.playbackRate = 1
+      } else {
+        this.playbackRate = Math.min(16, this.playbackRate * 2)
       }
+      this.$refs.video.playbackRate = this.playbackRate
+      this.$refs.video.play()
+      this.playingState = true
     },
 
     playPauseClicked() {
       if (this.playingState) {
         this.stopPlayback()
-      } else if (this.isPlayingBackward) {
-        this.playBackward()
       } else {
         this.$refs.video.play()
         this.playingState = true
@@ -441,33 +280,14 @@ export default {
     },
 
     sliderMoved(value) {
-      if (this.$refs.video) {
-        this.$refs.video.currentTime = value
-      }
+      this.$refs.video.currentTime = value
     },
 
     stopPlayback() {
-      if (this.$refs.video) {
-        if (this.backwardInterval) {
-          clearInterval(this.backwardInterval)
-          this.backwardInterval = null
-        }
-        this.isPlayingBackward = false
-        this.$refs.video.pause()
-        this.playingState = false
-        this.playbackRate = 1
-        this.keyPressCount = 0
-      }
-    },
-
-    toggleMute() {
-      if (this.volume === 0) {
-        this.volume = this.lastVolume
-      } else {
-        this.lastVolume = this.volume
-        this.volume = 0
-      }
-      this.$refs.video.volume = this.volume / 100
+      this.$refs.video.pause()
+      this.playingState = false
+      this.playbackRate = 1
+      this.$refs.video.playbackRate = this.playbackRate
     },
 
     toggleSubtitles() {
@@ -486,11 +306,9 @@ export default {
       }
     },
 
-    videoTimeUpdate() {
-      if (this.$refs.video) {
-        this.sliderPosition = this.$refs.video.currentTime
-        this.tempStore.playPosition = this.$refs.video.currentTime
-      }
+    videoTimeUpdate(event) {
+      this.tempStore.playPosition = event.target.currentTime
+      this.sliderPosition = event.target.currentTime
     }
   }
 }

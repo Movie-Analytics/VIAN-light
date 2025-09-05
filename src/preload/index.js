@@ -12,15 +12,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onFrameForward: (cb) => ipcRenderer.on('frame-forward', (c, ...args) => cb(...args)),
   onImportProject: (cb) => ipcRenderer.on('imported-project', (c, ...args) => cb(...args)),
   onJobsUpdate: (cb) => ipcRenderer.on('jobs-update', (c, ...args) => cb(...args)),
-  onPlaybackBackward: (cb) => ipcRenderer.on('playback-backward', (c, ...args) => cb(...args)),
   onPlaybackForward: (cb) => ipcRenderer.on('playback-forward', (c, ...args) => cb(...args)),
   onRedoAction: (cb) => ipcRenderer.on('redo-action', (c, ...args) => cb(...args)),
   onScreenshotGeneration: (cb) =>
     ipcRenderer.on('screenshot-generated', (c, ...args) => cb(...args)),
   onScreenshotsGeneration: (cb) =>
     ipcRenderer.on('screenshots-generated', (c, ...args) => cb(...args)),
+  onSegmentDelete: (cb) => ipcRenderer.on('segment-delete', (c, ...args) => cb(...args)),
+  onSegmentMerge: (cb) => ipcRenderer.on('segment-merge', (c, ...args) => cb(...args)),
   onSegmentNext: (cb) => ipcRenderer.on('segment-next', (c, ...args) => cb(...args)),
   onSegmentPrevious: (cb) => ipcRenderer.on('segment-previous', (c, ...args) => cb(...args)),
+  onSegmentSplit: (cb) => ipcRenderer.on('segment-split', (c, ...args) => cb(...args)),
   onShotBoundaryDetection: (cb) =>
     ipcRenderer.on('shotboundary-detected', (c, ...args) => cb(...args)),
   onStopPlayback: (cb) => ipcRenderer.on('stop-playback', (c, ...args) => cb(...args)),
@@ -32,5 +34,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   runScreenshotsGeneration: (v, f, i) => ipcRenderer.send('run-screenshots-generation', v, f, i),
   runShotBoundaryDetection: (arg) => ipcRenderer.send('run-shotboundary-detection', arg),
   saveStore: (arg1, arg2) => ipcRenderer.send('save-store', arg1, arg2),
-  terminateJob: (arg) => ipcRenderer.send('terminate-job', arg)
+  terminateJob: (arg) => ipcRenderer.send('terminate-job', arg),
+  unregisterVideoViewCallbacks: () => {
+    ipcRenderer.removeAllListeners('toggle-playback')
+    ipcRenderer.removeAllListeners('frame-forward')
+    ipcRenderer.removeAllListeners('frame-backward')
+    ipcRenderer.removeAllListeners('playback-forward')
+    ipcRenderer.removeAllListeners('stop-playback')
+    ipcRenderer.removeAllListeners('segment-next')
+    ipcRenderer.removeAllListeners('segment-previous')
+    ipcRenderer.removeAllListeners('undo-action')
+    ipcRenderer.removeAllListeners('redo-action')
+  }
 })

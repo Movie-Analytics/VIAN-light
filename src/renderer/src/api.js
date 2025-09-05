@@ -1,3 +1,4 @@
+/* eslint-disable no-empty-function */
 import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 
@@ -22,56 +23,24 @@ class RemoteApi {
     }
   }
 
-  // Dummy implementations for shortcut handlers
-  onFrameBackward() {
-    return () => {
-      // Dummy
-    }
-  }
-  onFrameForward() {
-    return () => {
-      // Dummy
-    }
-  }
-  onPlaybackBackward() {
-    return () => {
-      // Dummy
-    }
-  }
-  onPlaybackForward() {
-    return () => {
-      // Dummy
-    }
-  }
-  onSegmentNext() {
-    return () => {
-      // Dummy
-    }
-  }
-  onSegmentPrevious() {
-    return () => {
-      // Dummy
-    }
-  }
-  onStopPlayback() {
-    return () => {
-      // Dummy
-    }
-  }
-  onTogglePlayback() {
-    return () => {
-      // Dummy
-    }
-  }
-  onRedoAction() {
-    return () => {
-      // Dummy
-    }
-  }
-  onUndoAction() {
-    return () => {
-      // Dummy
-    }
+  // Dummy implementations for menu actions
+  onFrameBackward() {}
+  onFrameForward() {}
+  onPlaybackBackward() {}
+  onPlaybackForward() {}
+  onRedoAction() {}
+  onSegmentDelete() {}
+  onSegmentMerge() {}
+  onSegmentNext() {}
+  onSegmentPrevious() {}
+  onSegmentSplit() {}
+  onStopPlayback() {}
+  onTogglePlayback() {}
+  onUndoAction() {}
+  unregisterVideoViewCallbacks() {}
+
+  logError(msg) {
+    console.log('Unhandled error:', msg)
   }
 
   async login(email, password) {

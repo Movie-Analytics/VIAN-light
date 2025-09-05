@@ -140,7 +140,7 @@ std::vector<uint8_t>& VideoReader::ReadNextFrame(std::vector<uint8_t>& out_frame
             if (frame_counter % FPS_REPORT_INTERVAL == 0) {
                 auto current_time = std::chrono::high_resolution_clock::now();
                 auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_fps_report_time).count();
-                current_fps = (FPS_REPORT_INTERVAL * 1000.0) / elapsed;  // Convert to frames per second
+                double current_fps = (FPS_REPORT_INTERVAL * 1000.0) / elapsed;  // Convert to frames per second
                 fprintf(stderr, "Processing frame %lld, Measured FPS: %.2f\n", frame_counter, current_fps);
                 last_fps_report_time = current_time;
             }
@@ -337,10 +337,10 @@ int VideoReader::generateScreenshot(const std::string& directory, int frame_num)
     target_jump = av_rescale_q(frame_num_jump / av_q2d(format_ctx->streams[video_stream_index]->r_frame_rate) * AV_TIME_BASE,
                                    AV_TIME_BASE_Q,
                                    format_ctx->streams[video_stream_index]->time_base);
-    
+
     // Fix format specifier for int64_t
     fprintf(stderr, "Seeking to frame %d (target: %lld)\n", frame_num, target);
-    
+
     response = av_seek_frame(format_ctx, video_stream_index, target_jump, AVSEEK_FLAG_BACKWARD);
     avcodec_flush_buffers(codec_ctx);
 
@@ -432,12 +432,12 @@ int VideoReader::generateScreenshots(const std::string& directory, const std::ve
     while (av_read_frame(format_ctx, &packet) >= 0 && n_frames_extracted < frameStamps.size() && !isCancelled()) {
         if (packet.stream_index == video_stream_index) {
             frame_counter++;
-            
+
             // Report FPS every FPS_REPORT_INTERVAL frames
             if (frame_counter % FPS_REPORT_INTERVAL == 0) {
                 auto current_time = std::chrono::high_resolution_clock::now();
                 auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_fps_report_time).count();
-                current_fps = (FPS_REPORT_INTERVAL * 1000.0) / elapsed;  // Convert to frames per second
+                double current_fps = (FPS_REPORT_INTERVAL * 1000.0) / elapsed;  // Convert to frames per second
                 fprintf(stderr, "Processing frame %lld, Measured FPS: %.2f\n", frame_counter, current_fps);
                 last_fps_report_time = current_time;
             }
@@ -526,35 +526,4 @@ int VideoReader::saveFrameAsJpeg(AVPixelFormat pix_fmt, AVFrame* pFrame, const s
     avcodec_free_context(&jpegContext);
 
     return 0;
-}
-
-void VideoReader::cleanup() {
-    // Set cancelled flag to stop any ongoing operations
-    cancelled = true;
-    
-    // Close and free FFmpeg resources
-    if (format_ctx) {
-        avformat_close_input(&format_ctx);
-        format_ctx = nullptr;
-    }
-    if (codec_ctx) {
-        avcodec_free_context(&codec_ctx);
-        codec_ctx = nullptr;
-    }
-    if (frame) {
-        av_frame_free(&frame);
-        frame = nullptr;
-    }
-    if (file) {
-        fclose(file);
-        file = nullptr;
-    }
-    if (parser) {
-        av_parser_close(parser);
-        parser = nullptr;
-    }
-    
-    // Reset state
-    video_stream_index = -1;
-    finished = true;
 }

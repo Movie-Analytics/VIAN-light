@@ -66,10 +66,8 @@ const createWindow = () => {
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
-    console.log('Loading dev URL:', process.env.ELECTRON_RENDERER_URL)
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
   } else {
-    console.log('Loading production file:', join(__dirname, '../renderer/index.html'))
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
@@ -118,27 +116,15 @@ app.on('window-all-closed', () => {
 
 // Handle application quit
 let isQuitting = false
-app.on('before-quit', async (event) => {
+app.on('before-quit', async (e) => {
   if (isQuitting) return
-  event.preventDefault()
-
+  e.preventDefault()
   isQuitting = true
 
-  try {
-    await jobManager.cancelAllOperations()
-    // Give native code time to cleanup
-    setTimeout(() => {
-      app.quit()
-      setTimeout(() => process.exit(0), 2000)
-    }, 500)
-  } catch (err) {
-    console.error('Error during quit:', err)
-    setTimeout(() => {
-      app.quit()
-      // TODO use process.exit(1)
-      setTimeout(() => process.exit(0), 2000)
-    }, 500)
-  }
+  await jobManager.cancelAllOperations()
+  // Necessary or Mac OS complains about crashed application
+  global.gc()
+  app.quit()
 })
 
 // In this file you can include the rest of your app"s specific main process
