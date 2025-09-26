@@ -141,11 +141,13 @@ export const useUndoableStore = defineStore('undoable', {
     },
     initialize() {
       this.$subscribe((mutation, state) => {
-        if (state.id === null || mutation.events?.key === 'id') return
-        const copyState = JSON.parse(JSON.stringify(state))
-        api.saveStore('undoable', copyState)
+        setTimeout(() => {
+          if (state.id === null || mutation.events?.key === 'id') return
+          const copyState = JSON.parse(JSON.stringify(state))
+          api.saveStore('undoable', copyState)
 
-        useUndoStore().push('undoable', copyState)
+          useUndoStore().push('undoable', copyState)
+        }, 0)
       })
 
       api.onScreenshotsGeneration(this.onScreenshotsGeneration)
