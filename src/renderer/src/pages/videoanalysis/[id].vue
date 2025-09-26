@@ -107,7 +107,7 @@
 
     <v-menu>
       <template #activator="{ props }">
-        <v-btn v-tooltip="'Analysis tools'" icon v-bind="props">
+        <v-btn v-tooltip="'Settings'" icon v-bind="props">
           <v-icon>mdi-cog</v-icon>
         </v-btn>
       </template>
