@@ -61,6 +61,16 @@
                       title="Rename"
                       @click="renameDialogOpen(timeline.id)"
                     ></v-list-item>
+
+                    <v-list-item
+                      title="Link to vocabulary"
+                      :disabled="
+                        !vocabularyExists ||
+                        typeof timeline.vocabulary === 'string' ||
+                        timeline.type !== 'shots'
+                      "
+                      @click="linkVocabDialogOpen(timeline.id)"
+                    ></v-list-item>
                   </v-list>
                 </v-menu>
               </v-list-item-action>
@@ -93,6 +103,26 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="linkVocabDialog" persistent max-width="400">
+      <v-card>
+        <v-card-title>Link vocabulary to timeline</v-card-title>
+
+        <v-card-text>
+          <v-select
+            v-model="selectedVocab"
+            label="Select vocabulary"
+            :items="vocabularies"
+          ></v-select>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-btn color="warning" @click="linkVocabDialog = false">Cancel</v-btn>
+
+          <v-btn color="primary" @click="linkVocab">Save</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-sheet>
 </template>
 
@@ -112,8 +142,10 @@ export default {
 
   data() {
     return {
+      linkVocabDialog: false,
       renameDialog: false,
-      renameTimelineId: null,
+      selectedTimeline: null,
+      selectedVocab: null,
       timelineName: ''
     }
   },
@@ -152,6 +184,14 @@ export default {
         .map((shot) => this.undoableStore.getSegmentForId(shot[1], shot[0]).locked)
         .some((v) => v)
     },
+
+    vocabularies() {
+      return this.undoableStore.vocabularies.map((v) => ({ title: v.name, value: v.id }))
+    },
+
+    vocabularyExists() {
+      return this.undoableStore.vocabularies.length > 0
+    }
   },
 
   mounted() {
@@ -183,14 +223,25 @@ export default {
       this.undoableStore.duplicateTimeline(id)
     },
 
+    linkVocab() {
+      this.undoableStore.linkTimelineToVocabulary(this.selectedTimeline, this.selectedVocab)
+      this.linkVocabDialog = false
+    },
+
+    linkVocabDialogOpen(id) {
+      this.linkVocabDialog = true
+      this.selectedTimeline = id
+      this.selectedVocab = null
+    },
+
     renameDialogOpen(id) {
       this.timelineName = ''
       this.renameDialog = true
-      this.renameTimelineId = id
+      this.selectedTimeline = id
     },
 
     renameTimeline() {
-      this.undoableStore.renameTimeline(this.renameTimelineId, this.timelineName)
+      this.undoableStore.renameTimeline(this.selectedTimeline, this.timelineName)
       this.renameDialog = false
     },
 
