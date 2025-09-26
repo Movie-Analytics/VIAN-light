@@ -46,7 +46,8 @@ export const useUndoableStore = defineStore('undoable', {
         annotation: '',
         end: Math.round(end),
         id: crypto.randomUUID(),
-        start: Math.round(start)
+        start: Math.round(start),
+        vocabAnnotation: []
       })
       data.sort((a, b) => a.start - b.start)
       this.timelines[n].data = data
@@ -94,7 +95,7 @@ export const useUndoableStore = defineStore('undoable', {
     deleteVocabulary(id) {
       this.vocabularies = this.vocabularies.filter((v) => v.id !== id)
     },
-    deleteVocabularyTag(vocabId, tagId){
+    deleteVocabularyTag(vocabId, tagId) {
       const vocab = this.vocabularies.find((v) => v.id === vocabId)
       vocab.tags = vocab.tags.filter((t) => t.id !== tagId)
     },
@@ -211,7 +212,8 @@ export const useUndoableStore = defineStore('undoable', {
           annotation: '',
           end: shot[1],
           id: crypto.randomUUID(),
-          start: shot[0]
+          start: shot[0],
+          vocabAnnotation: []
         })),
         id: crypto.randomUUID(),
         name: 'Shots',
@@ -281,11 +283,26 @@ export const useUndoableStore = defineStore('undoable', {
     },
     vocabularyDelete(id) {
       this.vocabularies = this.vocabularies.filter((v) => v.id !== id)
+      let allTags = []
       this.vocabularies.forEach((v) => {
         v.categories = v.categories.filter((c) => c.id !== id)
         v.categories.forEach((c) => {
           c.tags = c.tags.filter((t) => t.id !== id)
+          allTags = allTags.concat(c.tags)
         })
+      })
+
+      // Delete id from associated timelines / shots
+      allTags = new Set(allTags)
+      this.timelines.forEach((t) => {
+        if (typeof t.vocabulary === 'string') {
+          if (t.vocabulary === id) {
+            t.vocabulary = null
+          }
+          t.data.forEach((s) => {
+            s.vocabAnnotation = s.vocabAnnotation.filter((tag) => allTags.has(tag.id))
+          })
+        }
       })
     },
     vocabularyRename(id, name) {
