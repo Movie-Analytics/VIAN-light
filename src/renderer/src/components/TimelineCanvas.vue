@@ -194,7 +194,7 @@ export default {
     },
 
     drawSetup() {
-      this.data = []
+      const data = []
 
       for (const [timelineIndex, timeline] of this.undoableStore.timelines.entries()) {
         for (const [shotIndex, shot] of timeline.data.entries()) {
@@ -202,8 +202,9 @@ export default {
             let color = '#aaaaaa'
             if (shotIndex % 2 === 0) color = '#cccccc'
             if (shot.locked) color = '#eeeeee'
-            this.data.push({
-              annotation: shotIndex + ': ' + (shot.annotation || '').slice(0, 40),
+            const annotation = shotIndex + ': ' + (shot.annotation || '').slice(0, 40)
+            data.push({
+              annotation,
               fill: color,
               height: 44,
               id: shot.id,
@@ -216,7 +217,7 @@ export default {
               y: timelineIndex * 48 + 30 + 2
             })
           } else if (timeline.type.startsWith('screenshots')) {
-            this.data.push({
+            data.push({
               height: 44,
               id: shot.id,
               selected: this.tempStore.selectedSegments.has(shot.id),
@@ -264,45 +265,48 @@ export default {
       let colorI = 10
       this.hCtx = hCanvas.node().getContext('2d')
       this.hCtx.scale(this.dpr, this.dpr)
-      this.data.forEach((d) => {
+      for (const d of data) {
         d.hiddenColor = '#' + colorI.toString(16).padStart(6, '0')
         colorI += 20
         d.hiddenLeftHandle = '#' + colorI.toString(16).padStart(6, '0')
         colorI += 20
         d.hiddenRightHandle = '#' + colorI.toString(16).padStart(6, '0')
         colorI += 20
-      })
+      }
+      // Modify data first and then access property because property access is slow
+      this.data = data
 
       this.resize()
     },
 
     drawTimelines(rescale) {
       if (this.data.length === 0) return
-      const { hCtx, ctx } = this
+      const { hCtx, ctx, data } = this
+      const imageCache = this.tempStore.imageCache
       hCtx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
       const selectedSegments = new Set(this.tempStore.selectedSegments.keys())
       ctx.textAlign = 'left'
+      ctx.font = '15px Arial'
+      ctx.textBaseline = 'top'
 
-      this.data.forEach((d) => {
-        hCtx.fillStyle = d.hiddenColor
-
+      for (const d of data) {
         const x = Math.round(rescale(d.x))
         const xwidth = Math.round(rescale(d.x + d.width))
-        if (xwidth < 0 || x > this.canvasWidth || xwidth - x <= 0) return
+        // eslint-disable-next-line no-continue
+        if (xwidth < 0 || x > this.canvasWidth || xwidth - x <= 0) continue
+
+        hCtx.fillStyle = d.hiddenColor
         if (d.type === 'shot') {
-          ctx.save()
-          ctx.font = '15px Arial'
-          ctx.textBaseline = 'top'
-          ctx.beginPath()
           ctx.fillStyle = selectedSegments.has(d.id) ? 'yellow' : d.fill
           ctx.fillRect(x, d.y, xwidth - x, d.height)
           if (xwidth - x > 20) {
+            ctx.save()
             ctx.rect(x, d.y, xwidth - x, d.height)
             ctx.fillStyle = 'black'
             ctx.clip()
             ctx.fillText(d.annotation, x, d.y + 13)
+            ctx.restore()
           }
-          ctx.restore()
           hCtx.fillRect(x, d.y, xwidth - x, d.height)
 
           // Draw handles for grabbing
@@ -311,24 +315,26 @@ export default {
           const resizeWidth = Math.round(rescale(d.x + Math.min(d.width * 0.2, 20)) - x)
           ctx.fillRect(x, d.y, resizeWidth, 20)
           ctx.fillRect(xwidth - resizeWidth, d.y, resizeWidth, 20)
+          ctx.globalAlpha = 1.0
+
           hCtx.fillStyle = d.hiddenLeftHandle
           hCtx.fillRect(x, d.y, resizeWidth, 20)
           hCtx.fillStyle = d.hiddenRightHandle
           hCtx.fillRect(xwidth - resizeWidth, d.y, resizeWidth, 20)
-          ctx.globalAlpha = 1.0
         } else if (d.type === 'screenshot') {
-          const image = this.tempStore.imageCache.get(d.uri)
-          if (!image) return
+          const image = imageCache.get(d.uri)
+          // eslint-disable-next-line no-continue
+          if (!image) continue
           if (selectedSegments.has(d.id)) {
             ctx.fillStyle = 'yellow'
             ctx.fillRect(x, d.y, d.width, d.height)
             ctx.globalAlpha = 0.5
           }
-          ctx.drawImage(this.tempStore.imageCache.get(d.uri), x, d.y, d.width, d.height)
+          ctx.drawImage(image, x, d.y, d.width, d.height)
           ctx.globalAlpha = 1.0
           hCtx.fillRect(x, d.y, d.width, d.height)
         }
-      })
+      }
     },
 
     drawTmpShot(rescale) {
