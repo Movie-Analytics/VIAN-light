@@ -13,6 +13,7 @@ export const useTempStore = defineStore('temp', {
     playPosition: 0,
     // Maps shot id -> timeline id
     selectedSegments: new Map(),
+    timelinesFold: {},
     tmpShot: null
   }),
   /* eslint-disable-next-line vue/sort-keys */

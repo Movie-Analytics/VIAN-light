@@ -52,6 +52,21 @@ export const useUndoableStore = defineStore('undoable', {
       data.sort((a, b) => a.start - b.start)
       this.timelines[n].data = data
     },
+    addVocabAnnotation(shotId, tagId) {
+      for (const timeline of this.timelines) {
+        if (timeline.type === 'shots') {
+          const shot = timeline.data.find((s) => s.id === shotId)
+          if (shot && shot.vocabAnnotation.includes(tagId)) {
+            shot.vocabAnnotation = shot.vocabAnnotation.filter((t) => t !== tagId)
+            return
+          }
+          if (shot && !shot.vocabAnnotation.includes(tagId)) {
+            shot.vocabAnnotation.push(tagId)
+            return
+          }
+        }
+      }
+    },
     addVocabulary(name) {
       const id = crypto.randomUUID()
       this.vocabularies.push({

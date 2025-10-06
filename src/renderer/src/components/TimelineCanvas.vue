@@ -14,6 +14,9 @@ import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
 
+const TIMELINE_HEIGHT = 48
+const AXES_HEIGHT = 32
+
 export default {
   name: 'TimelineCanvas',
 
@@ -27,6 +30,7 @@ export default {
       dpr: window.devicePixelRatio || 1,
       hCtx: null,
       isDrawingScheduled: false,
+      numTimelines: 0,
       resizeoberserver: null,
       scale: null,
       transform: d3.zoomIdentity,
@@ -64,6 +68,14 @@ export default {
 
     'tempStore.playPosition'() {
       this.requestDraw()
+    },
+
+    'tempStore.timelinesFold': {
+      deep: true,
+
+      handler() {
+        this.drawSetup()
+      }
     },
 
     'undoableStore.timelines': {
@@ -120,7 +132,9 @@ export default {
       } else if (entries.length > 0) {
         // Select shots
         const [entry] = entries
-        if (
+        if (entry.type === 'select') {
+          this.undoableStore.addVocabAnnotation(entry.id, entry.tag)
+        } else if (
           this.tempStore.selectedSegments.size > 0 &&
           this.tempStore.selectedSegments.values().next().value !== entry.timeline
         ) {
@@ -196,7 +210,8 @@ export default {
     drawSetup() {
       const data = []
 
-      for (const [timelineIndex, timeline] of this.undoableStore.timelines.entries()) {
+      this.numTimelines = 0
+      for (const timeline of this.undoableStore.timelines) {
         for (const [shotIndex, shot] of timeline.data.entries()) {
           if (timeline.type === 'shots') {
             let color = '#aaaaaa'
@@ -214,7 +229,7 @@ export default {
               type: 'shot',
               width: shot.end - shot.start,
               x: shot.start,
-              y: timelineIndex * 48 + 30 + 2
+              y: this.numTimelines * TIMELINE_HEIGHT + AXES_HEIGHT
             })
           } else if (timeline.type.startsWith('screenshots')) {
             data.push({
@@ -226,7 +241,7 @@ export default {
               uri: shot.thumbnail,
               width: 44 * (16 / 9),
               x: shot.frame,
-              y: timelineIndex * 48 + 30 + 2
+              y: this.numTimelines * TIMELINE_HEIGHT + AXES_HEIGHT
             })
             // Only re-draw after 200 new images were loaded
             if (!this.tempStore.imageCache.has(shot.thumbnail)) {
@@ -245,6 +260,37 @@ export default {
             }
           }
         }
+        if (timeline.vocabulary && this.tempStore.timelinesFold[timeline.id].visible) {
+          for (const category of this.tempStore.timelinesFold[timeline.id].categories) {
+            this.numTimelines += 1
+            if (category.visible) {
+              for (const tag of category.tags) {
+                this.numTimelines += 1
+                //TODO: reduce nesting and complexity here
+                /* eslint-disable max-depth */
+                for (const [shotIndex, shot] of timeline.data.entries()) {
+                  let color = '#aaaaaa'
+                  if (shotIndex % 2 === 0) color = '#cccccc'
+                  if (shot.vocabAnnotation.includes(tag.id)) color = '#aa5555'
+
+                  data.push({
+                    fill: color,
+                    height: 44,
+                    id: shot.id,
+                    tag: tag.id,
+                    timeline: timeline.id,
+                    type: 'select',
+                    width: shot.end - shot.start,
+                    x: shot.start,
+                    y: this.numTimelines * TIMELINE_HEIGHT + AXES_HEIGHT
+                  })
+                }
+                /* eslint-enable max-depth */
+              }
+            }
+          }
+        }
+        this.numTimelines += 1
       }
 
       this.zoom = d3
@@ -321,6 +367,10 @@ export default {
           hCtx.fillRect(x, d.y, resizeWidth, 20)
           hCtx.fillStyle = d.hiddenRightHandle
           hCtx.fillRect(xwidth - resizeWidth, d.y, resizeWidth, 20)
+        } else if (d.type === 'select') {
+          ctx.fillStyle = d.fill
+          ctx.fillRect(x, d.y, xwidth - x, d.height)
+          hCtx.fillRect(x, d.y, xwidth - x, d.height)
         } else if (d.type === 'screenshot') {
           const image = imageCache.get(d.uri)
           // eslint-disable-next-line no-continue
@@ -357,6 +407,30 @@ export default {
       )
     },
 
+    getTimelineForCoordinate(y) {
+      let index = 0
+      let offset = AXES_HEIGHT
+
+      for (const timeline of this.undoableStore.timelines) {
+        offset += TIMELINE_HEIGHT
+        if (offset > y) break
+
+        const fold = this.tempStore.timelinesFold[timeline.id]
+        if (fold.visible) {
+          for (const category of fold.categories) {
+            offset += TIMELINE_HEIGHT
+            if (offset > y) break
+            if (category.visible) {
+              offset += category.tags.length * TIMELINE_HEIGHT
+            }
+          }
+        }
+        index += 1
+      }
+
+      return index
+    },
+
     mousedown(e) {
       this.tempStore.tmpShot = null
       if (e.altKey || e.shiftKey) e.stopImmediatePropagation()
@@ -369,9 +443,11 @@ export default {
       // New timeline segment
       if (e.altKey) {
         if (coordY < 40) return
-        const nTimeline = Math.floor((coordY - 32) / 48)
+
+        const nTimeline = this.getTimelineForCoordinate(coordY)
         if (this.undoableStore.timelines[nTimeline].type !== 'shots') return
-        const height = nTimeline * 48 + 32
+
+        const height = coordY - ((coordY - AXES_HEIGHT) % TIMELINE_HEIGHT)
         const start = this.transform.rescaleX(this.scale).invert(coordX)
         this.tempStore.tmpShot = {
           end: start,
@@ -473,7 +549,7 @@ export default {
       const coord = d3.pointer(e, this.$refs.canvas)
       if (this.tempStore.tmpShot.originalShot === null) {
         this.undoableStore.addShotToNth(
-          Math.floor((coord[1] - 32) / 48),
+          this.getTimelineForCoordinate(coord[1]),
           this.tempStore.tmpShot.start,
           this.tempStore.tmpShot.end
         )
@@ -517,7 +593,7 @@ export default {
       // Get the display size of the canvas
       const container = this.$refs.canvas.parentElement
       const displayWidth = container.clientWidth
-      const displayHeight = this.undoableStore.timelines.length * 48 + 30
+      const displayHeight = this.numTimelines * TIMELINE_HEIGHT + AXES_HEIGHT
 
       // Set the canvas display size
       this.canvasWidth = displayWidth

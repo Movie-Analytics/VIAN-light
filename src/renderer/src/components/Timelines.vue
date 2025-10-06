@@ -35,47 +35,82 @@
     <v-row>
       <v-col cols="3">
         <v-list id="timeline-list" lines="one">
-          <v-list-item
-            v-for="timeline in undoableStore.timelines"
-            :key="timeline"
-            :title="timeline.name"
-          >
-            <template #append>
-              <v-list-item-action start>
-                <v-menu>
-                  <template #activator="{ props }">
-                    <v-btn variant="text" density="compact" icon v-bind="props">
-                      <v-icon>mdi-dots-vertical</v-icon>
+          <v-list-group v-for="timeline in undoableStore.timelines" :key="timeline">
+            <template #activator="{ props, isOpen }">
+              <v-list-item :title="timeline.name">
+                <template #append>
+                  <v-list-item-action start>
+                    <v-btn
+                      v-if="typeof timeline.vocabulary === 'string'"
+                      icon
+                      v-bind="props"
+                      variant="text"
+                      density="compact"
+                      class="me-2"
+                      @click="changeVisibility(timeline.id, undefined, isOpen)"
+                    >
+                      <v-icon>mdi-expand-all</v-icon>
                     </v-btn>
+
+                    <v-menu>
+                      <template #activator="{ props }">
+                        <v-btn variant="text" density="compact" icon v-bind="props">
+                          <v-icon>mdi-dots-vertical</v-icon>
+                        </v-btn>
+                      </template>
+
+                      <v-list class="pb-0 pt-0">
+                        <v-list-item
+                          title="Duplicate"
+                          @click="duplicateTimeline(timeline.id)"
+                        ></v-list-item>
+
+                        <v-list-item
+                          title="Delete"
+                          @click="deleteTimeline(timeline.id)"
+                        ></v-list-item>
+
+                        <v-list-item
+                          title="Rename"
+                          @click="renameDialogOpen(timeline.id)"
+                        ></v-list-item>
+
+                        <v-list-item
+                          title="Link to vocabulary"
+                          :disabled="
+                            !vocabularyExists ||
+                            typeof timeline.vocabulary === 'string' ||
+                            timeline.type !== 'shots'
+                          "
+                          @click="linkVocabDialogOpen(timeline.id)"
+                        ></v-list-item>
+                      </v-list>
+                    </v-menu>
+                  </v-list-item-action>
+                </template>
+              </v-list-item>
+            </template>
+
+            <template v-if="typeof timeline.vocabulary === 'string'">
+              <v-list class="pb-0 pt-0">
+                <v-list-group
+                  v-for="category in getVocabulary(timeline.vocabulary).categories"
+                  :key="category.id"
+                >
+                  <template #activator="{ props, isOpen }">
+                    <v-list-item
+                      :title="category.name"
+                      v-bind="props"
+                      @click="changeVisibility(timeline.id, category.id, isOpen)"
+                    ></v-list-item>
                   </template>
 
-                  <v-list>
-                    <v-list-item
-                      title="Duplicate"
-                      @click="duplicateTimeline(timeline.id)"
-                    ></v-list-item>
-
-                    <v-list-item title="Delete" @click="deleteTimeline(timeline.id)"></v-list-item>
-
-                    <v-list-item
-                      title="Rename"
-                      @click="renameDialogOpen(timeline.id)"
-                    ></v-list-item>
-
-                    <v-list-item
-                      title="Link to vocabulary"
-                      :disabled="
-                        !vocabularyExists ||
-                        typeof timeline.vocabulary === 'string' ||
-                        timeline.type !== 'shots'
-                      "
-                      @click="linkVocabDialogOpen(timeline.id)"
-                    ></v-list-item>
-                  </v-list>
-                </v-menu>
-              </v-list-item-action>
+                  <v-list-item v-for="tag in category.tags" :key="tag.id" :title="tag.name">
+                  </v-list-item>
+                </v-list-group>
+              </v-list>
             </template>
-          </v-list-item>
+          </v-list-group>
 
           <v-list-item @click="addTimeline">
             <v-icon>mdi-playlist-plus</v-icon>
@@ -185,12 +220,28 @@ export default {
         .some((v) => v)
     },
 
+    shotTimelinesExists() {
+      return this.undoableStore.timelines.filter((t) => t.type === 'shots').length > 0
+    },
+
     vocabularies() {
       return this.undoableStore.vocabularies.map((v) => ({ title: v.name, value: v.id }))
     },
 
     vocabularyExists() {
       return this.undoableStore.vocabularies.length > 0
+    }
+  },
+
+  watch: {
+    'undoableStore.timelines'(newVal, oldVal) {
+      if (newVal.length !== oldVal.length) {
+        this.createTimelineFolds()
+      }
+    },
+
+    'undoableStore.vocabularies'() {
+      this.createTimelineFolds()
     }
   },
 
@@ -202,6 +253,7 @@ export default {
     api.onSegmentDelete(this.segmentDelete)
     api.onSegmentMerge(this.segmentMerge)
     api.onSegmentSplit(this.segmentSplit)
+    this.createTimelineFolds()
   },
 
   beforeUnmount() {
@@ -215,6 +267,35 @@ export default {
       this.undoableStore.addNewTimeline()
     },
 
+    changeVisibility(timelineId, categoryId, isopen) {
+      const timeline = this.tempStore.timelinesFold[timelineId]
+      if (typeof categoryId === 'string') {
+        const category = timeline.categories.find((c) => c.id === categoryId)
+        category.visible = !isopen
+      } else {
+        timeline.visible = !isopen
+      }
+    },
+
+    createTimelineFolds() {
+      this.tempStore.timelinesFold = Object.fromEntries(
+        this.undoableStore.timelines.map((t) => {
+          if (typeof t.vocabulary !== 'string') {
+            return [t.id, { visible: false }]
+          }
+          const categories = JSON.parse(
+            JSON.stringify(
+              this.undoableStore.vocabularies.find((v) => v.id === t.vocabulary).categories
+            )
+          )
+          categories.forEach((c) => {
+            c.visible = false
+          })
+          return [t.id, { categories, visible: false }]
+        })
+      )
+    },
+
     deleteTimeline(id) {
       this.undoableStore.deleteTimeline(id)
     },
@@ -223,9 +304,14 @@ export default {
       this.undoableStore.duplicateTimeline(id)
     },
 
+    getVocabulary(id) {
+      return this.undoableStore.vocabularies.find((v) => v.id === id)
+    },
+
     linkVocab() {
       this.undoableStore.linkTimelineToVocabulary(this.selectedTimeline, this.selectedVocab)
       this.linkVocabDialog = false
+      this.createTimelineFolds()
     },
 
     linkVocabDialogOpen(id) {
