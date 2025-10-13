@@ -69,6 +69,10 @@ export default {
   computed: {
     ...mapStores(useMainStore, useUndoableStore, useTempStore),
 
+    currentAnnotation() {
+      return this.selectedTimelineSegment?.annotation
+    },
+
     segmentVocabulary() {
       if (this.tempStore.selectedSegments.size !== 1) return null
       const timelineid = this.tempStore.selectedSegments.values().next().value
@@ -96,7 +100,7 @@ export default {
 
   watch: {
     annotationBuffer(newValue) {
-      if (newValue === this.selectedTimelineSegment.annotation) return
+      if (newValue === this.selectedTimelineSegment?.annotation) return
 
       clearTimeout(this.timeout)
 
@@ -106,6 +110,12 @@ export default {
         }
         this.timeout = null
       }, 1000)
+    },
+
+    currentAnnotation(newValue) {
+      if (newValue !== null) {
+        this.annotationBuffer = newValue
+      }
     },
 
     selectedTimelineSegment(newValue) {

@@ -16,6 +16,13 @@ export const useUndoableStore = defineStore('undoable', {
   }),
   /* eslint-disable-next-line vue/sort-keys */
   getters: {
+    getSegmentForId: (state) => (timelineId, segmentId) => {
+      const timeline = state.getTimelineById(timelineId)
+      return timeline.data.find((s) => s.id === segmentId)
+    },
+    getTimelineById: (state) => (id) => {
+      return state.timelines.find((t) => t.id === id)
+    },
     screenshotTimelines: (state) => state.timelines.filter((t) => t.type.startsWith('screenshot')),
     shotTimelines: (state) => state.timelines.filter((t) => t.type === 'shots'),
     vocabById: (state) =>
@@ -129,13 +136,6 @@ export const useUndoableStore = defineStore('undoable', {
     },
     generateScreenshots(frames) {
       api.runScreenshotsGeneration(useMainStore().video, frames, this.id)
-    },
-    getSegmentForId(timelineId, segmentId) {
-      const timeline = this.getTimelineById(timelineId)
-      return timeline.data.find((s) => s.id === segmentId)
-    },
-    getTimelineById(id) {
-      return this.timelines.find((t) => t.id === id)
     },
     importAnnotations() {
       const fileInput = document.createElement('input')

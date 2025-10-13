@@ -1,6 +1,20 @@
 <template>
-  <div>
+  <div class="position-relative">
     <canvas ref="canvas" height="0"></canvas>
+
+    <v-overlay v-model="overlayInput" contained>
+      <v-text-field
+        ref="overlayTextfield"
+        v-model="overlayInputModel"
+        label="Annotations"
+        min-width="200"
+        hide-details="true"
+        variant="solo"
+        density="compact"
+        class="bg-blue-grey-lighten-5 position-absolute"
+        @change="overlayInputChange"
+      ></v-text-field>
+    </v-overlay>
 
     <canvas ref="hiddenCanvas" height="0" class="d-none"></canvas>
   </div>
@@ -30,7 +44,11 @@ export default {
       dpr: window.devicePixelRatio || 1,
       hCtx: null,
       isDrawingScheduled: false,
+      lastClick: Date.now(),
       numTimelines: 0,
+      overlayInput: false,
+      overlayInputEntry: null,
+      overlayInputModel: '',
       resizeoberserver: null,
       scale: null,
       transform: d3.zoomIdentity,
@@ -134,23 +152,42 @@ export default {
         const [entry] = entries
         if (entry.type === 'select') {
           this.undoableStore.addVocabAnnotation(entry.id, entry.tag)
+        } else if (Date.now() - this.lastClick < 200) {
+          this.doubleClickPopup(entry)
+          this.tempStore.selectedSegments = new Map([[entry.id, entry.timeline]])
         } else if (
           this.tempStore.selectedSegments.size > 0 &&
           this.tempStore.selectedSegments.values().next().value !== entry.timeline
         ) {
           // Only allow selection from the same timeline
           this.tempStore.selectedSegments = new Map([[entry.id, entry.timeline]])
-        } else if (this.tempStore.selectedSegments.has(entry.id)) {
-          // Click on selected element de-selects it
-          this.tempStore.selectedSegments.delete(entry.id)
         } else if (event.metaKey || event.ctrlKey) {
           // Try both key and ctrlKey for macOS
-          this.tempStore.selectedSegments.set(entry.id, entry.timeline)
+          if (this.tempStore.selectedSegments.has(entry.id)) {
+            // Click on selected element de-selects it
+            this.tempStore.selectedSegments.delete(entry.id)
+          } else {
+            this.tempStore.selectedSegments.set(entry.id, entry.timeline)
+          }
         } else {
           this.tempStore.selectedSegments = new Map([[entry.id, entry.timeline]])
         }
         this.requestDraw()
       }
+      this.lastClick = Date.now()
+    },
+
+    doubleClickPopup(entry) {
+      this.overlayInput = true
+      this.$nextTick().then(() => {
+        const x = Math.round(this.transform.rescaleX(this.scale)(entry.x))
+        // Stay within canvas
+        const leftPos = Math.min(Math.max(x, 0), this.$refs.canvas.offsetWidth - 200)
+        this.$refs.overlayTextfield.$el.style.left = leftPos + 'px'
+        this.$refs.overlayTextfield.$el.style.top = entry.y + 2 + 'px'
+        this.overlayInputEntry = this.undoableStore.getSegmentForId(entry.timeline, entry.id)
+        this.overlayInputModel = this.overlayInputEntry.annotation
+      })
     },
 
     draw() {
@@ -577,6 +614,11 @@ export default {
 
       this.resize()
       this.requestDraw()
+      this.overlayInput = false
+    },
+
+    overlayInputChange() {
+      this.overlayInputEntry.annotation = this.overlayInputModel
     },
 
     requestDraw() {
