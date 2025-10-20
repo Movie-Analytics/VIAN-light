@@ -80,7 +80,7 @@ export const createMenu = () => {
       label: 'Timeline',
       submenu: [
         {
-          accelerator: 'Down',
+          accelerator: 'Up',
           click: (_item, _window, event) => {
             if (!event.triggeredByAccelerator) {
               BrowserWindow.getFocusedWindow()?.webContents.send('segment-previous')
@@ -89,7 +89,7 @@ export const createMenu = () => {
           label: 'Previous Segment'
         },
         {
-          accelerator: 'Up',
+          accelerator: 'Down',
           click: (_item, _window, event) => {
             if (!event.triggeredByAccelerator) {
               BrowserWindow.getFocusedWindow()?.webContents.send('segment-next')

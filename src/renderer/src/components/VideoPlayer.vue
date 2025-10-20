@@ -174,8 +174,8 @@ export default {
     shortcuts.register('ArrowLeft', this.backwardClicked)
     shortcuts.register('k', this.stopPlayback)
     shortcuts.register('l', this.playForward)
-    shortcuts.register('ArrowDown', this.navigateToPreviousSegment)
-    shortcuts.register('ArrowUp', this.navigateToNextSegment)
+    shortcuts.register('ArrowUp', this.navigateToPreviousSegment)
+    shortcuts.register('ArrowDown', this.navigateToNextSegment)
   },
 
   beforeUnmount() {
