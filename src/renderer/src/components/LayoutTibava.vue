@@ -8,7 +8,7 @@
       </v-col>
 
       <v-col id="info-col" cols="6">
-        <v-card>
+        <v-card class="h-100">
           <v-tabs v-model="tab" show-arrows>
             <v-tab value="info">Info</v-tab>
 
