@@ -5,11 +5,11 @@
       <span class="text-body-2 text-medium-emphasis">{{ mainStore.video }}</span></v-app-bar-title
     >
 
-    <v-btn :disabled="!isUndoable" icon @click="undo">
+    <v-btn :disabled="!isUndoable" icon v-tooltip="'Undo'" @click="undo">
       <v-icon>mdi-undo</v-icon>
     </v-btn>
 
-    <v-btn :disabled="!isRedoable" icon @click="redo">
+    <v-btn :disabled="!isRedoable" icon v-tooltip="'Redo'" @click="redo">
       <v-icon>mdi-redo</v-icon>
     </v-btn>
 
@@ -17,10 +17,10 @@
       <template #activator="{ props }">
         <v-btn v-tooltip="'Job list'" :disabled="!hasJobs" icon v-bind="props">
           <v-badge v-if="runningJobs" color="error" dot>
-            <v-icon>mdi-format-list-bulleted</v-icon>
+            <v-icon>mdi-history</v-icon>
           </v-badge>
 
-          <v-icon v-else>mdi-format-list-bulleted</v-icon>
+          <v-icon v-else>mdi-history</v-icon>
         </v-btn>
       </template>
 
@@ -47,104 +47,138 @@
       </v-list>
     </v-menu>
 
-    <v-menu>
-      <template #activator="{ props }">
-        <v-btn v-tooltip="'Analysis tools'" icon v-bind="props">
-          <v-icon>mdi-tools</v-icon>
-        </v-btn>
-      </template>
-
-      <v-list>
-        <v-list-item @click="shotBoundaryDetectionClicked">
-          <v-list-item-title>Shotboundary Detection</v-list-item-title>
-        </v-list-item>
-
-        <v-list-item @click="loadSubtitles">
-          <v-list-item-title>Load Subtitles</v-list-item-title>
-        </v-list-item>
-
-        <v-list-item @click="genScreenshotDialog = true">
-          <v-list-item-title>Generate Screenshots</v-list-item-title>
-        </v-list-item>
-
-        <v-list-item @click="importAnnotations">
-          <v-list-item-title>Import Annotations</v-list-item-title>
-        </v-list-item>
-
-        <v-list-item @click="manageVocabulary">
-          <v-list-item-title>Manage Vocabulary</v-list-item-title>
-        </v-list-item>
-
-        <v-list-item>
-          <v-list-item-title>Export</v-list-item-title>
-
-          <template #append>
-            <v-icon icon="mdi-menu-right" size="x-small"></v-icon>
-          </template>
-
-          <v-menu :open-on-focus="false" activator="parent" open-on-hover submenu>
-            <v-list>
-              <v-list-item @click="exportAnnotations(false)">
-                <v-list-item-title>Export Annotations (eaf)</v-list-item-title>
-              </v-list-item>
-
-              <v-list-item @click="exportAnnotations(true)">
-                <v-list-item-title>Export Annotations (csv)</v-list-item-title>
-              </v-list-item>
-
-              <v-list-item @click="exportScreenshotsDialog = true">
-                <v-list-item-title>Export Screenshots</v-list-item-title>
-              </v-list-item>
-
-              <v-list-item @click="exportProject">
-                <v-list-item-title>Export Project</v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </v-list-item>
-      </v-list>
-    </v-menu>
-
-    <v-menu>
-      <template #activator="{ props }">
-        <v-btn v-tooltip="'Settings'" icon v-bind="props">
-          <v-icon>mdi-cog</v-icon>
-        </v-btn>
-      </template>
-
-      <v-list>
-        <v-list-item @click="switchLightMode">
-          <v-list-item-title v-if="darkMode">Switch to light mode</v-list-item-title>
-
-          <v-list-item-title v-else>Switch to dark mode</v-list-item-title>
-        </v-list-item>
-
-        <v-list-item>
-          <v-list-item-title>Layout</v-list-item-title>
-
-          <template #append>
-            <v-icon icon="mdi-menu-right" size="x-small"></v-icon>
-          </template>
-
-          <v-menu :open-on-focus="false" activator="parent" open-on-hover submenu>
-            <v-list>
-              <v-list-item prepend-icon="mdi-tab" @click="layout = 'tibava'">
-                <v-list-item-title>Tabbed</v-list-item-title>
-              </v-list-item>
-
-              <v-list-item prepend-icon="mdi-arrow-all" @click="layout = 'draggable'">
-                <v-list-item-title>Draggable</v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+    <!-- <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon> -->
 
     <v-btn v-tooltip="'Home'" icon @click="homeClicked">
       <v-icon>mdi-home</v-icon>
     </v-btn>
   </v-app-bar>
+
+  <v-navigation-drawer 
+    id="nav-drawer"
+    expand-on-hover
+    permanent
+    location="right"
+    rail
+    :width="325"
+    v-model:rail="rail"
+    @mouseleave="collapseSubItems" >
+    
+    <v-list density="compact" nav>
+      <v-list-item @click="shotBoundaryDetectionClicked"
+        prepend-icon="mdi-movie-open"
+        title="Shot Boundary Detection"
+      ></v-list-item>
+
+      <v-list-item @click="loadSubtitles"
+        prepend-icon="mdi-microphone-message"
+        title="Load Subtitles"
+      ></v-list-item>
+
+      <v-list-item @click="genScreenshotDialog = true"
+        prepend-icon="mdi-image-plus"
+        title="Generate Screenshots"
+      ></v-list-item>
+    </v-list>
+
+    <v-divider></v-divider>
+
+    <v-list density="compact" nav>
+      <v-list-item @click="manageVocabulary"
+        prepend-icon="mdi-playlist-edit"
+        title="Manage Vocabulary"
+      ></v-list-item>
+
+      <v-list-group value="importGroup">
+        <template v-slot:activator="{ props }">
+          <v-list-item
+            v-bind="props"
+            prepend-icon="mdi-import"
+            title="Import Data"
+            id="ImportData"
+          ></v-list-item>
+        </template>
+
+        <v-list-item @click="importAnnotations(false)"
+          prepend-icon="mdi-alpha-e-box"
+          title="Import ELAN Annotations (.eaf)">
+        </v-list-item>
+
+        <v-list-item
+          active="false"
+          prepend-icon="mdi-alpha-t-box"
+          title="Import TIB-AV-A Results (WiP)">
+        </v-list-item>
+      </v-list-group>
+
+      <v-list-group value="exportGroup">
+        <template v-slot:activator="{ props }">
+          <v-list-item
+            v-bind="props"
+            prepend-icon="mdi-export"
+            title="Export Data"
+            id="ExportData"
+          ></v-list-item>
+        </template>
+
+        <v-list-item @click="exportAnnotations(false)"
+          prepend-icon="mdi-alpha-e-box"
+          title="Export as ELAN Annotations (.eaf)">
+        </v-list-item>
+
+        <v-list-item @click="exportAnnotations(true)"
+          prepend-icon="mdi-file-delimited"
+          title="Export Annotations as .csv">
+        </v-list-item>
+
+        <v-list-item @click="exportScreenshotsDialog = true"
+          prepend-icon="mdi-image-move"
+          title="Export Screenshots"
+        ></v-list-item>
+
+        <v-list-item @click="exportProject"
+          prepend-icon="mdi-folder-zip"
+          title="Export Project as .zip"
+        ></v-list-item>
+      </v-list-group>
+
+    </v-list>
+
+    <v-divider></v-divider>
+
+    <v-list density="compact" nav>
+      <v-list-item @click="switchLightMode" v-if="darkMode"
+        prepend-icon="mdi-weather-sunny"
+        title="Switch to Light Mode"
+      ></v-list-item>
+      <v-list-item @click="switchLightMode" v-else
+        prepend-icon="mdi-weather-night"
+        title="Switch to Dark Mode"
+      ></v-list-item>
+    
+
+      <v-list-group value="layoutGroup">
+        <template v-slot:activator="{ props }">
+          <v-list-item
+            v-bind="props"
+            prepend-icon="mdi-export"
+            title="Layout"
+          ></v-list-item>
+        </template>
+
+        <v-list-item @click="layout = 'tibava'"
+          prepend-icon="mdi-alpha-e-box"
+          title="Tabbed Layout">
+        </v-list-item>
+
+        <v-list-item @click="layout = 'draggable'"
+          prepend-icon="mdi-alpha-t-box"
+          title="Draggable Layout">
+        </v-list-item>
+      </v-list-group>
+    </v-list>
+
+  </v-navigation-drawer>
 
   <v-main class="ma-3">
     <LayoutTibava v-if="layout === 'tibava'"></LayoutTibava>
@@ -235,6 +269,7 @@ import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoStore } from '@renderer/stores/undo'
 import { useUndoableStore } from '@renderer/stores/undoable'
+import { active } from 'd3'
 
 export default {
   name: 'Id',
@@ -246,7 +281,11 @@ export default {
     layout: 'tibava',
     screenshotInterval: 10,
     screenshotPerShot: false,
-    screenshotShotTimeline: null
+    screenshotShotTimeline: null,
+    // Array of IDs of opened list groups
+    openedGroups: [],
+    // bind to drawer rail state so we can react to it
+    rail: true,
   }),
 
   computed: {
@@ -320,6 +359,12 @@ export default {
   },
 
   methods: {
+
+    collapseSubItems() {
+      console.log(this.openedGroups);
+      this.openedGroups = [];
+    },
+
     exportAnnotations(csv) {
       exportAnnotations(csv)
     },
@@ -421,6 +466,15 @@ export default {
     undo() {
       this.undoableStore.undo('undoable')
     }
-  }
+  },
+
+  watch: {
+    // When the drawer goes back to rail (collapsed), close groups
+    rail(newVal) {
+      if (newVal) {
+        this.openedGroups = [];
+      }
+    },
+  },
 }
 </script>
