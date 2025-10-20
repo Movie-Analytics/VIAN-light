@@ -43,8 +43,8 @@
     <div id="virtualscroll-container">
       <v-virtual-scroll v-if="shotTimeline" :items="shots">
         <template #default="{ item, index }">
-          <div class="my-5">
-            <div>
+          <div class="pa-3" :class="getEntryBgColor(item)">
+            <div class="cursor-pointer" @click="jumpPlayer(item.start)">
               <span class="font-weight-bold">Shot {{ index + 1 }}</span>
 
               <span class="text-medium-emphasis">
@@ -59,7 +59,7 @@
               </p>
             </div>
 
-            <v-row v-if="screenshotTimeline" justify="start" class="ga-3 mx-3 pt-3">
+            <v-row v-if="screenshotTimeline" justify="start" class="ga-3 mx-3 py-3">
               <img
                 v-for="img in getShotImages(item)"
                 :key="img.id"
@@ -78,6 +78,7 @@
 <script>
 import { mapStores } from 'pinia'
 import { useMainStore } from '@renderer/stores/main'
+import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
 
 export default {
@@ -90,7 +91,7 @@ export default {
   }),
 
   computed: {
-    ...mapStores(useMainStore, useUndoableStore),
+    ...mapStores(useMainStore, useTempStore, useUndoableStore),
 
     shots() {
       const timeline = this.undoableStore.shotTimelines.find((s) => s.id === this.shotTimeline)
@@ -113,6 +114,14 @@ export default {
   },
 
   methods: {
+    getEntryBgColor(shot) {
+      const framePos = this.tempStore.playPosition * this.mainStore.fps
+      if (shot.start <= framePos && framePos <= shot.end) {
+        return 'bg-grey-lighten-3'
+      }
+      return ''
+    },
+
     getShotImages(shot) {
       const timeline = this.undoableStore.screenshotTimelines.find(
         (s) => s.id === this.screenshotTimeline
@@ -120,6 +129,11 @@ export default {
       return timeline
         ? timeline.data.filter((s) => s.frame >= shot.start && s.frame < shot.end)
         : []
+    },
+
+    jumpPlayer(pos) {
+      // Add extra time to ensure we are within the shot bounds
+      this.tempStore.playJumpPosition = pos / this.mainStore.fps + 0.001
     }
   }
 }
