@@ -4,7 +4,7 @@
 
     <v-sheet v-else-if="selectedTimelineSegment !== null">
       <div v-if="selectedTimelineSegment.image">
-        <v-img :src="selectedTimelineSegment.image" />
+        <v-img :src="selectedTimelineSegment.image" @click="imageClicked" />
       </div>
 
       <div v-else>
@@ -49,10 +49,13 @@
     </v-sheet>
 
     <p v-else>Multiple elements selected</p>
+
+    <ImageDialog ref="imageDialog"></ImageDialog>
   </div>
 </template>
 
 <script>
+import ImageDialog from '@renderer/components/ImageDialog.vue'
 import { mapStores } from 'pinia'
 import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
@@ -60,6 +63,7 @@ import { useUndoableStore } from '@renderer/stores/undoable'
 
 export default {
   name: 'ShotDetail',
+  components: { ImageDialog },
 
   data: () => ({
     annotationBuffer: '',
@@ -123,6 +127,12 @@ export default {
         this.annotationBuffer = newValue.annotation
       }
     }
-  }
+  },
+
+  methods: {
+    imageClicked() {
+      this.$refs.imageDialog.show(this.selectedTimelineSegment)
+    }
+  },
 }
 </script>

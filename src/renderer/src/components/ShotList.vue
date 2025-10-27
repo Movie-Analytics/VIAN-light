@@ -66,16 +66,19 @@
                 :src="img.image"
                 :style="thumbZoomStyle"
                 loading="lazy"
+                @click="imageClicked(img)"
               />
             </v-row>
           </div>
         </template>
       </v-virtual-scroll>
     </div>
+    <ImageDialog ref="imageDialog"></ImageDialog>
   </v-sheet>
 </template>
 
 <script>
+import ImageDialog from '@renderer/components/ImageDialog.vue'
 import { mapStores } from 'pinia'
 import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
@@ -83,6 +86,7 @@ import { useUndoableStore } from '@renderer/stores/undoable'
 
 export default {
   name: 'ShotList',
+  components: { ImageDialog },
 
   data: () => ({
     screenshotTimeline: null,
@@ -129,6 +133,10 @@ export default {
       return timeline
         ? timeline.data.filter((s) => s.frame >= shot.start && s.frame < shot.end)
         : []
+    },
+
+    imageClicked(shot) {
+      this.$refs.imageDialog.show(shot)
     },
 
     jumpPlayer(pos) {
