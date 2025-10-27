@@ -21,7 +21,7 @@
       <v-menu :close-on-content-click="false" width="300">
         <template #activator="{ props }">
           <v-btn v-bind="props" icon class="ms-2">
-            <v-icon>mdi-magnify</v-icon>
+            <v-icon>mdi-magnify-plus</v-icon>
           </v-btn>
         </template>
 
