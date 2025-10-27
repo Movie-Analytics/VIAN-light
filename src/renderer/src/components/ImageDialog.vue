@@ -33,7 +33,7 @@ export default {
 
     title() {
       return 'Screenshot at ' + this.mainStore.timeReadableFrame(this.screenshot.frame)
-    },
+    }
   },
 
   methods: {

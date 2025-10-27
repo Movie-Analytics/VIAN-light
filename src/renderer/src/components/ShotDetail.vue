@@ -133,6 +133,6 @@ export default {
     imageClicked() {
       this.$refs.imageDialog.show(this.selectedTimelineSegment)
     }
-  },
+  }
 }
 </script>

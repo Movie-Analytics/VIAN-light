@@ -73,6 +73,7 @@
         </template>
       </v-virtual-scroll>
     </div>
+
     <ImageDialog ref="imageDialog"></ImageDialog>
   </v-sheet>
 </template>
