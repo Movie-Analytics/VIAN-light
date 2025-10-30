@@ -54,15 +54,15 @@
     </v-btn>
   </v-app-bar>
 
-  <v-navigation-drawer 
+  <v-navigation-drawer
     id="nav-drawer"
-    expand-on-hover
     permanent
+    v-model:rail="drawerRail"
+    :key="drawerKey"
     location="right"
-    rail
     :width="325"
-    v-model:rail="rail"
-    @mouseleave="collapseSubItems" >
+    expand-on-hover
+  >
     
     <v-list density="compact" nav>
       <v-list-item @click="shotBoundaryDetectionClicked"
@@ -84,64 +84,37 @@
     <v-divider></v-divider>
 
     <v-list density="compact" nav>
+
       <v-list-item @click="manageVocabulary"
         prepend-icon="mdi-playlist-edit"
         title="Manage Vocabulary"
       ></v-list-item>
 
-      <v-list-group value="importGroup">
-        <template v-slot:activator="{ props }">
-          <v-list-item
-            v-bind="props"
-            prepend-icon="mdi-import"
-            title="Import Data"
-            id="ImportData"
-          ></v-list-item>
+      <v-list-group v-model="importGroupOpen" id="ImportGroup">
+        <template #activator="{ props }">
+          <v-list-item v-bind="props" prepend-icon="mdi-import" title="Import Data" />
         </template>
 
-        <v-list-item @click="importAnnotations(false)"
-          prepend-icon="mdi-alpha-e-box"
-          title="Import ELAN Annotations (.eaf)">
-        </v-list-item>
-
-        <v-list-item
-          active="false"
-          prepend-icon="mdi-alpha-t-box"
-          title="Import TIB-AV-A Results (WiP)">
-        </v-list-item>
+        <v-list-item @click="importAnnotations(false)" prepend-icon="mdi-alpha-e-box"
+                     title="Import ELAN Annotations (.eaf)" />
+        <v-list-item prepend-icon="mdi-alpha-t-box"
+                     title="Import TIB‑AV‑A Results (WiP)" />
       </v-list-group>
 
-      <v-list-group value="exportGroup">
-        <template v-slot:activator="{ props }">
-          <v-list-item
-            v-bind="props"
-            prepend-icon="mdi-export"
-            title="Export Data"
-            id="ExportData"
-          ></v-list-item>
+      <v-list-group v-model="exportGroupOpen" id="exportGroup">
+        <template #activator="{ props }">
+          <v-list-item v-bind="props" prepend-icon="mdi-export" title="Export Data" />
         </template>
 
-        <v-list-item @click="exportAnnotations(false)"
-          prepend-icon="mdi-alpha-e-box"
-          title="Export as ELAN Annotations (.eaf)">
-        </v-list-item>
-
-        <v-list-item @click="exportAnnotations(true)"
-          prepend-icon="mdi-file-delimited"
-          title="Export Annotations as .csv">
-        </v-list-item>
-
-        <v-list-item @click="exportScreenshotsDialog = true"
-          prepend-icon="mdi-image-move"
-          title="Export Screenshots"
-        ></v-list-item>
-
-        <v-list-item @click="exportProject"
-          prepend-icon="mdi-folder-zip"
-          title="Export Project as .zip"
-        ></v-list-item>
+        <v-list-item @click="exportAnnotations(false)" prepend-icon="mdi-alpha-e-box"
+                     title="Export as ELAN Annotations (.eaf)" />
+        <v-list-item @click="exportAnnotations(true)" prepend-icon="mdi-file-delimited"
+                     title="Export Annotations as .csv" />
+        <v-list-item @click="exportScreenshotsDialog = true" prepend-icon="mdi-image-move"
+                     title="Export Screenshots" />
+        <v-list-item @click="exportProject" prepend-icon="mdi-folder-zip"
+                     title="Export Project as .zip" />
       </v-list-group>
-
     </v-list>
 
     <v-divider></v-divider>
@@ -155,13 +128,14 @@
         prepend-icon="mdi-weather-night"
         title="Switch to Dark Mode"
       ></v-list-item>
+    </v-list>
     
 
-      <v-list-group value="layoutGroup">
+      <!-- <v-list-group>
         <template v-slot:activator="{ props }">
           <v-list-item
             v-bind="props"
-            prepend-icon="mdi-export"
+            prepend-icon="mdi-arrow-expand-all"
             title="Layout"
           ></v-list-item>
         </template>
@@ -172,11 +146,11 @@
         </v-list-item>
 
         <v-list-item @click="layout = 'draggable'"
-          prepend-icon="mdi-alpha-t-box"
+          prepend-icon="mdi-move-resize"
           title="Draggable Layout">
         </v-list-item>
       </v-list-group>
-    </v-list>
+    </v-list> -->
 
   </v-navigation-drawer>
 
@@ -282,10 +256,11 @@ export default {
     screenshotInterval: 10,
     screenshotPerShot: false,
     screenshotShotTimeline: null,
-    // Array of IDs of opened list groups
-    openedGroups: [],
-    // bind to drawer rail state so we can react to it
-    rail: true,
+
+    drawerRail: true,          // true = collapsed (rail mode)
+    drawerKey: 0,
+    importGroupOpen: false,    // Import group
+    exportGroupOpen: false,    // Export group
   }),
 
   computed: {
@@ -321,6 +296,18 @@ export default {
     runningJobs() {
       return this.tempStore.jobs.some((j) => j.status === 'RUNNING')
     }
+  },
+
+  watch: {
+    drawerRail(isRail) {
+      if (isRail) {
+        this.importGroupOpen = false
+        this.exportGroupOpen = false
+        this.$nextTick(() => {
+          this.drawerKey = this.drawerKey === 0 ? 1 : 0
+        })
+      }
+    },
   },
 
   created() {
@@ -359,11 +346,6 @@ export default {
   },
 
   methods: {
-
-    collapseSubItems() {
-      console.log(this.openedGroups);
-      this.openedGroups = [];
-    },
 
     exportAnnotations(csv) {
       exportAnnotations(csv)
@@ -466,15 +448,6 @@ export default {
     undo() {
       this.undoableStore.undo('undoable')
     }
-  },
-
-  watch: {
-    // When the drawer goes back to rail (collapsed), close groups
-    rail(newVal) {
-      if (newVal) {
-        this.openedGroups = [];
-      }
-    },
   },
 }
 </script>

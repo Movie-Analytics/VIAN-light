@@ -1,14 +1,13 @@
 <template>
-  <div class="px-5">
     <v-row>
-      <v-col id="video-col">
-        <v-card>
+      <v-col id="video-col" cols="6" class="d-flex" style="flex-direction:column">
+        <v-card class="flex-grow-1 pb-5">
           <VideoPlayer></VideoPlayer>
         </v-card>
       </v-col>
 
-      <v-col id="info-col" cols="6">
-        <v-card>
+      <v-col id="info-col" cols="6" class="d-flex" style="flex-direction:column">
+        <v-card class="flex-grow-1 pb-5">
           <v-tabs v-model="tab" show-arrows>
             <v-tab value="info">Info</v-tab>
 
@@ -23,7 +22,7 @@
                 <p v-if="mainStore.fps">FPS: {{ mainStore.fps }}</p>
               </v-tabs-window-item>
 
-              <v-tabs-window-item id="shot-list-tab" value="shots">
+              <v-tabs-window-item id="shot-list-tab" value="shots" class="h-100 overflow-y-auto">
                 <ShotList></ShotList>
               </v-tabs-window-item>
 
@@ -36,16 +35,15 @@
       </v-col>
     </v-row>
 
-    <v-row>
-      <v-col>
-        <v-card>
-          <v-card-text>
-            <Timelines></Timelines>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </div>
+  <v-row>
+    <v-col cols="12">
+      <v-card class="flex-grow-1">
+        <v-card-text>
+          <Timelines></Timelines>
+        </v-card-text>
+      </v-card>
+    </v-col>
+  </v-row>
 </template>
 
 <script>
@@ -73,13 +71,19 @@ export default {
 </script>
 
 <style scoped>
-#video-col {
+
+/* #video-col {
   min-width: 400px;
+  max-height: 100%;
 }
+
 #info-col {
   max-width: 700px;
-}
-#shot-list-tab {
+  max-height: 100%;
+} */
+
+/* #shot-list-tab {
   height: 400px;
-}
+} */
+
 </style>
