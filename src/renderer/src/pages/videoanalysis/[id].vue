@@ -129,7 +129,7 @@
         title="Switch to Dark Mode"
       ></v-list-item>    
 
-      <v-list-group v-model="layourGroupOpen" id="layoutGroup">
+      <v-list-group v-model="layoutGroupOpen" id="layoutGroup">
         <template v-slot:activator="{ props }">
           <v-list-item
             v-bind="props"

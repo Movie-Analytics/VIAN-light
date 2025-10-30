@@ -80,10 +80,10 @@ export default {
 #info-col {
   max-width: 700px;
   max-height: 100%;
-} */
+} 
 
-/* #shot-list-tab {
-  height: 400px;
+#shot-list-tab {
+  max-height: 40vh;
 } */
 
 </style>

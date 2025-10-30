@@ -17,27 +17,19 @@
         item-title="name"
         item-value="id"
       />
+    </v-row>
 
-      <v-menu :close-on-content-click="false" width="300">
-        <template #activator="{ props }">
-          <v-btn v-bind="props" icon class="ms-2">
-            <v-icon>mdi-magnify</v-icon>
-          </v-btn>
-        </template>
-
-        <v-sheet>
-          <v-slider
-            v-model="thumbZoom"
-            :disabled="!screenshotTimeline"
-            append-icon="mdi-magnify-plus-outline"
-            prepend-icon="mdi-magnify-minus-outline"
-            class="ma-2"
-            hide-details
-            :min="30"
-            :max="100"
-          ></v-slider>
-        </v-sheet>
-      </v-menu>
+    <v-row class="ma-1">
+      <v-slider
+        v-model="thumbZoom"
+        :disabled="!screenshotTimeline"
+        append-icon="mdi-magnify-plus-outline"
+        prepend-icon="mdi-magnify-minus-outline"
+        class="ma-2"
+        hide-details
+        :min="30"
+        :max="100"
+      ></v-slider>
     </v-row>
 
     <div id="virtualscroll-container">
@@ -129,6 +121,7 @@ export default {
 #virtualscroll-container {
   display: flex;
   height: calc(100% - 100px);
+  max-height: 40vh;
 }
 #top-sheet {
   height: inherit;
