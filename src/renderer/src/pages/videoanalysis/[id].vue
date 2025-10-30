@@ -127,11 +127,9 @@
       <v-list-item @click="switchLightMode" v-else
         prepend-icon="mdi-weather-night"
         title="Switch to Dark Mode"
-      ></v-list-item>
-    </v-list>
-    
+      ></v-list-item>    
 
-      <!-- <v-list-group>
+      <v-list-group v-model="layourGroupOpen" id="layoutGroup">
         <template v-slot:activator="{ props }">
           <v-list-item
             v-bind="props"
@@ -150,7 +148,7 @@
           title="Draggable Layout">
         </v-list-item>
       </v-list-group>
-    </v-list> -->
+    </v-list>
 
   </v-navigation-drawer>
 
@@ -261,6 +259,7 @@ export default {
     drawerKey: 0,
     importGroupOpen: false,    // Import group
     exportGroupOpen: false,    // Export group
+    layoutGroupOpen: false,    // Export group
   }),
 
   computed: {
@@ -303,6 +302,7 @@ export default {
       if (isRail) {
         this.importGroupOpen = false
         this.exportGroupOpen = false
+        this.layoutGroupOpen = false
         this.$nextTick(() => {
           this.drawerKey = this.drawerKey === 0 ? 1 : 0
         })
