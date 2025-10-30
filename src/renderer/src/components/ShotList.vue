@@ -8,6 +8,7 @@
         item-title="name"
         item-value="id"
         class="me-2"
+        style="min-width: 120px;"
       />
 
       <v-select
@@ -16,10 +17,9 @@
         label="Screenshot Timeline"
         item-title="name"
         item-value="id"
+        style="min-width: 120px;"
       />
-    </v-row>
 
-    <v-row class="ma-1">
       <v-slider
         v-model="thumbZoom"
         :disabled="!screenshotTimeline"
@@ -29,6 +29,7 @@
         hide-details
         :min="30"
         :max="100"
+        style="min-width: 120px;"
       ></v-slider>
     </v-row>
 
@@ -121,7 +122,7 @@ export default {
 #virtualscroll-container {
   display: flex;
   height: calc(100% - 100px);
-  max-height: 40vh;
+  max-height: 30vh;
 }
 #top-sheet {
   height: inherit;
