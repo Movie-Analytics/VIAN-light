@@ -8,7 +8,9 @@
         :style="videoColStyle"
       >
         <v-card class="flex-grow-1 h-100 d-flex flex-column">
-          <VideoPlayer></VideoPlayer>
+          <!-- <div class="video-player-wrapper"> -->
+            <VideoPlayer></VideoPlayer>
+          <!-- </div> -->
         </v-card>
       </div>
 
@@ -20,23 +22,25 @@
       >
         <v-card class="flex-grow-1 h-100 d-flex flex-column">
           <v-tabs v-model="tab" show-arrows>
-            <v-tab value="info">Info</v-tab>
-            <v-tab :disabled="undoableStore.shotTimelines.length == 0" value="shots">Shots</v-tab>
+            <!-- <v-tab :disabled="undoableStore.shotTimelines.length == 0" value="shots">Shots</v-tab> -->
+            <v-tab value="shots">Shots</v-tab>
             <v-tab value="selection">Selection</v-tab>
+            <v-tab value="info">Info</v-tab>
           </v-tabs>
 
           <v-card-text class="flex-grow-1">
-            <v-tabs-window v-model="tab">
-              <v-tabs-window-item value="info">
-                <p v-if="mainStore.fps">FPS: {{ mainStore.fps }}</p>
-              </v-tabs-window-item>
+            <v-tabs-window v-model="tab" class="pa-4">
 
-              <v-tabs-window-item id="shot-list-tab" value="shots" class="h-100 overflow-y-auto">
+              <v-tabs-window-item id="shot-list-tab" value="shots">
                 <ShotList></ShotList>
               </v-tabs-window-item>
 
               <v-tabs-window-item value="selection">
                 <ShotDetail></ShotDetail>
+              </v-tabs-window-item>
+
+              <v-tabs-window-item value="info">
+                <p v-if="mainStore.fps">FPS: {{ mainStore.fps }}</p>
               </v-tabs-window-item>
             </v-tabs-window>
           </v-card-text>
@@ -57,37 +61,26 @@
       </div>
 
       <!-- Draggable Separators -->
+      <!-- Vertical separator between video and info columns -->
       <div 
         class="separator vertical" 
         ref="verticalSeparator"
         @mousedown="startVerticalDrag"
         @touchstart="handleTouchStart"
+        :style="verticalSeparatorStyle"
       >
-        <div class="separator-handle"></div>
       </div>
       
+      <!-- Horizontal separator between top and bottom sections -->
       <div 
         class="separator horizontal" 
         ref="horizontalSeparator"
         @mousedown="startHorizontalDrag"
         @touchstart="handleTouchStart"
+        :style="horizontalSeparatorStyle"
       >
-        <div class="separator-handle"></div>
       </div>
     </div>
-    
-    <!-- <div class="status-bar">
-      {{ statusMessage }}
-    </div>
-    
-    <div class="layout-info">
-      Current layout: 
-      <span v-html="layoutInfo"></span>
-    </div>
-    
-    <div class="min-size-warning">
-      {{ warningMessage }}
-    </div> -->
   </div>
 </template>
 
@@ -123,39 +116,67 @@ export default {
       warningMessage: "Warning: Sections cannot be smaller than 25% of the container size",
       layoutInfo: "",
       containerWidth: 0,
-      containerHeight: 0
+      containerHeight: 0,
+      padding: "0.5rem"
     }
   },
   computed: {
     ...mapStores(useMainStore, useUndoableStore),
+
+    darkMode() {
+      return this.$vuetify.theme.global.name === 'dark'
+    },
+    
     videoColStyle() {
       return {
-        left: '0%',
-        top: '0%',
-        width: `${this.verticalPosition}%`,
-        height: `${this.horizontalPosition}%`
+        left: `calc(0% + ${this.padding})`,
+        top: `calc(0% + ${this.padding})`,
+        width: `calc(${this.verticalPosition}% - 2 * ${this.padding})`,
+        height: `calc(${this.horizontalPosition}% - 2 * ${this.padding})`,
       }
     },
     infoColStyle() {
       return {
-        left: `${this.verticalPosition}%`,
-        top: '0%',
-        width: `${100 - this.verticalPosition}%`,
-        height: `${this.horizontalPosition}%`
+        left: `calc(${this.verticalPosition}% + ${this.padding})`,
+        top: `calc(0% + ${this.padding})`,
+        width: `calc(${100 - this.verticalPosition}% - 2 * ${this.padding})`,
+        height: `calc(${this.horizontalPosition}% - 2 * ${this.padding})`,
       }
     },
     timelinesStyle() {
       return {
-        left: '0%',
-        top: `${this.horizontalPosition}%`,
-        width: '100%',
+        left: `${this.padding}`,
+        top: `calc(${this.horizontalPosition}% + ${this.padding})`,
+        width: `calc(100% - 2 * ${this.padding})`,
         height: `${100 - this.horizontalPosition}%`
+      }
+    },
+    verticalSeparatorStyle() {
+      return {
+        // top: `${this.padding}`,
+        // height: `calc(${this.horizontalPosition}% - 2 * ${this.padding}`,
+        top: `calc(${this.horizontalPosition}% / 2 - 5%)`,
+        height: `10%`,
+        // TODO: Use theme colors
+        background: this.darkMode ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)",
+      }
+    },
+    horizontalSeparatorStyle() {
+      console.log(this.darkMode) 
+
+      return {
+        top: `${this.horizontalPosition}%`,
+        // left: `${this.padding}`,
+        // width: `calc(100% - 2 * ${this.padding})`,
+        left: `45%`,
+        width: `10%`,
+        // TODO: Use theme colors
+        background: this.darkMode ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)",
       }
     }
   },
   mounted() {
     this.updateContainerSize();
-    this.updateLayoutInfo();
     window.addEventListener('resize', this.handleResize);
     document.addEventListener('mousemove', this.handleMouseMove);
     document.addEventListener('mouseup', this.stopDragging);
@@ -181,7 +202,7 @@ export default {
     startHorizontalDrag(e) {
       this.isDraggingHorizontal = true;
       this.startY = e.clientY;
-      this.startTop = this.horizontalPosition;
+      this.startTop = this.horizontalPosition ;
       this.statusMessage = "Adjusting height ratio...";
       e.preventDefault();
     },
@@ -206,7 +227,6 @@ export default {
       
       // Update position
       this.verticalPosition = newPosition;
-      this.updateLayoutInfo();
       this.statusMessage = `Vertical separator at ${Math.round(newPosition)}%`;
     },
     
@@ -222,7 +242,6 @@ export default {
       
       // Update position
       this.horizontalPosition = newPosition;
-      this.updateLayoutInfo();
       this.statusMessage = `Horizontal separator at ${Math.round(newPosition)}%`;
     },
     
@@ -305,22 +324,8 @@ export default {
       return position;
     },
     
-    updateLayoutInfo() {
-      const videoWidth = this.verticalPosition;
-      const infoWidth = 100 - this.verticalPosition;
-      const topHeight = this.horizontalPosition;
-      const bottomHeight = 100 - this.horizontalPosition;
-      
-      this.layoutInfo = `
-        Video Column: (0,0)-(${Math.round(videoWidth)}%,${Math.round(topHeight)}%)<br>
-        Info Column: (${Math.round(videoWidth)}%,0)-(${Math.round(100)}%,${Math.round(topHeight)}%)<br>
-        Timelines: (0,${Math.round(topHeight)}%)-(${Math.round(100)}%,${Math.round(100)}%)
-      `;
-    },
-    
     handleResize() {
       this.updateContainerSize();
-      this.updateLayoutInfo();
     },
     
     updateContainerSize() {
@@ -348,7 +353,7 @@ export default {
 
 <style scoped>
 * {
-  margin: 0;
+  margin: 5;
   padding: 0;
   box-sizing: border-box;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -364,10 +369,9 @@ export default {
 .grid-container {
   position: relative;
   flex-grow: 1;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
+  /* background: rgba(0, 0, 0, 0.05); */
+  /* border-radius: 10px; */
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   min-height: 500px;
 }
 
@@ -378,109 +382,52 @@ export default {
   justify-content: center;
   align-items: center;
   padding: 0;
-  transition: all 0.3s ease;
+  margin: 0;
+  transform: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.section:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-3px);
-}
-
-.video-col {
-  background: linear-gradient(135deg, #3498db, #8e44ad);
-}
-
-.info-col {
-  background: linear-gradient(135deg, #2ecc71, #f1c40f);
-}
-
-.timelines {
-  background: linear-gradient(135deg, #e74c3c, #d35400);
+  overflow: vis;
+  /* border: 1px solid rgba(255, 255, 255, 0.2); */
 }
 
 /* Separator styles */
 .separator {
   position: absolute;
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255);
   transition: background 0.3s ease;
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  /* box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); */
   border-radius: 4px;
 }
 
-.separator:hover {
-  background: rgba(255, 255, 255, 0.6);
-}
-
+/* Vertical separator - between video and info columns */
 .separator.vertical {
   width: 8px;
   height: 100%;
   left: 50%;
   transform: translateX(-50%);
+  cursor: ew-resize;
 }
 
+/* Horizontal separator - between top and bottom sections */
 .separator.horizontal {
   width: 100%;
   height: 8px;
   top: 50%;
   transform: translateY(-50%);
+  cursor: ns-resize;
 }
 
-.separator-handle {
-  width: 30px;
-  height: 30px;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 50%;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* Hide separators when not hovering */
+.separator:not(:hover) {
+  opacity: 0.2;
+}
+
+/* Show separators when hovering */
+.separator:hover {
   opacity: 0.7;
-  transition: opacity 0.3s ease;
-  z-index: 101;
-}
-
-.separator:hover .separator-handle {
-  opacity: 1;
-}
-
-.separator-handle::before {
-  content: "";
-  width: 12px;
-  height: 12px;
-  background: #333;
-  border-radius: 50%;
-}
-
-.status-bar {
-  margin-top: 20px;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 15px;
-  border-radius: 10px;
-  text-align: center;
-  font-size: 1.1rem;
-}
-
-.layout-info {
-  margin-top: 15px;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 15px;
-  border-radius: 10px;
-  text-align: center;
-  font-size: 1rem;
-}
-
-.min-size-warning {
-  margin-top: 10px;
-  color: #ffcc00;
-  font-weight: bold;
-  text-align: center;
 }
 
 /* Override Vuetify styles for proper sizing */
@@ -496,19 +443,10 @@ export default {
   overflow: auto;
 }
 
-/* Fix for separator visibility */
-.separator {
-  pointer-events: auto;
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .grid-container {
     min-height: 400px;
-  }
-  
-  .status-bar, .layout-info, .min-size-warning {
-    font-size: 0.9rem;
   }
 }
 </style>
