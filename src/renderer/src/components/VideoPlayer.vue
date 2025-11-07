@@ -1,11 +1,12 @@
 <template>
-  <v-sheet>
+  <v-sheet style="height: 100%;">
     <video
       ref="video"
       class="ma-2"
       crossorigin="anonymous"
       @durationchange="durationChange"
       @timeupdate="videoTimeUpdate"
+      style="height: 80%;"
     >
       <source v-if="mainStore.video !== null" :src="mainStore.video" type="video/mp4" />
 
