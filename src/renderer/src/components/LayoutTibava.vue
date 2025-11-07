@@ -51,7 +51,7 @@
       >
         <v-card class="flex-grow-1 h-100 d-flex flex-column">
           <v-card-text class="flex-grow-1">
-            <Timelines class="overflow-y-auto"></Timelines>
+            <Timelines></Timelines>
           </v-card-text>
         </v-card>
       </div>
@@ -76,7 +76,7 @@
       </div>
     </div>
     
-    <div class="status-bar">
+    <!-- <div class="status-bar">
       {{ statusMessage }}
     </div>
     
@@ -87,7 +87,7 @@
     
     <div class="min-size-warning">
       {{ warningMessage }}
-    </div>
+    </div> -->
   </div>
 </template>
 
