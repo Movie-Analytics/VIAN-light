@@ -57,6 +57,7 @@
   <v-navigation-drawer
     id="nav-drawer"
     permanent
+    floating
     v-model:rail="drawerRail"
     :key="drawerKey"
     location="right"
