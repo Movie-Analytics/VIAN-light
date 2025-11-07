@@ -5,39 +5,30 @@
         v-model="shotTimeline"
         :items="undoableStore.shotTimelines"
         label="Shot Timeline"
+        class="me-2 shotlist-header-element"
         item-title="name"
         item-value="id"
-        class="me-2"
       />
 
       <v-select
         v-model="screenshotTimeline"
         :items="undoableStore.screenshotTimelines"
         label="Screenshot Timeline"
+        class="shotlist-header-element"
         item-title="name"
         item-value="id"
       />
 
-      <v-menu :close-on-content-click="false" width="300">
-        <template #activator="{ props }">
-          <v-btn v-bind="props" icon class="ms-2">
-            <v-icon>mdi-magnify-plus</v-icon>
-          </v-btn>
-        </template>
-
-        <v-sheet>
-          <v-slider
-            v-model="thumbZoom"
-            :disabled="!screenshotTimeline"
-            append-icon="mdi-magnify-plus-outline"
-            prepend-icon="mdi-magnify-minus-outline"
-            class="ma-2"
-            hide-details
-            :min="30"
-            :max="100"
-          ></v-slider>
-        </v-sheet>
-      </v-menu>
+      <v-slider
+        v-model="thumbZoom"
+        :disabled="!screenshotTimeline"
+        append-icon="mdi-magnify-plus-outline"
+        prepend-icon="mdi-magnify-minus-outline"
+        class="ma-2 shotlist-header-element"
+        hide-details
+        :min="30"
+        :max="100"
+      ></v-slider>
     </v-row>
 
     <div id="virtualscroll-container">
@@ -155,5 +146,8 @@ export default {
 }
 #top-sheet {
   height: inherit;
+}
+.shotlist-header-element {
+  min-width: 120px;
 }
 </style>
