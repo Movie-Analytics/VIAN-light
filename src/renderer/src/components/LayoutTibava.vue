@@ -1,12 +1,12 @@
 <template>
-    <v-row>
-      <v-col id="video-col" cols="6" class="d-flex" style="flex-direction:column">
+    <v-row align="stretch">
+      <v-col id="video-col" cols="12" lg="6" class="d-flex" style="flex-direction:column">
         <v-card class="flex-grow-1 pb-5">
           <VideoPlayer></VideoPlayer>
         </v-card>
       </v-col>
 
-      <v-col id="info-col" cols="6" class="d-flex" style="flex-direction:column">
+      <v-col id="info-col" cols="12" lg="6" class="d-flex" style="flex-direction:column">
         <v-card class="flex-grow-1 pb-5">
           <v-tabs v-model="tab" show-arrows>
             <v-tab value="info">Info</v-tab>
@@ -39,7 +39,7 @@
     <v-col cols="12">
       <v-card class="flex-grow-1">
         <v-card-text>
-          <Timelines></Timelines>
+          <Timelines class="overflow-y-auto"></Timelines>
         </v-card-text>
       </v-card>
     </v-col>
