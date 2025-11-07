@@ -18,27 +18,27 @@
     </video>
 
     <div class="d-flex flex-0-0 flex-column">
-      <div class="d-flex justify-space-between ma-2 min-wide-control">
+      <div class="d-flex justify-space-between min-wide-control px-2">
         <div class="align-center d-flex">
-          <v-btn icon @click="jumpBackward">
+          <v-btn density="comfortable" size="small" icon @click="jumpBackward">
             <v-icon>mdi-skip-backward</v-icon>
           </v-btn>
 
-          <v-btn icon @click="backwardClicked">
+          <v-btn density="comfortable" size="small" icon @click="backwardClicked">
             <v-icon>mdi-step-backward</v-icon>
           </v-btn>
 
-          <v-btn icon @click="playPauseClicked">
+          <v-btn density="comfortable" size="small" icon @click="playPauseClicked">
             <v-icon v-if="playingState">mdi-pause</v-icon>
 
             <v-icon v-else>mdi-play</v-icon>
           </v-btn>
 
-          <v-btn icon @click="forwardClicked">
+          <v-btn density="comfortable" size="small" icon @click="forwardClicked">
             <v-icon>mdi-step-forward</v-icon>
           </v-btn>
 
-          <v-btn icon @click="jumpForward">
+          <v-btn density="comfortable" size="small" icon @click="jumpForward">
             <v-icon>mdi-skip-forward</v-icon>
           </v-btn>
 
@@ -53,20 +53,20 @@
             {{ playbackRate }}x
           </v-chip>
 
-          <p>{{ readableTime }}</p>
+          <v-text>{{ readableTime }}</v-text>
         </div>
 
         <div class="align-center d-flex">
-          <v-btn v-if="pictureInPictureEnabled" icon @click="pictureInPictureClicked">
+          <v-btn v-if="pictureInPictureEnabled" density="comfortable" size="small" icon @click="pictureInPictureClicked">
             <v-icon>mdi-picture-in-picture-top-right</v-icon>
           </v-btn>
 
-          <v-btn icon @click="screenshotClicked">
+          <v-btn density="comfortable" size="small" icon @click="screenshotClicked">
             <v-icon>mdi-camera</v-icon>
           </v-btn>
 
           <div class="volume-control">
-            <v-btn icon @click.stop="toggleVolumeSlider">
+            <v-btn density="comfortable" size="small" icon @click.stop="toggleVolumeSlider">
               <v-icon>{{ volume === 0 ? 'mdi-volume-mute' : 'mdi-volume-high' }}</v-icon>
             </v-btn>
 
@@ -87,6 +87,7 @@
                   :step="1"
                   :min="0"
                   :max="100"
+                  height="50"
                   hide-details
                   @update:model-value="updateVolume"
                 >
@@ -316,7 +317,8 @@ export default {
 
 <style scoped>
 video {
-  max-width: calc(100% - 20px);
+  max-width: 100%;
+  max-height: 100%;
 }
 .min-wide-control {
   min-width: 300px;
@@ -332,5 +334,8 @@ video {
   position: relative;
   display: flex;
   align-items: center;
+}
+.nav-icon:hover {
+  color: red;
 }
 </style>
