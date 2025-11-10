@@ -254,7 +254,7 @@ export default {
             let color = '#aaaaaa'
             if (shotIndex % 2 === 0) color = '#cccccc'
             if (shot.locked) color = '#eeeeee'
-            const annotation = shotIndex + ': ' + (shot.annotation || '').slice(0, 40)
+            const annotation = shotIndex + 1 + ': ' + (shot.annotation || '').slice(0, 40)
             data.push({
               annotation,
               fill: color,
