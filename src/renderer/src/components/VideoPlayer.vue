@@ -1,9 +1,9 @@
 <template>
-  <v-sheet style="height: 100%; display: flex; flex-direction: column;">
-    <div style="flex-grow: 1; position: relative; width: 100%;">
+  <v-sheet id="video-player-wrapper">
+    <div id="video-wrapper">
       <video
+        id="video"
         ref="video"
-        style="width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0;"
         crossorigin="anonymous"
         @durationchange="durationChange"
         @timeupdate="videoTimeUpdate"
@@ -19,10 +19,9 @@
       </video>
     </div>
 
-    <div class="d-flex flex-column" style="flex-grow: 0;">
+    <div class="d-flex flex-column video-control-wrapper">
       <div class="d-flex justify-space-between min-wide-control">
         <div class="align-center d-flex">
-          
           <v-btn density="comfortable" size="small" icon @click="jumpBackward">
             <v-icon>mdi-skip-backward</v-icon>
           </v-btn>
@@ -33,6 +32,7 @@
 
           <v-btn density="comfortable" size="small" icon @click="playPauseClicked">
             <v-icon v-if="playingState">mdi-pause</v-icon>
+
             <v-icon v-else>mdi-play</v-icon>
           </v-btn>
 
@@ -59,7 +59,13 @@
         </div>
 
         <div class="align-center d-flex">
-          <v-btn v-if="pictureInPictureEnabled" density="comfortable" size="small"icon @click="pictureInPictureClicked">
+          <v-btn
+            v-if="pictureInPictureEnabled"
+            density="comfortable"
+            size="small"
+            icon
+            @click="pictureInPictureClicked"
+          >
             <v-icon>mdi-picture-in-picture-top-right</v-icon>
           </v-btn>
 
@@ -100,6 +106,7 @@
 
           <v-btn v-if="undoableStore.subtitles !== null" icon @click="toggleSubtitles">
             <v-icon v-if="undoableStore.subtitlesVisible">mdi-subtitles</v-icon>
+
             <v-icon v-else>mdi-subtitles-outline</v-icon>
           </v-btn>
         </div>
@@ -321,9 +328,36 @@ video {
   max-width: 100%;
   max-height: 100%;
 }
+
+#video-player-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#video-wrapper {
+  flex-grow: 1;
+  position: relative;
+  width: 100%;
+}
+
+#video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#video-control-wrapper {
+  flex-grow: 0;
+}
+
 .min-wide-control {
   min-width: 300px;
 }
+
 .playback-rate {
   font-family: monospace;
   font-size: 0.9em;
@@ -331,13 +365,10 @@ video {
   opacity: 0.7;
   pointer-events: auto !important;
 }
+
 .volume-control {
   position: relative;
   display: flex;
   align-items: center;
 }
-.nav-icon:hover {
-  color: red;
-}
-
 </style>
