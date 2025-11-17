@@ -39,6 +39,8 @@ protocol.registerSchemesAsPrivileged([
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
     height: 670,
+    minHeight: 400,
+    minWidth: 600,
     show: false,
     webPreferences: {
       contextIsolation: true,
