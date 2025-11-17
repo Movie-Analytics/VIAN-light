@@ -112,7 +112,7 @@
             </template>
           </v-list-group>
 
-          <v-list-item @click="addTimeline" v-tooltip="'Add new track'">
+          <v-list-item v-tooltip="'Add new track'" @click="addTimeline">
             <v-icon>mdi-playlist-plus</v-icon>
           </v-list-item>
         </v-list>
