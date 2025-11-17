@@ -1,51 +1,58 @@
+<!-- eslint-disable vue/enforce-style-attribute -->
 <template>
-  <div class="px-5">
-    <v-row>
-      <v-col id="video-col">
-        <v-card>
-          <VideoPlayer></VideoPlayer>
-        </v-card>
-      </v-col>
+  <SplitterContainer layout="vertical" id="toplevel-splitter">
+    <template #panel1>
+      <SplitterContainer :horizontal-breakpoint="900">
+        <template #panel1>
+          <v-card class="h-100 w-100">
+            <VideoPlayer></VideoPlayer>
+          </v-card>
+        </template>
 
-      <v-col id="info-col" cols="6">
-        <v-card class="h-100">
-          <v-tabs v-model="tab" show-arrows>
-            <v-tab value="info">Info</v-tab>
+        <template #panel2>
+          <v-card class="d-flex flex-column h-100 w-100">
+            <v-tabs v-model="tab" show-arrows class="flex-0-0">
+              <v-tab value="info">Info</v-tab>
 
-            <v-tab :disabled="undoableStore.shotTimelines.length == 0" value="shots">Shots</v-tab>
+              <v-tab :disabled="undoableStore.shotTimelines.length == 0" value="shots">Shots</v-tab>
 
-            <v-tab value="selection">Selection</v-tab>
-          </v-tabs>
+              <v-tab value="selection">Selection</v-tab>
+            </v-tabs>
 
-          <v-card-text>
-            <v-tabs-window v-model="tab">
-              <v-tabs-window-item value="info">
-                <p v-if="mainStore.fps">FPS: {{ mainStore.fps }}</p>
-              </v-tabs-window-item>
+            <v-card-text class="d-flex flex-1-1 flex-column height-min-0">
+              <v-tabs-window
+                id="info-tabs"
+                v-model="tab"
+                class="d-flex flex-1-1 flex-column height-min-0"
+              >
+                <v-tabs-window-item value="info">
+                  <p v-if="mainStore.fps">FPS: {{ mainStore.fps }}</p>
+                </v-tabs-window-item>
 
-              <v-tabs-window-item id="shot-list-tab" value="shots">
-                <ShotList></ShotList>
-              </v-tabs-window-item>
+                <v-tabs-window-item value="shots" class="h-100">
+                  <ShotList></ShotList>
+                </v-tabs-window-item>
 
-              <v-tabs-window-item value="selection">
-                <ShotDetail></ShotDetail>
-              </v-tabs-window-item>
-            </v-tabs-window>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+                <v-tabs-window-item value="selection" class="h-100 overflow-y-auto">
+                  <ShotDetail></ShotDetail>
+                </v-tabs-window-item>
+              </v-tabs-window>
+            </v-card-text>
+          </v-card>
+        </template>
+      </SplitterContainer>
+    </template>
 
-    <v-row>
-      <v-col>
+    <template #panel2>
+      <div class="flex-1-1 height-min-0 overflow-y-auto">
         <v-card>
           <v-card-text>
             <Timelines></Timelines>
           </v-card-text>
         </v-card>
-      </v-col>
-    </v-row>
-  </div>
+      </div>
+    </template>
+  </SplitterContainer>
 </template>
 
 <script>
@@ -53,6 +60,7 @@ import { mapStores } from 'pinia'
 
 import ShotDetail from '@renderer/components/ShotDetail.vue'
 import ShotList from '@renderer/components/ShotList.vue'
+import SplitterContainer from '@renderer/components/SplitterContainer.vue'
 import Timelines from '@renderer/components/Timelines.vue'
 import VideoPlayer from '@renderer/components/VideoPlayer.vue'
 import { useMainStore } from '@renderer/stores/main'
@@ -60,7 +68,7 @@ import { useUndoableStore } from '@renderer/stores/undoable'
 
 export default {
   name: 'LayoutTibava',
-  components: { ShotDetail, ShotList, Timelines, VideoPlayer },
+  components: { ShotDetail, ShotList, SplitterContainer, Timelines, VideoPlayer },
 
   data: () => ({
     tab: null
@@ -73,13 +81,17 @@ export default {
 </script>
 
 <style scoped>
-#video-col {
-  min-width: 400px;
+#toplevel-splitter {
+  height: calc(100vh - 80px);
 }
-#info-col {
-  max-width: 700px;
-}
-#shot-list-tab {
-  height: 400px;
+</style>
+
+<!-- eslint-disable-next-line vue/enforce-style-attribute -->
+<style>
+#info-tabs > .v-window__container {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 </style>

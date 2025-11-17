@@ -1,5 +1,5 @@
 <template>
-  <div class="position-relative">
+  <div class="position-relative w-100">
     <canvas ref="canvas" height="0"></canvas>
 
     <v-overlay v-model="overlayInput" contained>

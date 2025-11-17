@@ -1,6 +1,6 @@
 <template>
-  <v-sheet id="top-sheet">
-    <v-row class="ma-1">
+  <v-sheet class="d-flex flex-1-1 flex-column h-100 height-min-0">
+    <v-row class="flex-0-0 ma-1">
       <v-select
         v-model="shotTimeline"
         :items="undoableStore.shotTimelines"
@@ -31,7 +31,7 @@
       ></v-slider>
     </v-row>
 
-    <div id="virtualscroll-container">
+    <div id="virtualscroll-containerx" class="flex-1-1 height-min-0 overflow-y-auto">
       <v-virtual-scroll v-if="shotTimeline" :items="shots">
         <template #default="{ item, index }">
           <div class="pa-3" :class="getEntryBgColor(item)">
@@ -140,13 +140,6 @@ export default {
 </script>
 
 <style scoped>
-#virtualscroll-container {
-  display: flex;
-  height: calc(100% - 100px);
-}
-#top-sheet {
-  height: inherit;
-}
 .shotlist-header-element {
   min-width: 120px;
 }

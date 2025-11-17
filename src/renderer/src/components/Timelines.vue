@@ -1,6 +1,6 @@
 <template>
-  <v-sheet>
-    <v-row>
+  <v-sheet class="height-inherit">
+    <div>
       <v-btn
         density="compact"
         variant="text"
@@ -30,11 +30,11 @@
       >
         <v-icon>mdi-table-merge-cells</v-icon>
       </v-btn>
-    </v-row>
+    </div>
 
-    <v-row>
-      <v-col cols="3">
-        <v-list id="timeline-list" lines="one">
+    <SplitterContainer :inital-panel1-percent="30">
+      <template #panel1>
+        <v-list id="timeline-list" lines="one" class="w-100">
           <v-list-group v-for="timeline in undoableStore.timelines" :key="timeline">
             <template #activator="{ props, isOpen }">
               <v-list-item :title="timeline.name">
@@ -116,12 +116,12 @@
             <v-icon>mdi-playlist-plus</v-icon>
           </v-list-item>
         </v-list>
-      </v-col>
+      </template>
 
-      <v-col>
+      <template #panel2>
         <TimelineCanvas></TimelineCanvas>
-      </v-col>
-    </v-row>
+      </template>
+    </SplitterContainer>
 
     <v-dialog v-model="renameDialog" persistent max-width="400">
       <v-card>
@@ -164,6 +164,7 @@
 <script>
 import { mapStores } from 'pinia'
 
+import SplitterContainer from '@renderer/components/SplitterContainer.vue'
 import TimelineCanvas from '@renderer/components/TimelineCanvas.vue'
 import api from '@renderer/api'
 import shortcuts from '@renderer/shortcuts'
@@ -173,7 +174,7 @@ import { useUndoableStore } from '@renderer/stores/undoable'
 
 export default {
   name: 'Timelines',
-  components: { TimelineCanvas },
+  components: { SplitterContainer, TimelineCanvas },
 
   data() {
     return {

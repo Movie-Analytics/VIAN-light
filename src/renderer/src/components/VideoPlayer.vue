@@ -1,8 +1,8 @@
 <template>
-  <v-sheet>
+  <v-sheet class="d-flex flex-column h-100 w-100">
     <video
       ref="video"
-      class="ma-2"
+      class="flex-1-1 height-min-0 pa-2"
       crossorigin="anonymous"
       @durationchange="durationChange"
       @timeupdate="videoTimeUpdate"
@@ -17,7 +17,7 @@
       />
     </video>
 
-    <div class="d-flex flex-column">
+    <div class="d-flex flex-0-0 flex-column">
       <div class="d-flex justify-space-between ma-2 min-wide-control">
         <div class="align-center d-flex">
           <v-btn icon @click="jumpBackward">
