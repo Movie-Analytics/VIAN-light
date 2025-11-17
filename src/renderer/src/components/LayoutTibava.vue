@@ -1,8 +1,8 @@
 <!-- eslint-disable vue/enforce-style-attribute -->
 <template>
-  <SplitterContainer layout="vertical" id="toplevel-splitter">
+  <SplitterContainer id="toplevel-splitter" layout="vertical">
     <template #panel1>
-      <SplitterContainer :horizontal-breakpoint="900">
+      <SplitterContainer :horizontal-breakpoint="700">
         <template #panel1>
           <v-card class="h-100 w-100">
             <VideoPlayer></VideoPlayer>
