@@ -53,11 +53,17 @@
             {{ playbackRate }}x
           </v-chip>
 
-          <v-text>{{ readableTime }}</v-text>
+          <p>{{ readableTime }}</p>
         </div>
 
         <div class="align-center d-flex">
-          <v-btn v-if="pictureInPictureEnabled" density="comfortable" size="small" icon @click="pictureInPictureClicked">
+          <v-btn
+            v-if="pictureInPictureEnabled"
+            density="comfortable"
+            size="small"
+            icon
+            @click="pictureInPictureClicked"
+          >
             <v-icon>mdi-picture-in-picture-top-right</v-icon>
           </v-btn>
 
@@ -334,8 +340,5 @@ video {
   position: relative;
   display: flex;
   align-items: center;
-}
-.nav-icon:hover {
-  color: red;
 }
 </style>
