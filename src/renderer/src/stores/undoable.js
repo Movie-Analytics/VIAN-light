@@ -42,7 +42,7 @@ export const useUndoableStore = defineStore('undoable', {
       this.timelines.push({
         data: [],
         id: crypto.randomUUID(),
-        name: 'Track ' + this.timelines.length + 1,
+        name: 'Track ' + (this.timelines.length + 1),
         type: 'shots',
         vocabulary: null
       })
