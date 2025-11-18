@@ -13,6 +13,7 @@
         density="compact"
         class="bg-blue-grey-lighten-5 position-absolute"
         @change="overlayInputChange"
+        @keyup.enter="overlayInputChange"
       ></v-text-field>
     </v-overlay>
 
