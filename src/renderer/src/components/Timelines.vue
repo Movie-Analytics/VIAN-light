@@ -37,7 +37,7 @@
         <v-list id="timeline-list" lines="one" class="w-100">
           <v-list-group v-for="timeline in undoableStore.timelines" :key="timeline">
             <template #activator="{ props, isOpen }">
-              <v-list-item :title="timeline.name">
+              <v-list-item :title="timeline.name" class="pr-2">
                 <template #append>
                   <v-list-item-action start>
                     <v-btn
@@ -46,7 +46,6 @@
                       v-bind="props"
                       variant="text"
                       density="compact"
-                      class="me-2"
                       @click="changeVisibility(timeline.id, undefined, isOpen)"
                     >
                       <v-icon>mdi-expand-all</v-icon>
