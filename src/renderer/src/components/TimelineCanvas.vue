@@ -216,7 +216,7 @@ export default {
       const tickSize = 6
       const Y = 4
       const textMargin = 3
-      const ticks = transScale.ticks(6)
+      const ticks = transScale.ticks(Math.floor(this.canvasWidth / 130))
       const tickFormat = (d) => {
         return this.mainStore.timeReadableSec(Math.round(d / this.mainStore.fps))
       }
