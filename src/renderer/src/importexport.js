@@ -11,13 +11,16 @@ const frameToTimestamp = (frame, fps) => {
 }
 
 const generateCSVContent = () => {
+  const vocabById = useUndoableStore().vocabById
   return useUndoableStore()
     .timelines.filter((t) => t.type === 'shots')
     .flatMap((timeline) =>
       timeline.data.map((shot) => {
         const start = frameToTimestamp(shot.start, useMainStore().fps)
         const end = frameToTimestamp(shot.end, useMainStore().fps)
-        return `"${timeline.name}"\t${start}\t${end}\t"${shot.annotation || ''}"\n`
+        const vocabAnnotations = shot.vocabAnnotation.map((a) => vocabById.get(a).name).join(',')
+        const annotation = shot.annotation || ''
+        return `"${timeline.name}"\t"${start}"\t"${end}"\t"${annotation}"\t"${vocabAnnotations}"\n`
       })
     )
     .join('')
