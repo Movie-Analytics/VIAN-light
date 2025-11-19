@@ -1,123 +1,125 @@
 <template>
-  <v-sheet class="d-flex flex-column h-100 w-100">
-    <video
-      ref="video"
-      class="flex-1-1 height-min-0 pa-2"
-      crossorigin="anonymous"
-      @durationchange="durationChange"
-      @timeupdate="videoTimeUpdate"
-    >
-      <source v-if="mainStore.video !== null" :src="mainStore.video" type="video/mp4" />
+  <v-sheet class="align-center d-flex flex-column h-100 w-100">
+    <div id="video-grid" class="h-100">
+      <video
+        ref="video"
+        class="height-min-0 ma-auto pa-2"
+        crossorigin="anonymous"
+        @durationchange="durationChange"
+        @timeupdate="videoTimeUpdate"
+      >
+        <source v-if="mainStore.video !== null" :src="mainStore.video" type="video/mp4" />
 
-      <track
-        v-if="undoableStore.subtitles !== null && undoableStore.subtitlesVisible"
-        kind="subtitles"
-        :src="undoableStore.subtitles"
-        default
-      />
-    </video>
+        <track
+          v-if="undoableStore.subtitles !== null && undoableStore.subtitlesVisible"
+          kind="subtitles"
+          :src="undoableStore.subtitles"
+          default
+        />
+      </video>
 
-    <div class="d-flex flex-0-0 flex-column">
-      <div class="d-flex justify-space-between min-wide-control px-2">
-        <div class="align-center d-flex">
-          <v-btn density="comfortable" size="small" icon @click="jumpBackward">
-            <v-icon>mdi-skip-backward</v-icon>
-          </v-btn>
-
-          <v-btn density="comfortable" size="small" icon @click="backwardClicked">
-            <v-icon>mdi-step-backward</v-icon>
-          </v-btn>
-
-          <v-btn density="comfortable" size="small" icon @click="playPauseClicked">
-            <v-icon v-if="playingState">mdi-pause</v-icon>
-
-            <v-icon v-else>mdi-play</v-icon>
-          </v-btn>
-
-          <v-btn density="comfortable" size="small" icon @click="forwardClicked">
-            <v-icon>mdi-step-forward</v-icon>
-          </v-btn>
-
-          <v-btn density="comfortable" size="small" icon @click="jumpForward">
-            <v-icon>mdi-skip-forward</v-icon>
-          </v-btn>
-
-          <v-chip
-            v-tooltip="{
-              text: 'Playback Rate (KL System)\n\nK: Stop\nL: Play forward (2x, 4x, 8x, 16x)\n\nPress multiple times to increase speed',
-              location: 'top'
-            }"
-            class="playback-rate"
-            variant="text"
-          >
-            {{ playbackRate }}x
-          </v-chip>
-
-          <p>{{ readableTime }}</p>
-        </div>
-
-        <div class="align-center d-flex">
-          <v-btn
-            v-if="pictureInPictureEnabled"
-            density="comfortable"
-            size="small"
-            icon
-            @click="pictureInPictureClicked"
-          >
-            <v-icon>mdi-picture-in-picture-top-right</v-icon>
-          </v-btn>
-
-          <v-btn density="comfortable" size="small" icon @click="screenshotClicked">
-            <v-icon>mdi-camera</v-icon>
-          </v-btn>
-
-          <div class="volume-control">
-            <v-btn density="comfortable" size="small" icon @click.stop="toggleVolumeSlider">
-              <v-icon>{{ volume === 0 ? 'mdi-volume-mute' : 'mdi-volume-high' }}</v-icon>
+      <div class="d-flex flex-0-0 flex-column">
+        <div class="d-flex justify-space-between min-wide-control px-2">
+          <div class="align-center d-flex">
+            <v-btn density="comfortable" size="small" icon @click="jumpBackward">
+              <v-icon>mdi-skip-backward</v-icon>
             </v-btn>
 
-            <v-menu
-              v-model="showVolumeSlider"
-              :close-on-content-click="false"
-              location="top"
-              offset="10"
-            >
-              <template #activator="{ props }">
-                <div v-bind="props"></div>
-              </template>
+            <v-btn density="comfortable" size="small" icon @click="backwardClicked">
+              <v-icon>mdi-step-backward</v-icon>
+            </v-btn>
 
-              <v-card min-width="50" class="overflow-hidden pa-2">
-                <v-slider
-                  v-model="volume"
-                  direction="vertical"
-                  :step="1"
-                  :min="0"
-                  :max="100"
-                  height="50"
-                  hide-details
-                  @update:model-value="updateVolume"
-                >
-                </v-slider>
-              </v-card>
-            </v-menu>
+            <v-btn density="comfortable" size="small" icon @click="playPauseClicked">
+              <v-icon v-if="playingState">mdi-pause</v-icon>
+
+              <v-icon v-else>mdi-play</v-icon>
+            </v-btn>
+
+            <v-btn density="comfortable" size="small" icon @click="forwardClicked">
+              <v-icon>mdi-step-forward</v-icon>
+            </v-btn>
+
+            <v-btn density="comfortable" size="small" icon @click="jumpForward">
+              <v-icon>mdi-skip-forward</v-icon>
+            </v-btn>
+
+            <v-chip
+              v-tooltip="{
+                text: 'Playback Rate (KL System)\n\nK: Stop\nL: Play forward (2x, 4x, 8x, 16x)\n\nPress multiple times to increase speed',
+                location: 'top'
+              }"
+              class="playback-rate"
+              variant="text"
+            >
+              {{ playbackRate }}x
+            </v-chip>
+
+            <p>{{ readableTime }}</p>
           </div>
 
-          <v-btn v-if="undoableStore.subtitles !== null" icon @click="toggleSubtitles">
-            <v-icon v-if="undoableStore.subtitlesVisible">mdi-subtitles</v-icon>
+          <div class="align-center d-flex">
+            <v-btn
+              v-if="pictureInPictureEnabled"
+              density="comfortable"
+              size="small"
+              icon
+              @click="pictureInPictureClicked"
+            >
+              <v-icon>mdi-picture-in-picture-top-right</v-icon>
+            </v-btn>
 
-            <v-icon v-else>mdi-subtitles-outline</v-icon>
-          </v-btn>
+            <v-btn density="comfortable" size="small" icon @click="screenshotClicked">
+              <v-icon>mdi-camera</v-icon>
+            </v-btn>
+
+            <div class="volume-control">
+              <v-btn density="comfortable" size="small" icon @click.stop="toggleVolumeSlider">
+                <v-icon>{{ volume === 0 ? 'mdi-volume-mute' : 'mdi-volume-high' }}</v-icon>
+              </v-btn>
+
+              <v-menu
+                v-model="showVolumeSlider"
+                :close-on-content-click="false"
+                location="top"
+                offset="10"
+              >
+                <template #activator="{ props }">
+                  <div v-bind="props"></div>
+                </template>
+
+                <v-card min-width="50" class="overflow-hidden pa-2">
+                  <v-slider
+                    v-model="volume"
+                    direction="vertical"
+                    :step="1"
+                    :min="0"
+                    :max="100"
+                    height="50"
+                    hide-details
+                    @update:model-value="updateVolume"
+                  >
+                  </v-slider>
+                </v-card>
+              </v-menu>
+            </div>
+
+            <v-btn v-if="undoableStore.subtitles !== null" icon @click="toggleSubtitles">
+              <v-icon v-if="undoableStore.subtitlesVisible">mdi-subtitles</v-icon>
+
+              <v-icon v-else>mdi-subtitles-outline</v-icon>
+            </v-btn>
+          </div>
         </div>
-      </div>
 
-      <v-slider
-        v-model="sliderPosition"
-        :max="mainStore.videoDuration"
-        :step="0.1"
-        hide-details="true"
-        class="px-2"
-        @update:model-value="sliderMoved"
-      ></v-slider>
+        <v-slider
+          v-model="sliderPosition"
+          :max="mainStore.videoDuration"
+          :step="0.1"
+          hide-details="true"
+          class="px-2"
+          @update:model-value="sliderMoved"
+        ></v-slider>
+      </div>
     </div>
   </v-sheet>
 </template>
@@ -340,5 +342,9 @@ video {
   position: relative;
   display: flex;
   align-items: center;
+}
+#video-grid {
+  display: grid;
+  align-content: center;
 }
 </style>
