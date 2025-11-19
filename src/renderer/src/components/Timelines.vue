@@ -234,8 +234,8 @@ export default {
   },
 
   watch: {
-    'undoableStore.timelines'(newVal, oldVal) {
-      if (newVal.length !== oldVal.length) {
+    'undoableStore.timelines.length'(newVal, oldVal) {
+      if (newVal !== oldVal) {
         this.createTimelineFolds()
       }
     },
