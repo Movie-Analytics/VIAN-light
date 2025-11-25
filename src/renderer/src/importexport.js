@@ -2,22 +2,14 @@ import * as cheerio from 'cheerio'
 import { useMainStore } from '@renderer/stores/main'
 import { useUndoableStore } from '@renderer/stores/undoable'
 
-const frameToTimestamp = (frame, fps) => {
-  const totalSecs = frame / fps
-  const formattedHours = String(Math.floor(totalSecs / 60 / 60)).padStart(2, '0')
-  const formattedMinutes = String(Math.floor(totalSecs / 60) % 60).padStart(2, '0')
-  const formattedSeconds = String((totalSecs % 60).toFixed(3)).padStart(6, '0')
-  return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`
-}
-
 const generateCSVContent = () => {
   const vocabById = useUndoableStore().vocabById
   return useUndoableStore()
     .timelines.filter((t) => t.type === 'shots')
     .flatMap((timeline) =>
       timeline.data.map((shot) => {
-        const start = frameToTimestamp(shot.start, useMainStore().fps)
-        const end = frameToTimestamp(shot.end, useMainStore().fps)
+        const start = useMainStore().timeReadableFrame(shot.start, true)
+        const end = useMainStore().timeReadableFrame(shot.end, true)
         const vocabAnnotations = shot.vocabAnnotation.map((a) => vocabById.get(a).name).join(',')
         const annotation = shot.annotation || ''
         return `"${timeline.name}"\t"${start}"\t"${end}"\t"${annotation}"\t"${vocabAnnotations}"\n`

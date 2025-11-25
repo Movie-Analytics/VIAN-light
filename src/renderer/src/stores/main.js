@@ -40,20 +40,21 @@ export const useMainStore = defineStore('main', {
         api.getVideoInfo(this.video)
       }
     },
-    timeReadableFrame(frame) {
+    timeReadableFrame(frame, framenum = false) {
       const totalSeconds = frame / this.fps
-      return this.timeReadableSec(totalSeconds)
+      return this.timeReadableSec(totalSeconds, false, framenum)
     },
-    timeReadableSec(t, subsec = false) {
+    timeReadableSec(t, subsec = false, framenum = false) {
       const hours = Math.floor(t / 3600)
       const minutes = Math.floor((t % 3600) / 60)
       const seconds = subsec ? (t % 60).toFixed(2) : Math.round(t % 60)
+      const frame = framenum ? '.' + Math.round(t * this.fps) : ''
 
       const formattedHours = String(hours).padStart(2, '0')
       const formattedMinutes = String(minutes).padStart(2, '0')
       const formattedSeconds = String(seconds).padStart(2, '0')
 
-      return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`
+      return `${formattedHours}:${formattedMinutes}:${formattedSeconds}${frame}`
     }
   }
 })

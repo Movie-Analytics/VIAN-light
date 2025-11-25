@@ -32,7 +32,7 @@ export default {
     ...mapStores(useMainStore),
 
     title() {
-      return 'Screenshot at ' + this.mainStore.timeReadableFrame(this.screenshot.frame)
+      return 'Screenshot at ' + this.mainStore.timeReadableFrame(this.screenshot.frame, true)
     }
   },
 
