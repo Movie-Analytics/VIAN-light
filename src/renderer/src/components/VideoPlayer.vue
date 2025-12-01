@@ -151,7 +151,7 @@ export default {
     },
 
     readableTime() {
-      return this.mainStore.timeReadableSec(this.tempStore.playPosition, false, true)
+      return this.mainStore.timeReadableSec(this.tempStore.playPosition, true)
     },
 
     ...mapStores(useMainStore, useTempStore, useUndoableStore)
