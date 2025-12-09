@@ -62,13 +62,13 @@ export default {
 
     panel1Style() {
       return {
-        'flex-basis': `calc(${this.panel1Percent}% - 15px)`
+        'flex-basis': `calc(${this.panel1Percent}% - 7.5px)`
       }
     },
 
     panel2Style() {
       return {
-        'flex-basis': `calc(${this.panel2Percent}% - 15px)`
+        'flex-basis': `calc(${this.panel2Percent}% - 7.5px)`
       }
     }
   },
