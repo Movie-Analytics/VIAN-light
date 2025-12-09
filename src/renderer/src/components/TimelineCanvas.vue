@@ -199,23 +199,16 @@ export default {
       this.drawTimelines(rescale)
       this.drawTmpShot(rescale)
 
-      // Draw current play position
-      ctx.beginPath()
-      ctx.strokeStyle = 'red'
-      ctx.lineWidth = '2'
-      const playPosition = Math.round(rescale(this.tempStore.playPosition * this.mainStore.fps))
-      ctx.moveTo(playPosition, 0)
-      ctx.lineTo(playPosition, this.canvasHeight)
-      ctx.stroke()
-
       this.drawAxis()
+      this.drawPlayHead(rescale(this.tempStore.playPosition * this.mainStore.fps))
     },
 
     drawAxis() {
       const transScale = this.transform.rescaleX(this.scale)
-      const tickSize = 6
-      const Y = 4
-      const textMargin = 3
+      const tickSize = 13
+      const YbelowText = 28
+      const smallTickSize = Math.round(tickSize / 2.5)
+      const smallTicks = transScale.ticks(Math.floor(this.canvasWidth / 13))
       const ticks = transScale.ticks(Math.floor(this.canvasWidth / 130))
       const tickFormat = (d) => {
         return this.mainStore.timeReadableSec(Math.round(d / this.mainStore.fps))
@@ -224,16 +217,20 @@ export default {
       this.ctx.strokeStyle = this.axisColor
 
       this.ctx.beginPath()
-
       ticks.forEach((d) => {
-        this.ctx.moveTo(transScale(d), Y)
-        this.ctx.lineTo(transScale(d), Y + tickSize)
+        this.ctx.moveTo(transScale(d), YbelowText)
+        this.ctx.lineTo(transScale(d), YbelowText - tickSize)
+      })
+
+      smallTicks.forEach((d) => {
+        this.ctx.moveTo(transScale(d), YbelowText)
+        this.ctx.lineTo(transScale(d), YbelowText - smallTickSize)
       })
       this.ctx.stroke()
 
       this.ctx.beginPath()
-      this.ctx.moveTo(0, Y)
-      this.ctx.lineTo(this.canvasWidth, Y)
+      this.ctx.moveTo(0, YbelowText)
+      this.ctx.lineTo(this.canvasWidth, YbelowText)
       this.ctx.stroke()
 
       this.ctx.textAlign = 'center'
@@ -241,8 +238,29 @@ export default {
       this.ctx.fillStyle = this.axisColor
       ticks.forEach((d) => {
         this.ctx.beginPath()
-        this.ctx.fillText(tickFormat(d), transScale(d), Y + tickSize + textMargin)
+        this.ctx.fillText(tickFormat(d), transScale(d), 0)
       })
+    },
+
+    drawPlayHead(xPosition) {
+      const yPosition = 26
+      this.ctx.beginPath()
+      this.ctx.strokeStyle = 'red'
+      this.ctx.lineWidth = '2'
+      this.ctx.moveTo(xPosition, this.canvasHeight)
+      this.ctx.lineTo(xPosition, yPosition)
+      this.ctx.stroke()
+
+      this.ctx.fillStyle = 'red'
+      this.ctx.beginPath()
+      this.ctx.moveTo(xPosition, yPosition)
+      this.ctx.lineTo(xPosition + 8, yPosition - 5)
+      this.ctx.lineTo(xPosition + 8, yPosition - 12)
+      this.ctx.lineTo(xPosition - 8, yPosition - 12)
+      this.ctx.lineTo(xPosition - 8, yPosition - 5)
+      this.ctx.lineTo(xPosition, yPosition)
+      this.ctx.closePath()
+      this.ctx.fill()
     },
 
     drawSetup() {
