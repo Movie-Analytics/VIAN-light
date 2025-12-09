@@ -215,6 +215,7 @@ export default {
       }
 
       this.ctx.strokeStyle = this.axisColor
+      this.ctx.lineWidth = '1'
 
       this.ctx.beginPath()
       ticks.forEach((d) => {
