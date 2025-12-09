@@ -638,6 +638,7 @@ export default {
 
     overlayInputChange() {
       this.overlayInputEntry.annotation = this.overlayInputModel
+      this.overlayInput = false
     },
 
     requestDraw() {
