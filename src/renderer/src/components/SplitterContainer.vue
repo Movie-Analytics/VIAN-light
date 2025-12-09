@@ -10,7 +10,7 @@
       @mousedown="onGutterMouseDown"
       @touchstart="onGutterTouchStart"
     >
-      <div class="bg-grey-lighten-3"></div>
+      <div :class="gutterColor"></div>
     </div>
 
     <div :style="panel2Style" class="d-flex height-min-0">
@@ -46,6 +46,7 @@ export default {
   data() {
     return {
       currentLayout: this.layout,
+      gutterColor: 'bg-grey-lighten-3',
       isDragging: false,
       mouseMoveListener: null,
       mouseUpListener: null,
@@ -71,6 +72,16 @@ export default {
         'flex-basis': `calc(${this.panel2Percent}% - 7.5px)`
       }
     }
+  },
+
+  watch: {
+    '$vuetify.theme.global.name'(val) {
+      if (val === 'dark') {
+        this.gutterColor = 'bg-grey-darken-3'
+      } else {
+        this.gutterColor = 'bg-grey-lighten-3'
+      }
+    },
   },
 
   mounted() {
