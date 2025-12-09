@@ -1,4 +1,4 @@
-import { BrowserWindow, Menu, app, ipcMain, protocol, shell } from 'electron'
+import { BrowserWindow, Menu, app, ipcMain, protocol, screen, shell } from 'electron'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { createMenu } from './menu.js'
 import { join } from 'path'
@@ -37,8 +37,9 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 const createWindow = () => {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize
   const mainWindow = new BrowserWindow({
-    height: 670,
+    height: Math.max(670, height - 300),
     minHeight: 400,
     minWidth: 600,
     show: false,
@@ -48,7 +49,7 @@ const createWindow = () => {
       sandbox: true,
       webSecurity: true
     },
-    width: 900,
+    width: Math.max(900, width - 400),
     ...(process.platform === 'linux' ? { icon } : {})
   })
 
