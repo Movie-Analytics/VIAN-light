@@ -388,7 +388,7 @@ export default {
             ctx.rect(x, d.y, xwidth - x, d.height)
             ctx.fillStyle = 'black'
             ctx.clip()
-            ctx.fillText(d.annotation, x, d.y + 13)
+            ctx.fillText(d.annotation, x + 10, d.y + 15)
             ctx.restore()
           }
           hCtx.fillRect(x, d.y, xwidth - x, d.height)
