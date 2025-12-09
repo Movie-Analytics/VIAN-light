@@ -18,6 +18,9 @@ private:
 
     Napi::Value Open(const Napi::CallbackInfo& info);
     Napi::Value GetFrameRate(const Napi::CallbackInfo& info);
+    Napi::Value GetHeight(const Napi::CallbackInfo& info);
+    Napi::Value GetNumFrames(const Napi::CallbackInfo& info);
+    Napi::Value GetWidth(const Napi::CallbackInfo& info);
     Napi::Value ReadNextFrame(const Napi::CallbackInfo& info);
     Napi::Value Done(const Napi::CallbackInfo& info);
     Napi::Value DetectShots(const Napi::CallbackInfo& info);

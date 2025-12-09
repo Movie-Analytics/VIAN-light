@@ -93,6 +93,9 @@ Napi::Object VideoReaderWrapper::Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "VideoReader", {
         InstanceMethod<&VideoReaderWrapper::Open>("open"),
         InstanceMethod<&VideoReaderWrapper::GetFrameRate>("getFrameRate"),
+        InstanceMethod<&VideoReaderWrapper::GetHeight>("getHeight"),
+        InstanceMethod<&VideoReaderWrapper::GetNumFrames>("getNumFrames"),
+        InstanceMethod<&VideoReaderWrapper::GetWidth>("getWidth"),
         InstanceMethod<&VideoReaderWrapper::DetectShots>("detectShots"),
         InstanceMethod<&VideoReaderWrapper::GenerateScreenshots>("generateScreenshots"),
         InstanceMethod<&VideoReaderWrapper::GenerateScreenshot>("generateScreenshot"),
@@ -126,6 +129,24 @@ Napi::Value VideoReaderWrapper::GetFrameRate(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
     double fps = videoReader->getFrameRate();
     return Napi::Number::New(env, fps);
+}
+
+Napi::Value VideoReaderWrapper::GetHeight(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    double height = videoReader->getHeight();
+    return Napi::Number::New(env, height);
+}
+
+Napi::Value VideoReaderWrapper::GetNumFrames(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    double nframes = videoReader->getNumFrames();
+    return Napi::Number::New(env, nframes);
+}
+
+Napi::Value VideoReaderWrapper::GetWidth(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    double width = videoReader->getWidth();
+    return Napi::Number::New(env, width);
 }
 
 Napi::Value VideoReaderWrapper::Done(const Napi::CallbackInfo& info) {

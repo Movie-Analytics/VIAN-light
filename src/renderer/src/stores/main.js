@@ -6,9 +6,12 @@ import { useUndoableStore } from './undoable'
 export const useMainStore = defineStore('main', {
   state: () => ({
     fps: null,
+    height: null,
     id: null,
+    numFrames: null,
     video: null,
-    videoDuration: null
+    videoDuration: null,
+    width: null
   }),
   /* eslint-disable-next-line vue/sort-keys */
   actions: {
@@ -21,6 +24,9 @@ export const useMainStore = defineStore('main', {
       // Set up listener
       api.onVideoInfo((data) => {
         this.fps = data.fps
+        this.height = data.height
+        this.numFrames = data.numFrames
+        this.width = data.width
       })
     },
     async loadStore(projectId) {

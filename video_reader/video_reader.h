@@ -24,6 +24,9 @@ public:
     int generateScreenshots(const std::string& directory, const std::vector<int>& frameStamps);
     int generateScreenshot(const std::string& directory, int frame);
     double getFrameRate();
+    double getHeight();
+    double getNumFrames();
+    double getWidth();
     bool Open();
     static void setCancelled(bool value);
     static bool isCancelled();

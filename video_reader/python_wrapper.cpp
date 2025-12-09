@@ -17,6 +17,15 @@ PYBIND11_MODULE(video_reader, m) {
         .def("get_frame_rate", &VideoReader::getFrameRate,
              "Get the frame rate of the video")
 
+        .def("get_width", &VideoReader::getWidth,
+             "Get the width of the video")
+
+        .def("get_height", &VideoReader::getHeight,
+             "Get the height of the video")
+
+        .def("get_numframes", &VideoReader::getNumFrames,
+             "Get the number of frames in the video")
+
         .def("is_done", &VideoReader::Done,
              "Check if we've reached the end of the video")
 

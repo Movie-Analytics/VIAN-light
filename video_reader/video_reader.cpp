@@ -114,6 +114,18 @@ double VideoReader::getFrameRate() {
     return av_q2d(format_ctx->streams[video_stream_index]->r_frame_rate);
 }
 
+double VideoReader::getHeight() {
+    return format_ctx->streams[video_stream_index]->codecpar->height;
+}
+
+double VideoReader::getWidth() {
+    return format_ctx->streams[video_stream_index]->codecpar->width;
+}
+
+double VideoReader::getNumFrames() {
+    return format_ctx->streams[video_stream_index]->nb_frames;
+}
+
 std::vector<uint8_t>& VideoReader::ReadNextFrame(std::vector<uint8_t>& out_frame_data) {
     AVPacket packet;
     int response;

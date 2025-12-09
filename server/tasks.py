@@ -44,9 +44,16 @@ def get_video_info(video: str, job: int) -> dict|None:
         reader = video_reader.VideoReader(video)  # type: ignore
         reader.open()
         fps = reader.get_frame_rate()
+        height = reader.get_height()
+        width = reader.get_width()
+        num_frames = reader.get_numframes()
 
         db.update_job(session, job, status='DONE')
-        db.create_result(session, job, {'fps': fps})
+        db.create_result(
+            session,
+            job,
+            {'fps': fps, 'height': height, 'width': width, 'numFrames': num_frames}
+        )
         return {'fps': fps}
     except Exception:
         logger.exception('Exception during video info')

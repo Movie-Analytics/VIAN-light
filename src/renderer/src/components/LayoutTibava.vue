@@ -27,6 +27,12 @@
               >
                 <v-tabs-window-item value="info">
                   <p v-if="mainStore.fps">FPS: {{ mainStore.fps }}</p>
+
+                  <p v-if="mainStore.height && mainStore.width">
+                    Resolution: {{ mainStore.width }} x {{ mainStore.height }}
+                  </p>
+
+                  <p v-if="duration">Duration: {{ duration }}</p>
                 </v-tabs-window-item>
 
                 <v-tabs-window-item value="shots" class="h-100">
@@ -75,7 +81,12 @@ export default {
   }),
 
   computed: {
-    ...mapStores(useMainStore, useUndoableStore)
+    ...mapStores(useMainStore, useUndoableStore),
+
+    duration() {
+      if (this.mainStore.numFrames === null) return null
+      return this.mainStore.timeReadableFrame(this.mainStore.numFrames, true)
+    }
   }
 }
 </script>
