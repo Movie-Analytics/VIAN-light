@@ -188,7 +188,7 @@ export default {
   },
 
   beforeUnmount() {
-    for (const key of [' ', 'ArrowRight', 'ArrowLeft', 'j', 'k', 'l', 'a', 's']) {
+    for (const key of [' ', 'ArrowRight', 'ArrowLeft', 'k', 'l', 'ArrowUp', 'ArrowDown']) {
       shortcuts.clear(key)
     }
   },

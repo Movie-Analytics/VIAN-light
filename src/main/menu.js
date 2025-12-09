@@ -104,7 +104,7 @@ export const createMenu = () => {
         },
         { type: 'separator' },
         {
-          accelerator: 'Delete',
+          accelerator: 'Backspace',
           click: (_item, _window, event) => {
             if (!event.triggeredByAccelerator) {
               BrowserWindow.getFocusedWindow()?.webContents.send('segment-delete')

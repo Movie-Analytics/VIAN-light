@@ -248,6 +248,7 @@ export default {
   mounted() {
     // Register shorcuts and menu actions
     shortcuts.register('Delete', this.segmentDelete)
+    shortcuts.register('Backspace', this.segmentDelete)
     shortcuts.register('m', this.segmentMerge)
     shortcuts.register('s', this.segmentSplit)
     api.onSegmentDelete(this.segmentDelete)

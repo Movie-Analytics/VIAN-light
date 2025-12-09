@@ -14,6 +14,7 @@ class ShorcutsManager {
 
       const hitCombi = event.key + event.shiftKey + event.ctrlKey
       if (this.keyMap.has(hitCombi)) {
+        event.preventDefault()
         this.keyMap.get(hitCombi)()
       }
     }
