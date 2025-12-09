@@ -228,7 +228,7 @@ export default {
         const timeline = this.undoableStore.timelines.find((t) => t.id === selectedTimelId)
         const segmentIndex = timeline.data.findIndex((s) => s.id === selectedSegId)
         const nextSegment = timeline.data[segmentIndex + 1] || timeline.data[0]
-        this.$refs.video.currentTime = nextSegment.start / this.mainStore.fps
+        this.$refs.video.currentTime = (nextSegment.start || nextSegment.frame) / this.mainStore.fps
         this.tempStore.selectedSegments = new Map([[nextSegment.id, timeline.id]])
       } else if (this.undoableStore.shotTimelines.length > 0) {
         const timeline = this.undoableStore.shotTimelines[0]
@@ -248,7 +248,7 @@ export default {
         const timeline = this.undoableStore.timelines.find((t) => t.id === selectedTimelId)
         const segIndex = timeline.data.findIndex((s) => s.id === selectedSegId)
         const nextSegment = timeline.data[segIndex - 1] || timeline.data[timeline.data.length - 1]
-        this.$refs.video.currentTime = nextSegment.start / this.mainStore.fps
+        this.$refs.video.currentTime = (nextSegment.start || nextSegment.frame) / this.mainStore.fps
         this.tempStore.selectedSegments = new Map([[nextSegment.id, timeline.id]])
       } else if (this.undoableStore.shotTimelines.length > 0) {
         const timeline = this.undoableStore.shotTimelines[0]
