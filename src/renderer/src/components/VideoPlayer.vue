@@ -263,9 +263,9 @@ export default {
     },
 
     playForward() {
-      if (this.playbackRate === 16 || this.playingState === false) {
+      if (this.playbackRate === 16 && this.playingState) {
         this.playbackRate = 1
-      } else {
+      } else if (this.playingState) {
         this.playbackRate = Math.min(16, this.playbackRate * 2)
       }
       this.$refs.video.playbackRate = this.playbackRate
@@ -295,8 +295,6 @@ export default {
     stopPlayback() {
       this.$refs.video.pause()
       this.playingState = false
-      this.playbackRate = 1
-      this.$refs.video.playbackRate = this.playbackRate
     },
 
     toggleSubtitles() {
