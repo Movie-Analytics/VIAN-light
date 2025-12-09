@@ -185,10 +185,11 @@ export default {
     shortcuts.register('l', this.playForward)
     shortcuts.register('ArrowUp', this.navigateToPreviousSegment)
     shortcuts.register('ArrowDown', this.navigateToNextSegment)
+    shortcuts.register('Tab', this.navigateToNextSegment)
   },
 
   beforeUnmount() {
-    for (const key of [' ', 'ArrowRight', 'ArrowLeft', 'k', 'l', 'ArrowUp', 'ArrowDown']) {
+    for (const key of [' ', 'ArrowRight', 'ArrowLeft', 'k', 'l', 'ArrowUp', 'ArrowDown', 'Tab']) {
       shortcuts.clear(key)
     }
   },
