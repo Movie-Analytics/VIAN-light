@@ -13,6 +13,20 @@
         <v-row justify="center">
           <v-col cols="auto" align-self="center">
             <p class="text-h1">VIAN Light</p>
+
+            <div class="mt-4 text-center">
+              <span>Version: {{ metaStore.vianVersion }}</span>
+
+              <v-chip
+                v-if="metaStore.vianVersion !== metaStore.vianLatestVersion"
+                color="primary"
+                class="ms-2"
+                href="https://github.com/Movie-Analytics/VIAN-light/releases"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Update available
+              </v-chip>
+            </div>
           </v-col>
         </v-row>
 

@@ -3,13 +3,30 @@ import { defineStore } from 'pinia'
 import api from '@renderer/api'
 import { useMainStore } from './main'
 import { useUndoStore } from './undo'
+import { version } from '../../../../package.json'
 
 export const useMetaStore = defineStore('meta', {
   state: () => ({
-    projects: []
+    projects: [],
+    vianLatestVersion: version,
+    vianVersion: version
   }),
   /* eslint-disable-next-line vue/sort-keys */
   actions: {
+    async checkVianUpdate() {
+      try {
+        const r = await fetch(
+          'https://api.github.com/repos/Movie-Analytics/VIAN-light/releases/latest'
+        )
+        if (!r.ok) {
+          throw new Error(`HTTP ${r.status} ${r.statusText}`)
+        }
+        const data = await r.json()
+        this.vianLatestVersion = data.tag_name
+      } catch (e) {
+        console.warn('Could not fetch latest version', e)
+      }
+    },
     deleteProject(projectId) {
       this.projects = this.projects.filter((project) => project.id !== projectId)
     },
@@ -25,6 +42,7 @@ export const useMetaStore = defineStore('meta', {
       })
 
       api.onImportProject(this.onImportProject)
+      this.checkVianUpdate()
     },
     async loadStore() {
       const state = await api.loadStore('meta')
