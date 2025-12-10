@@ -90,11 +90,11 @@
                 <v-card min-width="50" class="overflow-hidden pa-2">
                   <v-slider
                     v-model="volume"
+                    class="volume-slider"
                     direction="vertical"
                     :step="1"
                     :min="0"
                     :max="100"
-                    height="50"
                     hide-details
                     @update:model-value="updateVolume"
                   >
@@ -341,6 +341,10 @@ video {
   position: relative;
   display: flex;
   align-items: center;
+}
+.volume-slider :deep(> .v-input__control) {
+  /* min height sets the height of the slider here */
+  min-height: 80px;
 }
 #video-grid {
   display: grid;
