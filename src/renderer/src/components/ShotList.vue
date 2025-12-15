@@ -4,7 +4,7 @@
       <v-select
         v-model="shotTimeline"
         :items="undoableStore.shotTimelines"
-        label="Shot Timeline"
+        label="Select Track"
         class="me-2 shotlist-header-element"
         item-title="name"
         item-value="id"
@@ -36,7 +36,7 @@
         <template #default="{ item, index }">
           <div class="pa-3" :class="getEntryBgColor(item)">
             <div class="cursor-pointer" @click="jumpPlayer(item.start)">
-              <span class="font-weight-bold">Shot {{ index + 1 }}</span>
+              <span class="font-weight-bold">ID {{ index + 1 }}</span>
 
               <span class="text-medium-emphasis">
                 ({{ mainStore.timeReadableFrame(item.start) }} -
