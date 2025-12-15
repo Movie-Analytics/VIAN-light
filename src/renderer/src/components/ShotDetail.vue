@@ -18,7 +18,7 @@
         ></v-text-field>
 
         <div v-if="segmentVocabulary">
-          <p>Timeline linked to: {{ segmentVocabulary.name }}</p>
+          <p>Linked Vocabulary: {{ segmentVocabulary.name }}</p>
 
           <v-autocomplete
             v-model="selectedTimelineSegment.vocabAnnotation"
