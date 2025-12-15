@@ -14,9 +14,11 @@
             <v-tabs v-model="tab" show-arrows class="flex-0-0">
               <v-tab value="info">Info</v-tab>
 
-              <v-tab :disabled="undoableStore.shotTimelines.length == 0" value="shots">Shots</v-tab>
+              <v-tab :disabled="undoableStore.shotTimelines.length == 0" value="shots">
+                Segmentation
+              </v-tab>
 
-              <v-tab value="selection">Selection</v-tab>
+              <v-tab value="selection">Annotation</v-tab>
             </v-tabs>
 
             <v-card-text class="d-flex flex-1-1 flex-column height-min-0">
