@@ -342,9 +342,27 @@ export default {
     shortcuts.register(
       'z',
       () => {
+        useUndoableStore().undo('undoable')
+      },
+      false,
+      false,
+      true
+    )
+    shortcuts.register(
+      'z',
+      () => {
         useUndoableStore().redo('undoable')
       },
       true,
+      true
+    )
+    shortcuts.register(
+      'z',
+      () => {
+        useUndoableStore().redo('undoable')
+      },
+      true,
+      false,
       true
     )
   },
@@ -352,6 +370,8 @@ export default {
   beforeUnmount() {
     shortcuts.clear('z', false, true)
     shortcuts.clear('z', true, true)
+    shortcuts.clear('z', true, false, true)
+    shortcuts.clear('z', true, false, true)
     api.unregisterVideoViewCallbacks()
   },
 

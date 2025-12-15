@@ -81,7 +81,7 @@ export default {
       } else {
         this.gutterColor = 'bg-grey-lighten-3'
       }
-    },
+    }
   },
 
   mounted() {
