@@ -35,6 +35,10 @@
                   </p>
 
                   <p v-if="duration">Duration: {{ duration }}</p>
+
+                  <p v-if="mainStore.numFrames">
+                    Total number of frames: {{ mainStore.numFrames }}
+                  </p>
                 </v-tabs-window-item>
 
                 <v-tabs-window-item value="shots" class="h-100">
@@ -87,7 +91,7 @@ export default {
 
     duration() {
       if (this.mainStore.numFrames === null) return null
-      return this.mainStore.timeReadableFrame(this.mainStore.numFrames, true)
+      return this.mainStore.timeReadableFrame(this.mainStore.numFrames)
     }
   }
 }
