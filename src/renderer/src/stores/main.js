@@ -53,8 +53,8 @@ export const useMainStore = defineStore('main', {
     timeReadableSec(t, framenum = false) {
       const hours = Math.floor(t / 3600)
       const minutes = Math.floor((t % 3600) / 60)
-      const seconds = Math.round(t % 60)
-      const frame = framenum ? `:${Math.round(t * this.fps)}` : ''
+      const seconds = Math.floor(t % 60)
+      const frame = framenum ? `:${Math.floor((t % 1) * this.fps)}` : ''
 
       const formattedHours = String(hours).padStart(2, '0')
       const formattedMinutes = String(minutes).padStart(2, '0')
