@@ -172,7 +172,7 @@
     </v-list>
   </v-navigation-drawer>
 
-  <v-main class="ma-3">
+  <v-main id="main-content" class="ma-3">
     <LayoutTibava v-if="layout === 'tibava'"></LayoutTibava>
 
     <LayoutDraggable v-else-if="layout === 'draggable'"></LayoutDraggable>
@@ -480,3 +480,9 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+#main-content {
+  padding-right: 60px !important;
+}
+</style>
