@@ -11,11 +11,14 @@
         <p class="font-weight-bold">Shot</p>
         {{ mainStore.timeReadableFrame(selectedTimelineSegment.start) }} -
         {{ mainStore.timeReadableFrame(selectedTimelineSegment.end) }}
-        <v-text-field
+        <v-textarea
           v-model="annotationBuffer"
           :disabled="selectedTimelineSegment.locked"
           label="Annotations"
-        ></v-text-field>
+          rows="1"
+          max-rows="3"
+          auto-grow
+        ></v-textarea>
 
         <div v-if="segmentVocabulary">
           <p>Linked Vocabulary: {{ segmentVocabulary.name }}</p>
