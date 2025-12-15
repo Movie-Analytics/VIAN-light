@@ -7,12 +7,12 @@ const generateCSVContent = () => {
   return useUndoableStore()
     .timelines.filter((t) => t.type === 'shots')
     .flatMap((timeline) =>
-      timeline.data.map((shot) => {
+      timeline.data.map((shot, i) => {
         const start = useMainStore().timeReadableFrame(shot.start, true)
         const end = useMainStore().timeReadableFrame(shot.end, true)
         const vocabAnnotations = shot.vocabAnnotation.map((a) => vocabById.get(a).name).join(',')
         const annotation = shot.annotation || ''
-        return `"${timeline.name}"\t"${start}"\t"${end}"\t"${annotation}"\t"${vocabAnnotations}"\n`
+        return `"${timeline.name}"\t"${start}"\t"${end}"\t${i + 1}\t"${annotation}"\t"${vocabAnnotations}"\n`
       })
     )
     .join('')
