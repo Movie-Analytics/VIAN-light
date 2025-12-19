@@ -94,6 +94,7 @@ export default {
 
       handler() {
         this.drawSetup()
+        this.requestDraw()
       }
     },
 

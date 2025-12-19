@@ -300,24 +300,21 @@ export const useUndoableStore = defineStore('undoable', {
     },
     vocabularyDelete(id) {
       this.vocabularies = this.vocabularies.filter((v) => v.id !== id)
-      let allTags = []
       this.vocabularies.forEach((v) => {
         v.categories = v.categories.filter((c) => c.id !== id)
         v.categories.forEach((c) => {
           c.tags = c.tags.filter((t) => t.id !== id)
-          allTags = allTags.concat(c.tags)
         })
       })
 
       // Delete id from associated timelines / shots
-      allTags = new Set(allTags)
       this.timelines.forEach((t) => {
         if (typeof t.vocabulary === 'string') {
           if (t.vocabulary === id) {
             t.vocabulary = null
           }
           t.data.forEach((s) => {
-            s.vocabAnnotation = s.vocabAnnotation.filter((tag) => allTags.has(tag.id))
+            s.vocabAnnotation = s.vocabAnnotation.filter((tag) => tag.id !== id)
           })
         }
       })

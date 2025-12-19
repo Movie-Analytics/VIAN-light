@@ -34,19 +34,18 @@
 
     <SplitterContainer :inital-panel1-percent="30">
       <template #panel1>
-        <v-list id="timeline-list" lines="one" class="w-100">
-          <v-list-group v-for="timeline in undoableStore.timelines" :key="timeline">
-            <template #activator="{ props, isOpen }">
+        <v-list id="timeline-list" lines="one" class="w-100" :opened="openedItems">
+          <v-list-group v-for="(timeline, id) in tempStore.timelinesFold" :key="id" :value="id">
+            <template #activator>
               <v-list-item :title="timeline.name" class="pr-2">
                 <template #append>
                   <v-list-item-action start>
                     <v-btn
-                      v-if="typeof timeline.vocabulary === 'string'"
+                      v-if="timeline.categories"
                       icon
-                      v-bind="props"
                       variant="text"
                       density="compact"
-                      @click="changeVisibility(timeline.id, undefined, isOpen)"
+                      @click="timeline.visible = !timeline.visible"
                     >
                       <v-icon>mdi-expand-all</v-icon>
                     </v-btn>
@@ -90,17 +89,17 @@
               </v-list-item>
             </template>
 
-            <template v-if="typeof timeline.vocabulary === 'string'">
-              <v-list class="pb-0 pt-0">
+            <template v-if="timeline.categories">
+              <v-list class="pb-0 pt-0" :opened="openedItems">
                 <v-list-group
-                  v-for="category in getVocabulary(timeline.vocabulary).categories"
+                  v-for="category in timeline.categories"
                   :key="category.id"
+                  :value="category.id"
                 >
-                  <template #activator="{ props, isOpen }">
+                  <template #activator>
                     <v-list-item
                       :title="category.name"
-                      v-bind="props"
-                      @click="changeVisibility(timeline.id, category.id, isOpen)"
+                      @click="category.visible = !category.visible"
                     ></v-list-item>
                   </template>
 
@@ -188,6 +187,17 @@ export default {
   computed: {
     ...mapStores(useMainStore, useTempStore, useUndoableStore),
 
+    openedItems() {
+      const openedTimelines = Object.entries(this.tempStore.timelinesFold)
+        .filter((e) => e[1].visible)
+        .map((e) => e[0])
+      const openedCategories = Object.values(this.tempStore.timelinesFold)
+        .filter((v) => v.categories)
+        .map((v) => v.categories.filter((c) => c.visible).map((c) => c.id))
+        .flat()
+      return openedTimelines.concat(openedCategories)
+    },
+
     segmentDeletable() {
       return this.tempStore.selectedSegments.size > 0 && !this.segmentsLocked
     },
@@ -240,8 +250,12 @@ export default {
       }
     },
 
-    'undoableStore.vocabularies'() {
-      this.createTimelineFolds()
+    'undoableStore.vocabularies': {
+      deep: true,
+
+      handler() {
+        this.createTimelineFolds()
+      }
     }
   },
 
@@ -268,21 +282,11 @@ export default {
       this.undoableStore.addNewTimeline()
     },
 
-    changeVisibility(timelineId, categoryId, isopen) {
-      const timeline = this.tempStore.timelinesFold[timelineId]
-      if (typeof categoryId === 'string') {
-        const category = timeline.categories.find((c) => c.id === categoryId)
-        category.visible = !isopen
-      } else {
-        timeline.visible = !isopen
-      }
-    },
-
     createTimelineFolds() {
       this.tempStore.timelinesFold = Object.fromEntries(
         this.undoableStore.timelines.map((t) => {
           if (typeof t.vocabulary !== 'string') {
-            return [t.id, { visible: false }]
+            return [t.id, { name: t.name, visible: false }]
           }
           const categories = JSON.parse(
             JSON.stringify(
@@ -292,7 +296,7 @@ export default {
           categories.forEach((c) => {
             c.visible = false
           })
-          return [t.id, { categories, visible: false }]
+          return [t.id, { categories, name: t.name, visible: false }]
         })
       )
     },
@@ -303,10 +307,6 @@ export default {
 
     duplicateTimeline(id) {
       this.undoableStore.duplicateTimeline(id)
-    },
-
-    getVocabulary(id) {
-      return this.undoableStore.vocabularies.find((v) => v.id === id)
     },
 
     linkVocab() {
