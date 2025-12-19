@@ -272,7 +272,7 @@ export default {
   },
 
   beforeUnmount() {
-    for (const key of ['m', 's', 'Delete']) {
+    for (const key of ['m', 's', 'Delete', 'Backspace']) {
       shortcuts.clear(key)
     }
   },
