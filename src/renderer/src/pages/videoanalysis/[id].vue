@@ -94,10 +94,14 @@
         <v-list-item
           prepend-icon="mdi-alpha-e-box"
           title="Import ELAN Annotations (.eaf)"
-          @click="importAnnotations(false)"
+          @click="importAnnotations()"
         />
 
-        <v-list-item prepend-icon="mdi-alpha-t-box" title="Import TIB‑AV‑A Results (WiP)" />
+        <v-list-item
+          prepend-icon="mdi-alpha-t-box"
+          title="Import TIB‑AV‑A Results (.tsv)"
+          @click="importTibava"
+        />
       </v-list-group>
 
       <v-list-group>
@@ -439,6 +443,10 @@ export default {
 
     importAnnotations() {
       this.undoableStore.importAnnotations()
+    },
+
+    importTibava() {
+      this.undoableStore.importTibava()
     },
 
     loadSubtitles() {

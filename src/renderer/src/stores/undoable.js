@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 
 import api from '@renderer/api'
-import { parseEafAnnotations } from '@renderer/importexport'
+import { parseEafAnnotations, parseTsvAnnotations } from '@renderer/importexport'
 import { useMainStore } from './main'
 import { useTempStore } from './temp'
 import { useUndoStore } from './undo'
@@ -153,6 +153,29 @@ export const useUndoableStore = defineStore('undoable', {
         reader.readAsText(file)
       })
       fileInput.click()
+    },
+    importTibava() {
+      const fileInput = document.createElement('input')
+      fileInput.type = 'file'
+      fileInput.accept = '.tsv'
+      fileInput.addEventListener('change', (event) => {
+        const [file] = event.target.files
+        if (!file) return
+
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const content = e.target.result
+          this.timelines.push({
+            id: crypto.randomUUID(),
+            name: file.name,
+            type: 'scalar',
+            ...parseTsvAnnotations(content)
+          })
+        }
+        reader.readAsText(file)
+      })
+      fileInput.click()
+
     },
     initialize() {
       this.$subscribe((mutation, state) => {

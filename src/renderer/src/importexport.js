@@ -110,6 +110,25 @@ export const parseEafAnnotations = (xmlContent) => {
   return [...timelines.values()]
 }
 
+
+export const parseTsvAnnotations = (content) => {
+  const lines = content.split('\n').map((s) => s.split('\t'))
+  if (lines.length <= 1) {
+    return { data: [], fps: 1 }
+  }
+  if (lines[0][1].startsWith('duration')) {
+    console.warning('Annotations timeline from tibava currenctly not supported')
+    return { data: [], fps: 1 }
+  }
+  return {
+    data: lines
+      .slice(1)
+      .map((l) => parseFloat(l[2]))
+      .filter((d) => !Number.isNaN(d)),
+    fps: 1 / (parseFloat(lines[2][0]) - parseFloat(lines[1][0]))
+  }
+}
+
 export const exportAnnotations = (csv) => {
   const blob = csv
     ? new Blob([generateCSVContent()], { type: 'text/csv' })

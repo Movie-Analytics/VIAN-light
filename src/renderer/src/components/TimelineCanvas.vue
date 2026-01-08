@@ -318,6 +318,22 @@ export default {
             }
           }
         }
+        if (timeline.type === 'scalar') {
+          data.push({
+            data: timeline.data.map(
+              (t) =>
+                AXES_HEIGHT +
+                (this.numTimelines + 1) * TIMELINE_HEIGHT -
+                t * (TIMELINE_HEIGHT - 5) -
+                5
+            ),
+            fps: timeline.fps,
+            height: 44,
+            id: timeline.id,
+            timeline: timeline.id,
+            type: 'scalar'
+          })
+        }
         if (timeline.vocabulary && this.tempStore.timelinesFold[timeline.id].visible) {
           for (const category of this.tempStore.timelinesFold[timeline.id].categories) {
             this.numTimelines += 1
@@ -441,6 +457,15 @@ export default {
           ctx.drawImage(image, x, d.y, d.width, d.height)
           ctx.globalAlpha = 1.0
           hCtx.fillRect(x, d.y, d.width, d.height)
+        } else if (d.type === 'scalar') {
+          ctx.beginPath()
+          ctx.strokeStyle = 'DimGray'
+          ctx.moveTo(rescale(0), d.data[0])
+          const mainFps = this.mainStore.fps
+          d.data.forEach((p, i) => {
+            ctx.lineTo(rescale((i / d.fps) * mainFps), p)
+          })
+          ctx.stroke()
         }
       }
     },
