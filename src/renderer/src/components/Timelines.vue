@@ -58,20 +58,11 @@
                       </template>
 
                       <v-list class="pb-0 pt-0">
-                        <v-list-item
-                          title="Duplicate"
-                          @click="duplicateTimeline(timeline.id)"
-                        ></v-list-item>
+                        <v-list-item title="Duplicate" @click="duplicateTimeline(id)"></v-list-item>
 
-                        <v-list-item
-                          title="Delete"
-                          @click="deleteTimeline(timeline.id)"
-                        ></v-list-item>
+                        <v-list-item title="Delete" @click="deleteTimeline(id)"></v-list-item>
 
-                        <v-list-item
-                          title="Rename"
-                          @click="renameDialogOpen(timeline.id)"
-                        ></v-list-item>
+                        <v-list-item title="Rename" @click="renameDialogOpen(id)"></v-list-item>
 
                         <v-list-item
                           title="Link to vocabulary"
@@ -80,7 +71,7 @@
                             typeof timeline.vocabulary === 'string' ||
                             timeline.type !== 'shots'
                           "
-                          @click="linkVocabDialogOpen(timeline.id)"
+                          @click="linkVocabDialogOpen(id)"
                         ></v-list-item>
                       </v-list>
                     </v-menu>
@@ -330,6 +321,7 @@ export default {
     renameTimeline() {
       this.undoableStore.renameTimeline(this.selectedTimeline, this.timelineName)
       this.renameDialog = false
+      this.createTimelineFolds()
     },
 
     segmentDelete() {
