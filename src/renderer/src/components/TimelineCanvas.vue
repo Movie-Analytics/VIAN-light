@@ -3,9 +3,12 @@
     <canvas ref="canvas" height="0"></canvas>
 
     <v-overlay v-model="overlayInput" contained>
-      <v-text-field
+      <v-textarea
         ref="overlayTextfield"
         v-model="overlayInputModel"
+        auto-grow
+        rows="1"
+        max-rows="3"
         label="Annotations"
         min-width="200"
         hide-details="true"
@@ -14,7 +17,7 @@
         class="bg-blue-grey-lighten-5 position-absolute"
         @change="overlayInputChange"
         @keyup.enter="overlayInputChange"
-      ></v-text-field>
+      ></v-textarea>
     </v-overlay>
 
     <canvas ref="hiddenCanvas" height="0" class="d-none"></canvas>
