@@ -23,7 +23,9 @@ const cleanScreenshots = (projectPath) => {
   timelines.forEach((t) => {
     t.data.forEach((d) => {
       if (typeof d === 'object' && 'image' in d) referencedImgs.add(d.image.replace('app://', ''))
-      if (typeof d === 'object' && 'thumbnail' in d) referencedImgs.add(d.thumbnail.replace('app://', ''))
+      if (typeof d === 'object' && 'thumbnail' in d) {
+        referencedImgs.add(d.thumbnail.replace('app://', ''))
+      }
     })
   })
 

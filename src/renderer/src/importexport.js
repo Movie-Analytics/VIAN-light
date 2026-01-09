@@ -110,7 +110,6 @@ export const parseEafAnnotations = (xmlContent) => {
   return [...timelines.values()]
 }
 
-
 export const parseTsvAnnotations = (content) => {
   const lines = content.split('\n').map((s) => s.split('\t'))
   if (lines.length <= 1) {

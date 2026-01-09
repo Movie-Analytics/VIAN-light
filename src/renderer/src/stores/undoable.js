@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 
-import api from '@renderer/api'
 import { parseEafAnnotations, parseTsvAnnotations } from '@renderer/importexport'
+import api from '@renderer/api'
 import { useMainStore } from './main'
 import { useTempStore } from './temp'
 import { useUndoStore } from './undo'
@@ -175,7 +175,6 @@ export const useUndoableStore = defineStore('undoable', {
         reader.readAsText(file)
       })
       fileInput.click()
-
     },
     initialize() {
       this.$subscribe((mutation, state) => {
