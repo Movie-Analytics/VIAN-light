@@ -14,9 +14,7 @@
       ],
       "cflags_cc": [
         "-fPIC",
-        "-fexceptions",
-        "-march=x86-64",
-        "-mtune=generic"
+        "-fexceptions"
       ],
       "conditions": [
         ["OS=='win'", {
