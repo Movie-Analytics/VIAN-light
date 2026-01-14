@@ -3,9 +3,9 @@
     {
       "target_name": "video_reader",
       "include_dirs": [
-        "<!@(node -p \"require('node-addon-api').include\")", 
-        "ffmpeglibs/include", 
-        "onnxlibs/include", 
+        "<!@(node -p \"require('node-addon-api').include\")",
+        "ffmpeglibs/include",
+        "onnxlibs/include",
       ],
       "dependencies": ["<!(node -p \"require('node-addon-api').gyp\")"],
       "cflags": [
@@ -25,7 +25,7 @@
                 "/EHsc",
                 "/MT"
               ],
-              "RuntimeLibrary": 0 
+              "RuntimeLibrary": 0
             },
             "VCLinkerTool": {
               "AdditionalOptions": [
@@ -34,13 +34,13 @@
               ]
             }
           },
-          "sources": [ 
-            "video_reader/video_reader.cpp", 
-            "video_reader/video_reader.h", 
-            "video_reader/video_reader_wrapper.cpp", 
-            "video_reader/video_reader_wrapper.h", 
-            "video_reader/worker.cpp", 
-            "video_reader/worker.h", 
+          "sources": [
+            "video_reader/video_reader.cpp",
+            "video_reader/video_reader.h",
+            "video_reader/video_reader_wrapper.cpp",
+            "video_reader/video_reader_wrapper.h",
+            "video_reader/worker.cpp",
+            "video_reader/worker.h",
           ],
           "libraries": [
             "<(module_root_dir)/onnxlibs/lib/onnxruntime.lib",
@@ -51,9 +51,9 @@
             "<(module_root_dir)/ffmpeglibs/lib/libavutil.a",
             "<(module_root_dir)/ffmpeglibs/lib/libswresample.a",
             "<(module_root_dir)/ffmpeglibs/lib/libswscale.a",
-            "libcmt.lib",     
-            "libvcruntime.lib",  
-            "libucrt.lib",      
+            "libcmt.lib",
+            "libvcruntime.lib",
+            "libucrt.lib",
             "kernel32.lib",
             "Bcrypt.lib",
             "Secur32.lib",
@@ -74,12 +74,12 @@
         }],
         ["OS!='win'", {
           "sources": [
-            "video_reader/video_reader.cpp", 
-            "video_reader/video_reader.h", 
-            "video_reader/video_reader_wrapper.cpp", 
-            "video_reader/video_reader_wrapper.h", 
-            "video_reader/worker.cpp", 
-            "video_reader/worker.h", 
+            "video_reader/video_reader.cpp",
+            "video_reader/video_reader.h",
+            "video_reader/video_reader_wrapper.cpp",
+            "video_reader/video_reader_wrapper.h",
+            "video_reader/worker.cpp",
+            "video_reader/worker.h",
             "ffmpeglibs/lib/libavcodec.a",
             "ffmpeglibs/lib/libavdevice.a",
             "ffmpeglibs/lib/libavfilter.a",
