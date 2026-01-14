@@ -66,11 +66,7 @@
 
                         <v-list-item
                           title="Link to vocabulary"
-                          :disabled="
-                            !vocabularyExists ||
-                            typeof timeline.vocabulary === 'string' ||
-                            timeline.type !== 'shots'
-                          "
+                          :disabled="!canLinkVocabulary(id)"
                           @click="linkVocabDialogOpen(id)"
                         ></v-list-item>
                       </v-list>
@@ -157,6 +153,7 @@ import SplitterContainer from '@renderer/components/SplitterContainer.vue'
 import TimelineCanvas from '@renderer/components/TimelineCanvas.vue'
 import api from '@renderer/api'
 import shortcuts from '@renderer/shortcuts'
+import { toRaw } from 'vue'
 import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
@@ -273,16 +270,24 @@ export default {
       this.undoableStore.addNewTimeline()
     },
 
+    canLinkVocabulary(timelineId) {
+      const timeline = this.undoableStore.getTimelineById(timelineId)
+
+      return !(
+        !this.vocabularyExists ||
+        typeof timeline.vocabulary === 'string' ||
+        timeline.type !== 'shots'
+      )
+    },
+
     createTimelineFolds() {
       this.tempStore.timelinesFold = Object.fromEntries(
         this.undoableStore.timelines.map((t) => {
           if (typeof t.vocabulary !== 'string') {
             return [t.id, { name: t.name, visible: false }]
           }
-          const categories = JSON.parse(
-            JSON.stringify(
-              this.undoableStore.vocabularies.find((v) => v.id === t.vocabulary).categories
-            )
+          const categories = structuredClone(
+            toRaw(this.undoableStore.vocabularies.find((v) => v.id === t.vocabulary).categories)
           )
           categories.forEach((c) => {
             c.visible = false
