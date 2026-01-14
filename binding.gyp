@@ -15,6 +15,9 @@
       "cflags_cc": [
         "-fPIC",
         "-fexceptions"
+        "-fno-omit-frame-pointer",
+        "-march=x86-64",
+        "-mtune=generic"
       ],
       "conditions": [
         ["OS=='win'", {
