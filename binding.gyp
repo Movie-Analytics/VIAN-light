@@ -10,12 +10,17 @@
       "dependencies": ["<!(node -p \"require('node-addon-api').gyp\")"],
       "cflags": [
         "-fPIC",
-        "-fexceptions"
+        "-fexceptions",
+        "-z", "noexecstack"
       ],
       "cflags_cc": [
         "-fPIC",
-        "-fexceptions"
+        "-fexceptions",
+        "-z", "noexecstack"
       ],
+      "ldflags": [
+        "-z", "noexecstack"
+      ]
       "conditions": [
         ["OS=='win'", {
           "msvs_settings": {
