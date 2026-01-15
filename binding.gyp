@@ -20,7 +20,7 @@
       ],
       "ldflags": [
         "-z", "noexecstack"
-      ]
+      ],
       "conditions": [
         ["OS=='win'", {
           "msvs_settings": {
