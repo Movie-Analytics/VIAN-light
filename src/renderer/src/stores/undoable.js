@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 
 import { parseEafAnnotations, parseTsvAnnotations } from '@renderer/importexport'
 import api from '@renderer/api'
-import { toRaw } from 'vue'
 import { useMainStore } from './main'
 import { useTempStore } from './temp'
 import { useUndoStore } from './undo'
@@ -181,7 +180,7 @@ export const useUndoableStore = defineStore('undoable', {
       this.$subscribe((mutation, state) => {
         setTimeout(() => {
           if (state.id === null || mutation.events?.key === 'id') return
-          const copyState = structuredClone(toRaw(state))
+          const copyState = JSON.parse(JSON.stringify(state))
           api.saveStore('undoable', copyState)
 
           useUndoStore().push('undoable', copyState)
