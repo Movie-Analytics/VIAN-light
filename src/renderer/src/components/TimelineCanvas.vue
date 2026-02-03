@@ -372,7 +372,20 @@ export default {
 
       this.zoom = d3
         .zoom()
+        .wheelDelta((event) => {
+          let factor = event.deltaMode === 1 ? 0.05 : 0.01
+          if (Math.abs(event.deltaY) > 25) {
+            // Mouse scrolling has delta > 200 and touchpad around 20 so limit delta here
+            factor *= 25 / Math.abs(event.deltaY)
+          }
+          return -event.deltaY * factor
+        })
         .scaleExtent([1, this.mainStore.videoDuration * 0.15])
+        .filter((e) => {
+          // Only allow zoom via pinch on touchpad and ctrl+zoom with mouse
+          if (e.type === 'wheel') return e.ctrlKey
+          return true
+        })
         .on('zoom', ({ transform }) => {
           this.transform = transform
           this.requestDraw()
