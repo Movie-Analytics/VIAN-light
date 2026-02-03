@@ -577,22 +577,27 @@ export default {
       this.tempStore.tmpShot = {
         end: entry.x + entry.width,
         height: 44,
+        max: this.mainStore.numFrames,
+        min: 0,
         origin: entry.hiddenLeftHandle === color ? entry.x + entry.width : entry.x,
         originalShot: entry,
         start: entry.x,
         y: entry.y
       }
+      const currentIndex = this.data.indexOf(entry)
+      const leftSide = entry.hiddenLeftHandle === color
+      const adjacent = leftSide ? this.data[currentIndex - 1] : this.data[currentIndex + 1]
 
-      if (e.shiftKey) {
-        const currentIndex = this.data.indexOf(entry)
-        const leftSide = entry.hiddenLeftHandle === color
-        const adjacent = leftSide ? this.data[currentIndex - 1] : this.data[currentIndex + 1]
-        if (adjacent.locked) {
+      if (adjacent?.timeline === entry.timeline) {
+        // Prevent overlapping segments
+        this.tempStore.tmpShot.min = leftSide
+          ? adjacent.x + adjacent.width + 1
+          : this.tempStore.tmpShot.start
+        this.tempStore.tmpShot.max = leftSide ? this.tempStore.tmpShot.end : adjacent.x - 1
+
+        if (e.shiftKey && adjacent.locked) {
           this.tempStore.tmpShot = null
-          return
-        }
-
-        if (adjacent?.timeline === entry.timeline) {
+        } else if (e.shiftKey) {
           this.tempStore.adjacentShot = {
             diff: leftSide
               ? entry.x - (adjacent.x + adjacent.width)
@@ -618,24 +623,29 @@ export default {
     },
 
     mousemove(e) {
-      if (e.buttons !== 1 || this.tempStore.tmpShot === null) return
-      if (e.altKey || e.shiftKey) e.stopImmediatePropagation()
-
       const rect = this.$refs.canvas.getBoundingClientRect()
       const coordX = e.clientX - rect.left
       const xNew = Math.round(this.transform.rescaleX(this.scale).invert(coordX))
 
-      this.tempStore.tmpShot.start = Math.min(this.tempStore.tmpShot.origin, xNew)
-      this.tempStore.tmpShot.end = Math.max(this.tempStore.tmpShot.origin, xNew)
+      if (e.buttons !== 1 || this.tempStore.tmpShot === null) return
+      if (e.altKey || e.shiftKey) e.stopImmediatePropagation()
 
-      if (e.shiftKey && this.tempStore.adjacentShot) {
-        if (this.tempStore.adjacentShot.leftSide) {
-          this.tempStore.adjacentShot.end =
-            this.tempStore.tmpShot.start - this.tempStore.adjacentShot.diff
+      // Limit the bounds so that no overlapping or inverted segments (end before start) get created
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+      const { tmpShot, adjacentShot } = { ...this.tempStore }
+      if (e.shiftKey && adjacentShot) {
+        if (adjacentShot.leftSide) {
+          tmpShot.start = clamp(xNew, adjacentShot.start + adjacentShot.diff + 1, tmpShot.origin)
+          tmpShot.end = clamp(xNew, tmpShot.end, tmpShot.origin + 1)
+          adjacentShot.end = tmpShot.start - adjacentShot.diff
         } else {
-          this.tempStore.adjacentShot.start =
-            this.tempStore.tmpShot.end + this.tempStore.adjacentShot.diff
+          tmpShot.start = clamp(xNew, tmpShot.start, tmpShot.origin - 1)
+          tmpShot.end = clamp(xNew, tmpShot.origin + 1, adjacentShot.end - adjacentShot.diff - 1)
+          adjacentShot.start = tmpShot.end + adjacentShot.diff
         }
+      } else {
+        tmpShot.start = clamp(xNew, tmpShot.min, tmpShot.origin - 1)
+        tmpShot.end = clamp(xNew, tmpShot.origin + 1, tmpShot.max)
       }
 
       this.requestDraw()
