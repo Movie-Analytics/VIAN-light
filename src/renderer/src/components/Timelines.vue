@@ -37,7 +37,15 @@
         <v-list id="timeline-list" lines="one" class="w-100" :opened="openedItems">
           <v-list-group v-for="(timeline, id) in tempStore.timelinesFold" :key="id" :value="id">
             <template #activator>
-              <v-list-item :title="timeline.name" class="pr-2">
+              <v-list-item
+                :title="timeline.name"
+                class="pr-2"
+                draggable="true"
+                @dragstart="dragStart($event, id)"
+                @dragend="dragEnd"
+                @dragover="dragOver"
+                @drop="dragDrop($event, id)"
+              >
                 <template #append>
                   <v-list-item-action start>
                     <v-btn
@@ -299,6 +307,30 @@ export default {
 
     deleteTimeline(id) {
       this.undoableStore.deleteTimeline(id)
+    },
+
+    dragDrop(e, id) {
+      e.preventDefault()
+      const draggedId = e.dataTransfer.getData('text/plain')
+      if (draggedId !== id) {
+        const index = this.undoableStore.timelines.findIndex((t) => t.id === id)
+        this.undoableStore.reorderTimelines(draggedId, index)
+        this.createTimelineFolds()
+      }
+    },
+
+    dragEnd(e) {
+      e.target.style.opacity = '1'
+    },
+
+    dragOver(e) {
+      e.preventDefault()
+    },
+
+    dragStart(e, id) {
+      e.dataTransfer.setData('text/plain', id)
+      e.dataTransfer.effectAllowed = 'move'
+      e.target.style.opacity = '0.5'
     },
 
     duplicateTimeline(id) {

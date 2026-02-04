@@ -280,6 +280,15 @@ export const useUndoableStore = defineStore('undoable', {
         }
       }
     },
+    reorderTimelines(id, index) {
+      const initialIndex = this.timelines.findIndex(t => t.id === id)
+
+      const items = [...this.timelines]
+      const [removed] = items.splice(initialIndex, 1)
+      items.splice(index, 0, removed)
+
+      this.timelines = items
+    },
     runShotBoundaryDetection() {
       api.runShotBoundaryDetection(useMainStore().video)
     },
