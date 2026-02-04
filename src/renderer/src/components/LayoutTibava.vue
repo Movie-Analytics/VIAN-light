@@ -12,13 +12,13 @@
         <template #panel2>
           <v-card class="d-flex flex-column h-100 w-100">
             <v-tabs v-model="tab" show-arrows class="flex-0-0">
-              <v-tab value="info">Info</v-tab>
+              <v-tab value="info">{{ $t('pages.video.tabs.info') }}</v-tab>
 
               <v-tab :disabled="undoableStore.shotTimelines.length == 0" value="shots">
-                Segmentation
+                {{ $t('pages.video.tabs.segmentation') }}
               </v-tab>
 
-              <v-tab value="selection">Annotation</v-tab>
+              <v-tab value="selection">{{ $t('pages.video.tabs.annotation') }}</v-tab>
             </v-tabs>
 
             <v-card-text class="d-flex flex-1-1 flex-column height-min-0">
@@ -28,16 +28,21 @@
                 class="d-flex flex-1-1 flex-column height-min-0"
               >
                 <v-tabs-window-item value="info">
-                  <p v-if="mainStore.fps">FPS: {{ mainStore.fps }}</p>
-
-                  <p v-if="mainStore.height && mainStore.width">
-                    Resolution: {{ mainStore.width }} x {{ mainStore.height }}
+                  <p v-if="mainStore.fps">
+                    {{ $t('pages.video.info.fps') }}: {{ mainStore.fps }}
                   </p>
 
-                  <p v-if="duration">Duration: {{ duration }}</p>
+                  <p v-if="mainStore.height && mainStore.width">
+                    {{ $t('pages.video.info.resolution') }}: {{ mainStore.width }} x
+                    {{ mainStore.height }}
+                  </p>
+
+                  <p v-if="duration">
+                    {{ $t('pages.video.info.duration') }}: {{ duration }}
+                  </p>
 
                   <p v-if="mainStore.numFrames">
-                    Total number of frames: {{ mainStore.numFrames }}
+                    {{ $t('pages.video.info.totalFrames') }}: {{ mainStore.numFrames }}
                   </p>
                 </v-tabs-window-item>
 

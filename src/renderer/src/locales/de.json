@@ -1,0 +1,105 @@
+{
+  "app": {
+    "title": "VIAN-light",
+    "hello": "Hallo!"
+  },
+  "common": {
+    "ok": "OK",
+    "cancel": "Abbrechen",
+    "generate": "Erstellen",
+    "save": "Speichern",
+    "import": "Importieren"
+  },
+  "pages": {
+    "login": {
+      "appTitle": "VIAN Light",
+      "description": "VIAN Light ist eine offene Video-Annotationsanwendung. Einige Funktionen sind:",
+      "features": {
+        "shotboundary": "automatische Shotboundary-Erkennung",
+        "elan": "Import und Export nach ELAN",
+        "screenshots": "Screenshot-Erstellung",
+        "electronBrowser": "läuft im Browser oder per Electron als Desktop-Anwendung"
+      },
+      "tabs": {
+        "login": "Anmelden",
+        "signup": "Registrieren"
+      },
+      "form": {
+        "email": "E-Mail",
+        "password": "Passwort"
+      },
+      "actions": {
+        "login": "Anmelden",
+        "signup": "Registrieren"
+      }
+    },
+    "index": {
+      "version": "Version",
+      "updateAvailable": "Update verfügbar",
+      "openVideo": "Video öffnen",
+      "importProject": "Projekt importieren",
+      "renameProject": {
+        "title": "Projekt umbenennen",
+        "newNameLabel": "Neuer Projektname"
+      },
+      "importDialog": {
+        "title": "Projekt importieren",
+        "video": "Video",
+        "projectFile": "Projektdatei"
+      }
+    },
+    "video": {
+      "tooltips": {
+        "undo": "Rückgängig",
+        "redo": "Wiederholen",
+        "jobList": "Jobliste",
+        "home": "Start"
+      },
+      "tabs": {
+        "info": "Info",
+        "segmentation": "Segmentierung",
+        "annotation": "Annotation"
+      },
+      "info": {
+        "fps": "FPS",
+        "resolution": "Auflösung",
+        "duration": "Dauer",
+        "totalFrames": "Gesamtanzahl der Frames"
+      },
+      "drawer": {
+        "shotBoundaryDetection": "Shotboundary-Erkennung",
+        "loadSubtitles": "Untertitel laden",
+        "generateScreenshots": "Screenshots erzeugen",
+        "manageVocabulary": "Vokabular verwalten",
+        "importData": "Daten importieren",
+        "importElan": "ELAN-Annotationen importieren (.eaf)",
+        "importTibavaWip": "TIB-AV-A Ergebnisse importieren (WiP)",
+        "exportData": "Daten exportieren",
+        "exportElan": "Als ELAN-Annotationen exportieren (.eaf)",
+        "exportCsv": "Annotationen als .csv exportieren",
+        "exportScreenshots": "Screenshots exportieren",
+        "exportProjectZip": "Projekt als .zip exportieren",
+        "switchToLightMode": "Zum Hellmodus wechseln",
+        "switchToDarkMode": "Zum Dunkelmodus wechseln",
+        "layout": "Layout",
+        "tabbedLayout": "Tab-Layout",
+        "draggableLayout": "Verschiebbares Layout"
+      },
+      "dialogs": {
+        "generateScreenshots": {
+          "title": "Screenshots erzeugen",
+          "description": "Alle N Sekunden einen Screenshot erstellen",
+          "intervalLabel": "N",
+          "perShotLabel": "Mindestens einen Screenshot pro Shot sicherstellen",
+          "shotTimelineLabel": "Shot-Timeline"
+        },
+        "exportScreenshots": {
+          "title": "Screenshots exportieren",
+          "description": "Du kannst entweder alle Screenshots auf einmal exportieren oder sie in einer Timeline einzeln auswählen und nur diese exportieren.",
+          "exportAll": "Alle exportieren",
+          "exportIndividually": "Einzeln exportieren"
+        }
+      }
+    }
+  }
+}

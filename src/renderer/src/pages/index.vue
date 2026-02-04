@@ -12,10 +12,10 @@
       <v-container id="main-container" class="d-sm-flex flex-column" max-width="1000">
         <v-row justify="center">
           <v-col cols="auto" align-self="center">
-            <p class="text-h1">VIAN Light</p>
+            <p class="text-h1">{{ $t('app.title') }}</p>
 
             <div class="mt-4 text-center">
-              <span>Version: {{ metaStore.vianVersion }}</span>
+              <span>{{ $t('pages.index.version') }}: {{ metaStore.vianVersion }}</span>
 
               <v-chip
                 v-if="metaStore.vianVersion !== metaStore.vianLatestVersion"
@@ -24,7 +24,8 @@
                 href="https://github.com/Movie-Analytics/VIAN-light/releases"
                 target="_blank"
                 rel="noopener noreferrer"
-                >Update available
+              >
+                {{ $t('pages.index.updateAvailable') }}
               </v-chip>
             </div>
           </v-col>
@@ -32,11 +33,11 @@
 
         <v-row justify="center">
           <v-col cols="auto" align-self="center">
-            <v-btn @click="openVideo">Open video</v-btn>
+            <v-btn @click="openVideo">{{ $t('pages.index.openVideo') }}</v-btn>
           </v-col>
 
           <v-col cols="auto" align-self="center">
-            <v-btn @click="importDialog = true">Import project</v-btn>
+            <v-btn @click="importDialog = true">{{ $t('pages.index.importProject') }}</v-btn>
           </v-col>
         </v-row>
 
@@ -72,39 +73,46 @@
 
       <v-dialog v-model="renameDialog" persistent max-width="500">
         <v-card>
-          <v-card-title>Rename Project</v-card-title>
+          <v-card-title>{{ $t('pages.index.renameProject.title') }}</v-card-title>
 
           <v-card-text>
-            <v-text-field v-model="projectName" label="New Project Name"></v-text-field>
+            <v-text-field
+              v-model="projectName"
+              :label="$t('pages.index.renameProject.newNameLabel')"
+            ></v-text-field>
           </v-card-text>
 
           <v-card-actions>
-            <v-btn color="warning" @click="renameDialog = false">Cancel</v-btn>
+            <v-btn color="warning" @click="renameDialog = false">{{ $t('common.cancel') }}</v-btn>
 
-            <v-btn color="primary" @click="saveProjectName">Save</v-btn>
+            <v-btn color="primary" @click="saveProjectName">{{ $t('common.save') }}</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
 
       <v-dialog v-model="importDialog" persistent max-width="500" :disabled="importDisabled">
         <v-card>
-          <v-card-title>Import Project</v-card-title>
+          <v-card-title>{{ $t('pages.index.importDialog.title') }}</v-card-title>
 
           <v-card-text>
-            <v-file-input v-model="importVideoFile" label="Video" accept="video/mp4"></v-file-input>
+            <v-file-input
+              v-model="importVideoFile"
+              :label="$t('pages.index.importDialog.video')"
+              accept="video/mp4"
+            ></v-file-input>
 
             <v-file-input
               v-model="importZipFile"
-              label="Project file"
+              :label="$t('pages.index.importDialog.projectFile')"
               accept="application/zip"
             ></v-file-input>
           </v-card-text>
 
           <v-card-actions>
-            <v-btn color="warning" @click="importDialog = false">Cancel</v-btn>
+            <v-btn color="warning" @click="importDialog = false">{{ $t('common.cancel') }}</v-btn>
 
             <v-btn color="primary" :disabled="importButtonDisabled" @click="importProject">
-              Import
+              {{ $t('common.import') }}
             </v-btn>
           </v-card-actions>
         </v-card>

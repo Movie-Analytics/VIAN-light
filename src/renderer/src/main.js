@@ -9,6 +9,7 @@ import { setupCsp } from './setupcsp'
 
 import App from './App.vue'
 import router from './router'
+import { i18n } from './i18n'
 
 setupCsp()
 const vuetify = createVuetify({ theme: { themes: { dark: false } } })
@@ -18,4 +19,5 @@ const app = createApp(App)
 app.use(pinia)
 app.use(router)
 app.use(vuetify)
+app.use(i18n)
 app.mount('#app')

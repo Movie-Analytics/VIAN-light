@@ -1,21 +1,21 @@
 <template>
   <v-app-bar density="compact">
-    <v-app-bar-title
-      >VIAN Light
-      <span class="text-body-2 text-medium-emphasis">{{ mainStore.video }}</span></v-app-bar-title
-    >
+    <v-app-bar-title>
+      {{ $t('app.title') }}
+      <span class="text-body-2 text-medium-emphasis">{{ mainStore.video }}</span>
+    </v-app-bar-title>
 
-    <v-btn v-tooltip="'Undo'" :disabled="!isUndoable" icon @click="undo">
+    <v-btn v-tooltip="$t('pages.video.tooltips.undo')" :disabled="!isUndoable" icon @click="undo">
       <v-icon>mdi-undo</v-icon>
     </v-btn>
 
-    <v-btn v-tooltip="'Redo'" :disabled="!isRedoable" icon @click="redo">
+    <v-btn v-tooltip="$t('pages.video.tooltips.redo')" :disabled="!isRedoable" icon @click="redo">
       <v-icon>mdi-redo</v-icon>
     </v-btn>
 
     <v-menu :close-on-content-click="false">
       <template #activator="{ props }">
-        <v-btn v-tooltip="'Job list'" :disabled="!hasJobs" icon v-bind="props">
+        <v-btn v-tooltip="$t('pages.video.tooltips.jobList')" :disabled="!hasJobs" icon v-bind="props">
           <v-badge v-if="runningJobs" color="error" dot>
             <v-icon>mdi-history</v-icon>
           </v-badge>
@@ -47,7 +47,7 @@
       </v-list>
     </v-menu>
 
-    <v-btn v-tooltip="'Home'" icon @click="homeClicked">
+    <v-btn v-tooltip="$t('pages.video.tooltips.home')" icon @click="homeClicked">
       <v-icon>mdi-home</v-icon>
     </v-btn>
   </v-app-bar>
@@ -62,19 +62,19 @@
     <v-list v-model:opened="drawerGroupsOpen" density="compact" nav>
       <v-list-item
         prepend-icon="mdi-movie-open"
-        title="Shot Boundary Detection"
+        :title="$t('pages.video.drawer.shotBoundaryDetection')"
         @click="shotBoundaryDetectionClicked"
       ></v-list-item>
 
       <v-list-item
-        title="Load Subtitles"
+        :title="$t('pages.video.drawer.loadSubtitles')"
         prepend-icon="mdi-microphone-message"
         @click="loadSubtitles"
       ></v-list-item>
 
       <v-list-item
         prepend-icon="mdi-image-plus"
-        title="Generate Screenshots"
+        :title="$t('pages.video.drawer.generateScreenshots')"
         @click="genScreenshotDialog = true"
       ></v-list-item>
 
@@ -82,50 +82,53 @@
 
       <v-list-item
         prepend-icon="mdi-playlist-edit"
-        title="Manage Vocabulary"
+        :title="$t('pages.video.drawer.manageVocabulary')"
         @click="manageVocabulary"
       ></v-list-item>
 
       <v-list-group>
         <template #activator="{ props }">
-          <v-list-item v-bind="props" prepend-icon="mdi-import" title="Import Data" />
+          <v-list-item v-bind="props" prepend-icon="mdi-import" :title="$t('pages.video.drawer.importData')" />
         </template>
 
         <v-list-item
           prepend-icon="mdi-alpha-e-box"
-          title="Import ELAN Annotations (.eaf)"
+          :title="$t('pages.video.drawer.importElan')"
           @click="importAnnotations(false)"
         />
 
-        <v-list-item prepend-icon="mdi-alpha-t-box" title="Import TIB‑AV‑A Results (WiP)" />
+        <v-list-item
+          prepend-icon="mdi-alpha-t-box"
+          :title="$t('pages.video.drawer.importTibavaWip')"
+        />
       </v-list-group>
 
       <v-list-group>
         <template #activator="{ props }">
-          <v-list-item v-bind="props" prepend-icon="mdi-export" title="Export Data" />
+          <v-list-item v-bind="props" prepend-icon="mdi-export" :title="$t('pages.video.drawer.exportData')" />
         </template>
 
         <v-list-item
           prepend-icon="mdi-alpha-e-box"
-          title="Export as ELAN Annotations (.eaf)"
+          :title="$t('pages.video.drawer.exportElan')"
           @click="exportAnnotations(false)"
         />
 
         <v-list-item
           prepend-icon="mdi-file-delimited"
-          title="Export Annotations as .csv"
+          :title="$t('pages.video.drawer.exportCsv')"
           @click="exportAnnotations(true)"
         />
 
         <v-list-item
           prepend-icon="mdi-image-move"
-          title="Export Screenshots"
+          :title="$t('pages.video.drawer.exportScreenshots')"
           @click="exportScreenshotsDialog = true"
         />
 
         <v-list-item
           prepend-icon="mdi-folder-zip"
-          title="Export Project as .zip"
+          :title="$t('pages.video.drawer.exportProjectZip')"
           @click="exportProject"
         />
       </v-list-group>
@@ -135,14 +138,14 @@
       <v-list-item
         v-if="darkMode"
         prepend-icon="mdi-weather-sunny"
-        title="Switch to Light Mode"
+        :title="$t('pages.video.drawer.switchToLightMode')"
         @click="switchLightMode"
       ></v-list-item>
 
       <v-list-item
         v-else
         prepend-icon="mdi-weather-night"
-        title="Switch to Dark Mode"
+        :title="$t('pages.video.drawer.switchToDarkMode')"
         @click="switchLightMode"
       ></v-list-item>
 
@@ -151,20 +154,20 @@
           <v-list-item
             v-bind="props"
             prepend-icon="mdi-arrow-expand-all"
-            title="Layout"
+            :title="$t('pages.video.drawer.layout')"
           ></v-list-item>
         </template>
 
         <v-list-item
           prepend-icon="mdi-alpha-e-box"
-          title="Tabbed Layout"
+          :title="$t('pages.video.drawer.tabbedLayout')"
           @click="layout = 'tibava'"
         >
         </v-list-item>
 
         <v-list-item
           prepend-icon="mdi-move-resize"
-          title="Draggable Layout"
+          :title="$t('pages.video.drawer.draggableLayout')"
           @click="layout = 'draggable'"
         >
         </v-list-item>
@@ -179,13 +182,13 @@
 
     <v-dialog v-model="genScreenshotDialog" persistent max-width="400">
       <v-card>
-        <v-card-title>Generate Screenshots</v-card-title>
+        <v-card-title>{{ $t('pages.video.dialogs.generateScreenshots.title') }}</v-card-title>
 
         <v-card-text>
-          Create a screenshot every N seconds
+          {{ $t('pages.video.dialogs.generateScreenshots.description') }}
           <v-text-field
             v-model="screenshotInterval"
-            label="N"
+            :label="$t('pages.video.dialogs.generateScreenshots.intervalLabel')"
             type="number"
             min="1"
             max="100"
@@ -193,14 +196,14 @@
 
           <v-checkbox
             v-model="screenshotPerShot"
-            label="Ensure at least one screenshot per shot"
+            :label="$t('pages.video.dialogs.generateScreenshots.perShotLabel')"
           ></v-checkbox>
 
           <v-select
             v-if="screenshotPerShot"
             v-model="screenshotShotTimeline"
             :items="undoableStore.shotTimelines"
-            label="Shot Timeline"
+            :label="$t('pages.video.dialogs.generateScreenshots.shotTimelineLabel')"
             item-title="name"
             item-value="id"
           >
@@ -208,38 +211,45 @@
         </v-card-text>
 
         <v-card-actions>
-          <v-btn color="warning" @click="genScreenshotDialog = false">Cancel</v-btn>
+          <v-btn color="warning" @click="genScreenshotDialog = false">
+            {{ $t('common.cancel') }}
+          </v-btn>
 
           <v-btn
             color="primary"
             :disabled="genScreenshotButtonDisabled"
             @click="generateScreenshots"
-            >Generate</v-btn
           >
+            {{ $t('common.generate') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <v-dialog v-model="exportScreenshotsDialog" persistent max-width="500">
       <v-card>
-        <v-card-title>Export Screenshots</v-card-title>
+        <v-card-title>{{ $t('pages.video.dialogs.exportScreenshots.title') }}</v-card-title>
 
         <v-card-text>
-          You can either export all screenshots at once or select them individually in a timeline
-          and only export those.
+          {{ $t('pages.video.dialogs.exportScreenshots.description') }}
         </v-card-text>
 
         <v-card-actions>
-          <v-btn color="warning" @click="exportScreenshotsDialog = false">Cancel</v-btn>
+          <v-btn color="warning" @click="exportScreenshotsDialog = false">
+            {{ $t('common.cancel') }}
+          </v-btn>
 
-          <v-btn color="primary" @click="exportScreenshots(false)">Export all</v-btn>
+          <v-btn color="primary" @click="exportScreenshots(false)">
+            {{ $t('pages.video.dialogs.exportScreenshots.exportAll') }}
+          </v-btn>
 
           <v-btn
             color="secondary"
             :disabled="exportScreenshotsIndividualDisabled"
             @click="exportScreenshots(true)"
-            >Export individually</v-btn
           >
+            {{ $t('pages.video.dialogs.exportScreenshots.exportIndividually') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
