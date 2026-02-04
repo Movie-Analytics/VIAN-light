@@ -552,6 +552,8 @@ export default {
         this.tempStore.tmpShot = {
           end: start,
           height: 44,
+          max: this.mainStore.numFrames,
+          min: 0,
           origin: start,
           originalShot: null,
           start,
