@@ -475,6 +475,7 @@ export default {
           hCtx.fillRect(x, d.y, d.width, d.height)
         } else if (d.type === 'scalar') {
           ctx.beginPath()
+          ctx.lineWidth = '1'
           ctx.strokeStyle = 'DimGray'
           ctx.moveTo(rescale(0), d.data[0])
           const mainFps = this.mainStore.fps
