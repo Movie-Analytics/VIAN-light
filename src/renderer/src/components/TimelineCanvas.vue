@@ -27,6 +27,7 @@
 <script>
 import * as d3 from 'd3'
 import { mapStores } from 'pinia'
+import { markRaw } from 'vue'
 
 import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
@@ -410,7 +411,7 @@ export default {
         colorI += 20
       }
       // Modify data first and then access property because property access is slow
-      this.data = data
+      this.data = markRaw(data)
 
       this.resize()
     },
