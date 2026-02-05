@@ -278,17 +278,6 @@ export default {
       this.tCtx.moveTo(xPosition, 26)
       this.tCtx.lineTo(xPosition, 32)
       this.tCtx.stroke()
-
-      this.hCtx.fillStyle = this.playHeadColor
-      this.hCtx.beginPath()
-      this.hCtx.moveTo(xPosition, yPosition)
-      this.hCtx.lineTo(xPosition + 8, yPosition - 5)
-      this.hCtx.lineTo(xPosition + 8, yPosition - 12)
-      this.hCtx.lineTo(xPosition - 8, yPosition - 12)
-      this.hCtx.lineTo(xPosition - 8, yPosition - 5)
-      this.hCtx.lineTo(xPosition, yPosition)
-      this.hCtx.closePath()
-      this.hCtx.fill()
     },
 
     drawSetup() {
