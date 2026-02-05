@@ -747,7 +747,7 @@ export default {
       this.$refs.timeCanvas.style.marginRight = parent.offsetWidth - parent.clientWidth + 'px'
 
       this.$refs.timeCanvas.width = Math.floor(displayWidth * this.dpr)
-      this.$refs.timeCanvas.height = 32
+      this.$refs.timeCanvas.height = 32 * this.dpr
       this.$refs.timeCanvas.style.width = getComputedStyle(this.$refs.canvas).width
 
       // Same for hidden canvas
@@ -757,6 +757,7 @@ export default {
       // Scale the context
       this.ctx.scale(this.dpr, this.dpr)
       this.hCtx.scale(this.dpr, this.dpr)
+      this.tCtx.scale(this.dpr, this.dpr)
 
       const timelineLength = this.mainStore.videoDuration * this.mainStore.fps
       this.scale = d3.scaleLinear([0, timelineLength], [0, this.canvasWidth])
