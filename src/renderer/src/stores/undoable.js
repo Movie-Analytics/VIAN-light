@@ -165,12 +165,13 @@ export const useUndoableStore = defineStore('undoable', {
         const reader = new FileReader()
         reader.onload = (e) => {
           const content = e.target.result
-          this.timelines.push({
-            id: crypto.randomUUID(),
-            name: file.name,
-            type: 'scalar',
-            ...parseTsvAnnotations(content)
-          })
+          if (content !== null) {
+            this.timelines.push({
+              id: crypto.randomUUID(),
+              name: file.name,
+              ...parseTsvAnnotations(content)
+            })
+          }
         }
         reader.readAsText(file)
       })

@@ -74,7 +74,10 @@
                         </template>
 
                         <v-list class="pb-0 pt-0">
-                          <v-list-item title="Duplicate" @click="duplicateTimeline(id)"></v-list-item>
+                          <v-list-item
+                            title="Duplicate"
+                            @click="duplicateTimeline(id)"
+                          ></v-list-item>
 
                           <v-list-item title="Delete" @click="deleteTimeline(id)"></v-list-item>
 
