@@ -54,7 +54,11 @@ export const useMainStore = defineStore('main', {
       const hours = Math.floor(t / 3600)
       const minutes = Math.floor((t % 3600) / 60)
       const seconds = Math.floor(t % 60)
-      const frame = `:${Math.floor((t % 1) * this.fps + 1).toString().padStart(2, '0')}`
+      const frame =
+        ':' +
+        Math.floor((t % 1) * this.fps)
+          .toString()
+          .padStart(2, '0')
       const frameString = framenum ? frame : ''
 
       const formattedHours = String(hours).padStart(2, '0')
