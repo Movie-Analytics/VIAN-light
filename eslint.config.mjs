@@ -12,6 +12,9 @@ export default [
   {
     languageOptions: {
       ecmaVersion: 'latest',
+      globals: {
+        $t: 'readonly'
+      },
       sourceType: 'module'
     },
     rules: {

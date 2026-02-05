@@ -5,11 +5,11 @@ import 'vuetify/styles'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { createVuetify } from 'vuetify'
+import { i18n } from './i18n'
 import { setupCsp } from './setupcsp'
 
 import App from './App.vue'
 import router from './router'
-import { i18n } from './i18n'
 
 setupCsp()
 const vuetify = createVuetify({ theme: { themes: { dark: false } } })

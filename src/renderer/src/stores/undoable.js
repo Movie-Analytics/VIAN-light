@@ -282,7 +282,7 @@ export const useUndoableStore = defineStore('undoable', {
       }
     },
     reorderTimelines(id, index) {
-      const initialIndex = this.timelines.findIndex(t => t.id === id)
+      const initialIndex = this.timelines.findIndex((t) => t.id === id)
 
       const items = [...this.timelines]
       const [removed] = items.splice(initialIndex, 1)

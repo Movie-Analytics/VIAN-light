@@ -15,7 +15,12 @@
 
     <v-menu :close-on-content-click="false">
       <template #activator="{ props }">
-        <v-btn v-tooltip="$t('pages.video.tooltips.jobList')" :disabled="!hasJobs" icon v-bind="props">
+        <v-btn
+          v-tooltip="$t('pages.video.tooltips.jobList')"
+          :disabled="!hasJobs"
+          icon
+          v-bind="props"
+        >
           <v-badge v-if="runningJobs" color="error" dot>
             <v-icon>mdi-history</v-icon>
           </v-badge>
@@ -88,7 +93,11 @@
 
       <v-list-group>
         <template #activator="{ props }">
-          <v-list-item v-bind="props" prepend-icon="mdi-import" :title="$t('pages.video.drawer.importData')" />
+          <v-list-item
+            v-bind="props"
+            prepend-icon="mdi-import"
+            :title="$t('pages.video.drawer.importData')"
+          />
         </template>
 
         <v-list-item
@@ -106,7 +115,11 @@
 
       <v-list-group>
         <template #activator="{ props }">
-          <v-list-item v-bind="props" prepend-icon="mdi-export" :title="$t('pages.video.drawer.exportData')" />
+          <v-list-item
+            v-bind="props"
+            prepend-icon="mdi-export"
+            :title="$t('pages.video.drawer.exportData')"
+          />
         </template>
 
         <v-list-item

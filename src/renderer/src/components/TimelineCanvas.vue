@@ -223,7 +223,7 @@ export default {
       }
 
       const ctx = this.tCtx
-      ctx.clearRect(0,0,this.canvasWidth, 50)
+      ctx.clearRect(0, 0, this.canvasWidth, 50)
 
       ctx.strokeStyle = this.axisColor
       ctx.lineWidth = '1'

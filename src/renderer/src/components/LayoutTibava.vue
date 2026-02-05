@@ -28,18 +28,14 @@
                 class="d-flex flex-1-1 flex-column height-min-0"
               >
                 <v-tabs-window-item value="info">
-                  <p v-if="mainStore.fps">
-                    {{ $t('pages.video.info.fps') }}: {{ mainStore.fps }}
-                  </p>
+                  <p v-if="mainStore.fps">{{ $t('pages.video.info.fps') }}: {{ mainStore.fps }}</p>
 
                   <p v-if="mainStore.height && mainStore.width">
                     {{ $t('pages.video.info.resolution') }}: {{ mainStore.width }} x
                     {{ mainStore.height }}
                   </p>
 
-                  <p v-if="duration">
-                    {{ $t('pages.video.info.duration') }}: {{ duration }}
-                  </p>
+                  <p v-if="duration">{{ $t('pages.video.info.duration') }}: {{ duration }}</p>
 
                   <p v-if="mainStore.numFrames">
                     {{ $t('pages.video.info.totalFrames') }}: {{ mainStore.numFrames }}
