@@ -1,11 +1,18 @@
 <template>
   <div class="position-relative w-100">
+    <teleport defer to="#timelineAxesContainer">
+      <canvas ref="timeCanvas" class="float-right" />
+    </teleport>
+
     <canvas ref="canvas" height="0"></canvas>
 
     <v-overlay v-model="overlayInput" contained>
-      <v-text-field
+      <v-textarea
         ref="overlayTextfield"
         v-model="overlayInputModel"
+        auto-grow
+        rows="1"
+        max-rows="3"
         label="Annotations"
         min-width="200"
         hide-details="true"
@@ -14,7 +21,7 @@
         class="bg-blue-grey-lighten-5 position-absolute"
         @change="overlayInputChange"
         @keyup.enter="overlayInputChange"
-      ></v-text-field>
+      ></v-textarea>
     </v-overlay>
 
     <canvas ref="hiddenCanvas" height="0" class="d-none"></canvas>
@@ -24,13 +31,13 @@
 <script>
 import * as d3 from 'd3'
 import { mapStores } from 'pinia'
+import { markRaw } from 'vue'
 
 import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
 
 const TIMELINE_HEIGHT = 48
-const AXES_HEIGHT = 32
 
 export default {
   name: 'TimelineCanvas',
@@ -52,6 +59,7 @@ export default {
       overlayInputModel: '',
       resizeoberserver: null,
       scale: null,
+      tCtx: null,
       transform: d3.zoomIdentity,
       unloadedImages: 0,
       zoom: null
@@ -124,6 +132,7 @@ export default {
       this.zoom.translateBy(d3.select(e.currentTarget), e.wheelDeltaX / this.transform.k, 0)
       this.requestDraw()
     })
+    d3.select(this.$refs.timeCanvas).on('click', this.clickHandlerTimeAxis)
     this.drawSetup()
     this.requestDraw()
   },
@@ -141,15 +150,7 @@ export default {
       const color = this.rgbToHex(colorData[0], colorData[1], colorData[2])
       const entries = this.data.filter((d) => d.hiddenColor === color)
 
-      // Convert coordinates back to logical space for calculations
-      const coordX = event.clientX - rect.left
-      const coordY = event.clientY - rect.top
-
-      if (entries.length === 0 && coordY < 40) {
-        // Set player position
-        const timePosition = this.transform.rescaleX(this.scale).invert(coordX) / this.mainStore.fps
-        this.tempStore.playJumpPosition = timePosition
-      } else if (entries.length > 0) {
+      if (entries.length > 0) {
         // Select shots
         const [entry] = entries
         if (entry.type === 'select') {
@@ -177,6 +178,12 @@ export default {
         this.requestDraw()
       }
       this.lastClick = Date.now()
+    },
+
+    clickHandlerTimeAxis(e) {
+      const coordX = e.clientX - this.$refs.timeCanvas.getBoundingClientRect().left
+      const timePosition = this.transform.rescaleX(this.scale).invert(coordX) / this.mainStore.fps
+      this.tempStore.playJumpPosition = timePosition
     },
 
     doubleClickPopup(entry) {
@@ -215,32 +222,35 @@ export default {
         return this.mainStore.timeReadableSec(Math.round(d / this.mainStore.fps))
       }
 
-      this.ctx.strokeStyle = this.axisColor
-      this.ctx.lineWidth = '1'
+      const ctx = this.tCtx
+      ctx.clearRect(0,0,this.canvasWidth, 50)
 
-      this.ctx.beginPath()
+      ctx.strokeStyle = this.axisColor
+      ctx.lineWidth = '1'
+
+      ctx.beginPath()
       ticks.forEach((d) => {
-        this.ctx.moveTo(transScale(d), YbelowText)
-        this.ctx.lineTo(transScale(d), YbelowText - tickSize)
+        ctx.moveTo(transScale(d), YbelowText)
+        ctx.lineTo(transScale(d), YbelowText - tickSize)
       })
 
       smallTicks.forEach((d) => {
-        this.ctx.moveTo(transScale(d), YbelowText)
-        this.ctx.lineTo(transScale(d), YbelowText - smallTickSize)
+        ctx.moveTo(transScale(d), YbelowText)
+        ctx.lineTo(transScale(d), YbelowText - smallTickSize)
       })
-      this.ctx.stroke()
+      ctx.stroke()
 
-      this.ctx.beginPath()
-      this.ctx.moveTo(0, YbelowText)
-      this.ctx.lineTo(this.canvasWidth, YbelowText)
-      this.ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(0, YbelowText)
+      ctx.lineTo(this.canvasWidth, YbelowText)
+      ctx.stroke()
 
-      this.ctx.textAlign = 'center'
-      this.ctx.textBaseline = 'top'
-      this.ctx.fillStyle = this.axisColor
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'top'
+      ctx.fillStyle = this.axisColor
       ticks.forEach((d) => {
-        this.ctx.beginPath()
-        this.ctx.fillText(tickFormat(d), transScale(d), 0)
+        ctx.beginPath()
+        ctx.fillText(tickFormat(d), transScale(d), 0)
       })
     },
 
@@ -250,19 +260,25 @@ export default {
       this.ctx.strokeStyle = 'red'
       this.ctx.lineWidth = '2'
       this.ctx.moveTo(xPosition, this.canvasHeight)
-      this.ctx.lineTo(xPosition, yPosition)
+      this.ctx.lineTo(xPosition, 0)
       this.ctx.stroke()
 
-      this.ctx.fillStyle = 'red'
-      this.ctx.beginPath()
-      this.ctx.moveTo(xPosition, yPosition)
-      this.ctx.lineTo(xPosition + 8, yPosition - 5)
-      this.ctx.lineTo(xPosition + 8, yPosition - 12)
-      this.ctx.lineTo(xPosition - 8, yPosition - 12)
-      this.ctx.lineTo(xPosition - 8, yPosition - 5)
-      this.ctx.lineTo(xPosition, yPosition)
-      this.ctx.closePath()
-      this.ctx.fill()
+      this.tCtx.fillStyle = 'red'
+      this.tCtx.beginPath()
+      this.tCtx.moveTo(xPosition, yPosition)
+      this.tCtx.lineTo(xPosition + 8, yPosition - 5)
+      this.tCtx.lineTo(xPosition + 8, yPosition - 12)
+      this.tCtx.lineTo(xPosition - 8, yPosition - 12)
+      this.tCtx.lineTo(xPosition - 8, yPosition - 5)
+      this.tCtx.lineTo(xPosition, yPosition)
+      this.tCtx.closePath()
+      this.tCtx.fill()
+      this.tCtx.beginPath()
+      this.tCtx.strokeStyle = 'red'
+      this.tCtx.lineWidth = '2'
+      this.tCtx.moveTo(xPosition, 26)
+      this.tCtx.lineTo(xPosition, 32)
+      this.tCtx.stroke()
     },
 
     drawSetup() {
@@ -287,7 +303,7 @@ export default {
               type: 'shot',
               width: shot.end - shot.start,
               x: shot.start,
-              y: this.numTimelines * TIMELINE_HEIGHT + AXES_HEIGHT
+              y: this.numTimelines * TIMELINE_HEIGHT
             })
           } else if (timeline.type.startsWith('screenshots')) {
             data.push({
@@ -299,7 +315,7 @@ export default {
               uri: shot.thumbnail,
               width: 44 * (16 / 9),
               x: shot.frame,
-              y: this.numTimelines * TIMELINE_HEIGHT + AXES_HEIGHT
+              y: this.numTimelines * TIMELINE_HEIGHT
             })
             // Only re-draw after 200 new images were loaded
             if (!this.tempStore.imageCache.has(shot.thumbnail)) {
@@ -317,6 +333,18 @@ export default {
                 })
             }
           }
+        }
+        if (timeline.type === 'scalar') {
+          data.push({
+            data: timeline.data.map(
+              (t) => (this.numTimelines + 1) * TIMELINE_HEIGHT - t * (TIMELINE_HEIGHT - 5) - 5
+            ),
+            fps: timeline.fps,
+            height: 44,
+            id: timeline.id,
+            timeline: timeline.id,
+            type: 'scalar'
+          })
         }
         if (timeline.vocabulary && this.tempStore.timelinesFold[timeline.id].visible) {
           for (const category of this.tempStore.timelinesFold[timeline.id].categories) {
@@ -340,7 +368,7 @@ export default {
                     type: 'select',
                     width: shot.end - shot.start,
                     x: shot.start,
-                    y: this.numTimelines * TIMELINE_HEIGHT + AXES_HEIGHT
+                    y: this.numTimelines * TIMELINE_HEIGHT
                   })
                 }
                 /* eslint-enable max-depth */
@@ -353,15 +381,41 @@ export default {
 
       this.zoom = d3
         .zoom()
+        .wheelDelta((event) => {
+          let factor = event.deltaMode === 1 ? 0.05 : 0.01
+          if (Math.abs(event.deltaY) > 25) {
+            // Mouse scrolling has delta > 200 and touchpad around 20 so limit delta here
+            factor *= 25 / Math.abs(event.deltaY)
+          }
+          return -event.deltaY * factor
+        })
         .scaleExtent([1, this.mainStore.videoDuration * 0.15])
-        .on('zoom', ({ transform }) => {
-          this.transform = transform
+        .filter((e) => {
+          // Only allow zoom via pinch on touchpad and ctrl+zoom with mouse
+          if (e.type === 'wheel') return e.ctrlKey
+          return true
+        })
+        .on('zoom', (event) => {
+          this.transform = event.transform
+
+          // Synchronise transform state between the two canvases
+          if (event.sourceEvent) {
+            if (event.sourceEvent.target === this.$refs.canvas) {
+              d3.select(this.$refs.timeCanvas).property('__zoom', event.transform)
+            } else {
+              d3.select(this.$refs.canvas).property('__zoom', event.transform)
+            }
+          }
+
           this.requestDraw()
         })
 
       const canvas = d3.select(this.$refs.canvas).call(this.zoom)
       this.ctx = canvas.node().getContext('2d')
       this.ctx.scale(this.dpr, this.dpr)
+
+      this.tCtx = d3.select(this.$refs.timeCanvas).call(this.zoom).node().getContext('2d')
+      this.tCtx.scale(this.dpr, this.dpr)
 
       // Picking: selection happens via a hidden canvas that has the same
       // elements with each in a different color
@@ -378,7 +432,7 @@ export default {
         colorI += 20
       }
       // Modify data first and then access property because property access is slow
-      this.data = data
+      this.data = markRaw(data)
 
       this.resize()
     },
@@ -441,6 +495,16 @@ export default {
           ctx.drawImage(image, x, d.y, d.width, d.height)
           ctx.globalAlpha = 1.0
           hCtx.fillRect(x, d.y, d.width, d.height)
+        } else if (d.type === 'scalar') {
+          ctx.beginPath()
+          ctx.lineWidth = '1'
+          ctx.strokeStyle = 'DimGray'
+          ctx.moveTo(rescale(0), d.data[0])
+          const mainFps = this.mainStore.fps
+          d.data.forEach((p, i) => {
+            ctx.lineTo(rescale((i / d.fps) * mainFps), p)
+          })
+          ctx.stroke()
         }
       }
     },
@@ -467,7 +531,7 @@ export default {
 
     getTimelineForCoordinate(y) {
       let index = 0
-      let offset = AXES_HEIGHT
+      let offset = 0
 
       for (const timeline of this.undoableStore.timelines) {
         offset += TIMELINE_HEIGHT
@@ -500,16 +564,16 @@ export default {
 
       // New timeline segment
       if (e.altKey) {
-        if (coordY < 40) return
-
         const nTimeline = this.getTimelineForCoordinate(coordY)
         if (this.undoableStore.timelines[nTimeline].type !== 'shots') return
 
-        const height = coordY - ((coordY - AXES_HEIGHT) % TIMELINE_HEIGHT)
+        const height = coordY - (coordY % TIMELINE_HEIGHT)
         const start = this.transform.rescaleX(this.scale).invert(coordX)
         this.tempStore.tmpShot = {
           end: start,
           height: 44,
+          max: this.mainStore.numFrames,
+          min: 0,
           origin: start,
           originalShot: null,
           start,
@@ -536,22 +600,27 @@ export default {
       this.tempStore.tmpShot = {
         end: entry.x + entry.width,
         height: 44,
+        max: this.mainStore.numFrames,
+        min: 0,
         origin: entry.hiddenLeftHandle === color ? entry.x + entry.width : entry.x,
         originalShot: entry,
         start: entry.x,
         y: entry.y
       }
+      const currentIndex = this.data.indexOf(entry)
+      const leftSide = entry.hiddenLeftHandle === color
+      const adjacent = leftSide ? this.data[currentIndex - 1] : this.data[currentIndex + 1]
 
-      if (e.shiftKey) {
-        const currentIndex = this.data.indexOf(entry)
-        const leftSide = entry.hiddenLeftHandle === color
-        const adjacent = leftSide ? this.data[currentIndex - 1] : this.data[currentIndex + 1]
-        if (adjacent.locked) {
+      if (adjacent?.timeline === entry.timeline) {
+        // Prevent overlapping segments
+        this.tempStore.tmpShot.min = leftSide
+          ? adjacent.x + adjacent.width + 1
+          : this.tempStore.tmpShot.start
+        this.tempStore.tmpShot.max = leftSide ? this.tempStore.tmpShot.end : adjacent.x - 1
+
+        if (e.shiftKey && adjacent.locked) {
           this.tempStore.tmpShot = null
-          return
-        }
-
-        if (adjacent?.timeline === entry.timeline) {
+        } else if (e.shiftKey) {
           this.tempStore.adjacentShot = {
             diff: leftSide
               ? entry.x - (adjacent.x + adjacent.width)
@@ -577,24 +646,29 @@ export default {
     },
 
     mousemove(e) {
-      if (e.buttons !== 1 || this.tempStore.tmpShot === null) return
-      if (e.altKey || e.shiftKey) e.stopImmediatePropagation()
-
       const rect = this.$refs.canvas.getBoundingClientRect()
       const coordX = e.clientX - rect.left
       const xNew = Math.round(this.transform.rescaleX(this.scale).invert(coordX))
 
-      this.tempStore.tmpShot.start = Math.min(this.tempStore.tmpShot.origin, xNew)
-      this.tempStore.tmpShot.end = Math.max(this.tempStore.tmpShot.origin, xNew)
+      if (e.buttons !== 1 || this.tempStore.tmpShot === null) return
+      if (e.altKey || e.shiftKey) e.stopImmediatePropagation()
 
-      if (e.shiftKey && this.tempStore.adjacentShot) {
-        if (this.tempStore.adjacentShot.leftSide) {
-          this.tempStore.adjacentShot.end =
-            this.tempStore.tmpShot.start - this.tempStore.adjacentShot.diff
+      // Limit the bounds so that no overlapping or inverted segments (end before start) get created
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+      const { tmpShot, adjacentShot } = { ...this.tempStore }
+      if (e.shiftKey && adjacentShot) {
+        if (adjacentShot.leftSide) {
+          tmpShot.start = clamp(xNew, adjacentShot.start + adjacentShot.diff + 1, tmpShot.origin)
+          tmpShot.end = clamp(xNew, tmpShot.end, tmpShot.origin + 1)
+          adjacentShot.end = tmpShot.start - adjacentShot.diff
         } else {
-          this.tempStore.adjacentShot.start =
-            this.tempStore.tmpShot.end + this.tempStore.adjacentShot.diff
+          tmpShot.start = clamp(xNew, tmpShot.start, tmpShot.origin - 1)
+          tmpShot.end = clamp(xNew, tmpShot.origin + 1, adjacentShot.end - adjacentShot.diff - 1)
+          adjacentShot.start = tmpShot.end + adjacentShot.diff
         }
+      } else {
+        tmpShot.start = clamp(xNew, tmpShot.min, tmpShot.origin - 1)
+        tmpShot.end = clamp(xNew, tmpShot.origin + 1, tmpShot.max)
       }
 
       this.requestDraw()
@@ -657,7 +731,7 @@ export default {
       // Get the display size of the canvas
       const container = this.$refs.canvas.parentElement
       const displayWidth = container.clientWidth
-      const displayHeight = this.numTimelines * TIMELINE_HEIGHT + AXES_HEIGHT
+      const displayHeight = this.numTimelines * TIMELINE_HEIGHT
 
       // Set the canvas display size
       this.canvasWidth = displayWidth
@@ -669,6 +743,13 @@ export default {
       this.$refs.canvas.style.width = '100%'
       this.$refs.canvas.style.height = `${displayHeight}px`
 
+      const parent = document.getElementById('timelineSplitter')
+      this.$refs.timeCanvas.style.marginRight = parent.offsetWidth - parent.clientWidth + 'px'
+
+      this.$refs.timeCanvas.width = Math.floor(displayWidth * this.dpr)
+      this.$refs.timeCanvas.height = 32 * this.dpr
+      this.$refs.timeCanvas.style.width = getComputedStyle(this.$refs.canvas).width
+
       // Same for hidden canvas
       this.$refs.hiddenCanvas.width = Math.floor(displayWidth * this.dpr)
       this.$refs.hiddenCanvas.height = Math.floor(displayHeight * this.dpr)
@@ -676,6 +757,7 @@ export default {
       // Scale the context
       this.ctx.scale(this.dpr, this.dpr)
       this.hCtx.scale(this.dpr, this.dpr)
+      this.tCtx.scale(this.dpr, this.dpr)
 
       const timelineLength = this.mainStore.videoDuration * this.mainStore.fps
       this.scale = d3.scaleLinear([0, timelineLength], [0, this.canvasWidth])

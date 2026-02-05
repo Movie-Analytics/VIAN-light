@@ -1,7 +1,7 @@
 {
   "name": "vian-light",
-  "version": "0.11.0",
-  "description": "A video annotation and anylsis software",
+  "version": "0.14.0",
+  "description": "A video annotation and analysis software",
   "main": "./out/main/index.js",
   "author": "example.com",
   "homepage": "https://electron-vite.org",

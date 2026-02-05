@@ -1,4 +1,5 @@
 const { workerData, parentPort } = require('worker_threads')
+const path = require('path')
 
 import videoReaderPath from '../../../resources/video_reader.node?asset&asarUnpack'
 const videoReader = require(videoReaderPath)
@@ -12,11 +13,14 @@ reader.generateScreenshots(workerData.directory, workerData.frames, (err, result
     parentPort.postMessage({ status: 'CANCELED' })
   } else if (result) {
     parentPort.postMessage({
-      data: workerData.frames.map((f) => ({
-        frame: f,
-        image: `app://${workerData.directory}/${String(f).padStart(8, '0')}.jpg`,
-        thumbnail: `app://${workerData.directory}/${String(f).padStart(8, '0')}_mini.jpg`
-      })),
+      data: workerData.frames.map((f) => {
+        const basepath = path.join(workerData.directory, String(f).padStart(8, '0'))
+        return {
+          frame: f,
+          image: `app://${basepath}.jpg`,
+          thumbnail: `app://${basepath}_mini.jpg`
+        }
+      }),
       status: 'DONE'
     })
   } else {

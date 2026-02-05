@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 
+import { parseEafAnnotations, parseTsvAnnotations } from '@renderer/importexport'
 import api from '@renderer/api'
-import { parseEafAnnotations } from '@renderer/importexport'
 import { useMainStore } from './main'
 import { useTempStore } from './temp'
 import { useUndoStore } from './undo'
@@ -154,6 +154,29 @@ export const useUndoableStore = defineStore('undoable', {
       })
       fileInput.click()
     },
+    importTibava() {
+      const fileInput = document.createElement('input')
+      fileInput.type = 'file'
+      fileInput.accept = '.tsv'
+      fileInput.addEventListener('change', (event) => {
+        const [file] = event.target.files
+        if (!file) return
+
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const content = e.target.result
+          if (content !== null) {
+            this.timelines.push({
+              id: crypto.randomUUID(),
+              name: file.name,
+              ...parseTsvAnnotations(content)
+            })
+          }
+        }
+        reader.readAsText(file)
+      })
+      fileInput.click()
+    },
     initialize() {
       this.$subscribe((mutation, state) => {
         setTimeout(() => {
@@ -257,6 +280,15 @@ export const useUndoableStore = defineStore('undoable', {
           }
         }
       }
+    },
+    reorderTimelines(id, index) {
+      const initialIndex = this.timelines.findIndex(t => t.id === id)
+
+      const items = [...this.timelines]
+      const [removed] = items.splice(initialIndex, 1)
+      items.splice(index, 0, removed)
+
+      this.timelines = items
     },
     runShotBoundaryDetection() {
       api.runShotBoundaryDetection(useMainStore().video)

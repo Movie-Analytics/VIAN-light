@@ -110,6 +110,42 @@ export const parseEafAnnotations = (xmlContent) => {
   return [...timelines.values()]
 }
 
+export const parseTsvAnnotations = (content) => {
+  const lines = content.split('\n').map((s) => s.split('\t'))
+  if (lines.length <= 1) {
+    return null
+  }
+  const secondsIndex = lines[0].findIndex((e) => e === 'start in seconds')
+  const annotationsIndex = lines[0].findIndex((e) => e === 'annotations')
+  if (lines[0].includes('duration in seconds')) {
+    // Annotation timeline
+    const durationIndex = lines[0].findIndex((e) => e === 'duration in seconds')
+    return {
+      data: lines
+        .slice(1)
+        .map((l) => ({
+          annotation: l[annotationsIndex],
+          end: Math.floor(
+            (parseFloat(l[secondsIndex]) + parseFloat(l[durationIndex])) * useMainStore().fps
+          ),
+          id: crypto.randomUUID(),
+          start: Math.floor(parseFloat(l[secondsIndex]) * useMainStore().fps),
+          vocabAnnotation: []
+        }))
+        .filter((l) => !isNaN(l.start) && !isNaN(l.end)),
+      type: 'shots'
+    }
+  }
+  return {
+    data: lines
+      .slice(1)
+      .map((l) => parseFloat(l[annotationsIndex]))
+      .filter((d) => !Number.isNaN(d)),
+    fps: 1 / (parseFloat(lines[2][secondsIndex]) - parseFloat(lines[1][secondsIndex])),
+    type: 'scalar'
+  }
+}
+
 export const exportAnnotations = (csv) => {
   const blob = csv
     ? new Blob([generateCSVContent()], { type: 'text/csv' })

@@ -1,5 +1,5 @@
 <template>
-  <v-sheet class="height-inherit">
+  <v-sheet class="d-flex flex-1-1 flex-column height-min-0">
     <div>
       <v-btn
         density="compact"
@@ -32,94 +32,101 @@
       </v-btn>
     </div>
 
-    <SplitterContainer :inital-panel1-percent="30">
-      <template #panel1>
-        <v-list id="timeline-list" lines="one" class="w-100" :opened="openedItems">
-          <v-list-group v-for="(timeline, id) in tempStore.timelinesFold" :key="id" :value="id">
-            <template #activator>
-              <v-list-item :title="timeline.name" class="pr-2">
-                <template #append>
-                  <v-list-item-action start>
-                    <v-btn
-                      v-if="timeline.categories"
-                      icon
-                      variant="text"
-                      density="compact"
-                      @click="timeline.visible = !timeline.visible"
-                    >
-                      <v-icon>mdi-expand-all</v-icon>
-                    </v-btn>
+    <div id="timelineAxesContainer"></div>
 
-                    <v-menu>
-                      <template #activator="{ props }">
-                        <v-btn variant="text" density="compact" icon v-bind="props">
-                          <v-icon>mdi-dots-vertical</v-icon>
-                        </v-btn>
-                      </template>
-
-                      <v-list class="pb-0 pt-0">
-                        <v-list-item
-                          title="Duplicate"
-                          @click="duplicateTimeline(timeline.id)"
-                        ></v-list-item>
-
-                        <v-list-item
-                          title="Delete"
-                          @click="deleteTimeline(timeline.id)"
-                        ></v-list-item>
-
-                        <v-list-item
-                          title="Rename"
-                          @click="renameDialogOpen(timeline.id)"
-                        ></v-list-item>
-
-                        <v-list-item
-                          title="Link to vocabulary"
-                          :disabled="
-                            !vocabularyExists ||
-                            typeof timeline.vocabulary === 'string' ||
-                            timeline.type !== 'shots'
-                          "
-                          @click="linkVocabDialogOpen(timeline.id)"
-                        ></v-list-item>
-                      </v-list>
-                    </v-menu>
-                  </v-list-item-action>
-                </template>
-              </v-list-item>
-            </template>
-
-            <template v-if="timeline.categories">
-              <v-list class="pb-0 pt-0" :opened="openedItems">
-                <v-list-group
-                  v-for="category in timeline.categories"
-                  :key="category.id"
-                  :value="category.id"
+    <div id="timelineSplitter" class="overflow-y-auto">
+      <SplitterContainer :inital-panel1-percent="30" class="overflow-y-auto">
+        <template #panel1>
+          <v-list
+            id="timeline-list"
+            lines="one"
+            class="height-fit-content pt-0 w-100"
+            :opened="openedItems"
+          >
+            <v-list-group v-for="(timeline, id) in tempStore.timelinesFold" :key="id" :value="id">
+              <template #activator>
+                <v-list-item
+                  :title="timeline.name"
+                  class="pr-2"
+                  draggable="true"
+                  @dragstart="dragStart($event, id)"
+                  @dragend="dragEnd"
+                  @dragover="dragOver"
+                  @drop="dragDrop($event, id)"
                 >
-                  <template #activator>
-                    <v-list-item
-                      :title="category.name"
-                      @click="category.visible = !category.visible"
-                    ></v-list-item>
+                  <template #append>
+                    <v-list-item-action start>
+                      <v-btn
+                        v-if="timeline.categories"
+                        icon
+                        variant="text"
+                        density="compact"
+                        @click="timeline.visible = !timeline.visible"
+                      >
+                        <v-icon>mdi-expand-all</v-icon>
+                      </v-btn>
+
+                      <v-menu>
+                        <template #activator="{ props }">
+                          <v-btn variant="text" density="compact" icon v-bind="props">
+                            <v-icon>mdi-dots-vertical</v-icon>
+                          </v-btn>
+                        </template>
+
+                        <v-list class="pb-0 pt-0">
+                          <v-list-item
+                            title="Duplicate"
+                            @click="duplicateTimeline(id)"
+                          ></v-list-item>
+
+                          <v-list-item title="Delete" @click="deleteTimeline(id)"></v-list-item>
+
+                          <v-list-item title="Rename" @click="renameDialogOpen(id)"></v-list-item>
+
+                          <v-list-item
+                            title="Link to vocabulary"
+                            :disabled="!canLinkVocabulary(id)"
+                            @click="linkVocabDialogOpen(id)"
+                          ></v-list-item>
+                        </v-list>
+                      </v-menu>
+                    </v-list-item-action>
                   </template>
+                </v-list-item>
+              </template>
 
-                  <v-list-item v-for="tag in category.tags" :key="tag.id" :title="tag.name">
-                  </v-list-item>
-                </v-list-group>
-              </v-list>
-            </template>
-          </v-list-group>
+              <template v-if="timeline.categories">
+                <v-list class="pb-0 pt-0" :opened="openedItems">
+                  <v-list-group
+                    v-for="category in timeline.categories"
+                    :key="category.id"
+                    :value="category.id"
+                  >
+                    <template #activator>
+                      <v-list-item
+                        :title="category.name"
+                        @click="category.visible = !category.visible"
+                      ></v-list-item>
+                    </template>
 
-          <v-list-item v-tooltip="'Add new track'" @click="addTimeline">
-            <v-icon>mdi-playlist-plus</v-icon>
-          </v-list-item>
-        </v-list>
-      </template>
+                    <v-list-item v-for="tag in category.tags" :key="tag.id" :title="tag.name">
+                    </v-list-item>
+                  </v-list-group>
+                </v-list>
+              </template>
+            </v-list-group>
 
-      <template #panel2>
-        <TimelineCanvas></TimelineCanvas>
-      </template>
-    </SplitterContainer>
+            <v-list-item v-tooltip="'Add new track'" @click="addTimeline">
+              <v-icon>mdi-playlist-plus</v-icon>
+            </v-list-item>
+          </v-list>
+        </template>
+
+        <template #panel2>
+          <TimelineCanvas></TimelineCanvas>
+        </template>
+      </SplitterContainer>
+    </div>
 
     <v-dialog v-model="renameDialog" persistent max-width="400">
       <v-card>
@@ -166,6 +173,7 @@ import SplitterContainer from '@renderer/components/SplitterContainer.vue'
 import TimelineCanvas from '@renderer/components/TimelineCanvas.vue'
 import api from '@renderer/api'
 import shortcuts from '@renderer/shortcuts'
+import { toRaw } from 'vue'
 import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
@@ -282,16 +290,24 @@ export default {
       this.undoableStore.addNewTimeline()
     },
 
+    canLinkVocabulary(timelineId) {
+      const timeline = this.undoableStore.getTimelineById(timelineId)
+
+      return !(
+        !this.vocabularyExists ||
+        typeof timeline.vocabulary === 'string' ||
+        timeline.type !== 'shots'
+      )
+    },
+
     createTimelineFolds() {
       this.tempStore.timelinesFold = Object.fromEntries(
         this.undoableStore.timelines.map((t) => {
           if (typeof t.vocabulary !== 'string') {
             return [t.id, { name: t.name, visible: false }]
           }
-          const categories = JSON.parse(
-            JSON.stringify(
-              this.undoableStore.vocabularies.find((v) => v.id === t.vocabulary).categories
-            )
+          const categories = structuredClone(
+            toRaw(this.undoableStore.vocabularies.find((v) => v.id === t.vocabulary).categories)
           )
           categories.forEach((c) => {
             c.visible = false
@@ -303,6 +319,30 @@ export default {
 
     deleteTimeline(id) {
       this.undoableStore.deleteTimeline(id)
+    },
+
+    dragDrop(e, id) {
+      e.preventDefault()
+      const draggedId = e.dataTransfer.getData('text/plain')
+      if (draggedId !== id) {
+        const index = this.undoableStore.timelines.findIndex((t) => t.id === id)
+        this.undoableStore.reorderTimelines(draggedId, index)
+        this.createTimelineFolds()
+      }
+    },
+
+    dragEnd(e) {
+      e.target.style.opacity = '1'
+    },
+
+    dragOver(e) {
+      e.preventDefault()
+    },
+
+    dragStart(e, id) {
+      e.dataTransfer.setData('text/plain', id)
+      e.dataTransfer.effectAllowed = 'move'
+      e.target.style.opacity = '0.5'
     },
 
     duplicateTimeline(id) {
@@ -330,6 +370,7 @@ export default {
     renameTimeline() {
       this.undoableStore.renameTimeline(this.selectedTimeline, this.timelineName)
       this.renameDialog = false
+      this.createTimelineFolds()
     },
 
     segmentDelete() {

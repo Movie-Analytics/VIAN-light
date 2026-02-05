@@ -94,12 +94,13 @@
         <v-list-item
           prepend-icon="mdi-alpha-e-box"
           :title="$t('pages.video.drawer.importElan')"
-          @click="importAnnotations(false)"
+          @click="importAnnotations()"
         />
 
         <v-list-item
           prepend-icon="mdi-alpha-t-box"
           :title="$t('pages.video.drawer.importTibavaWip')"
+          @click="importTibava"
         />
       </v-list-group>
 
@@ -449,6 +450,10 @@ export default {
 
     importAnnotations() {
       this.undoableStore.importAnnotations()
+    },
+
+    importTibava() {
+      this.undoableStore.importTibava()
     },
 
     loadSubtitles() {

@@ -5,7 +5,7 @@
     </div>
 
     <div
-      class="align-center d-flex justify-center"
+      class="d-flex justify-center"
       :class="[isVertical ? 'gutter-horizontal' : 'gutter-vertical']"
       @mousedown="onGutterMouseDown"
       @touchstart="onGutterTouchStart"
@@ -156,15 +156,19 @@ export default {
   height: 3px;
   width: calc(100% - 100px);
   min-width: 50px;
+  align-self: center;
 }
 
 .gutter-vertical {
   cursor: ew-resize;
   width: 15px;
+  min-height: 100%;
+  align-self: stretch;
 }
 .gutter-vertical > div {
   width: 3px;
   height: calc(100% - 100px);
   min-height: 50px;
+  margin: auto;
 }
 </style>

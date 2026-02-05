@@ -7,7 +7,7 @@ A video annotation software built with Electron and Vue.js.
 ### Download libraries
 - Download the TransNetv2 onnx model [here](https://huggingface.co/elya5/transnetv2) and move it to resources
 - Download pre-compiled ffmpeg libraries [here](https://github.com/Movie-Analytics/ffmpeg-build) and move it to `ffmpeglibs`.
-- Download pre-compiled onnxruntime [here](https://github.com/csukuangfj/onnxruntime-libs) and move it to `onnxlibs`.
+- Download pre-compiled onnxruntime version 1.20.1 [here](https://github.com/csukuangfj/onnxruntime-libs/releases/tag/v1.20.1) (for [Windows](https://github.com/csukuangfj/onnxruntime-libs/releases/download/v1.20.1/onnxruntime-win-x64-static_lib-1.20.1.tar.bz2), [Mac OS](https://github.com/csukuangfj/onnxruntime-libs/releases/download/v1.20.1/onnxruntime-osx-universal2-static_lib-1.20.1.zip), [Linux](https://github.com/csukuangfj/onnxruntime-libs/releases/download/v1.20.1/onnxruntime-linux-x64-static_lib-1.20.1-glibc2_17.zip)) and move it to `onnxlibs`.
 
 ### Install
 
