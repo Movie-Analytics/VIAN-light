@@ -132,6 +132,7 @@ export default {
       this.zoom.translateBy(d3.select(e.currentTarget), e.wheelDeltaX / this.transform.k, 0)
       this.requestDraw()
     })
+    d3.select(this.$refs.timeCanvas).on('click', this.clickHandlerTimeAxis)
     this.drawSetup()
     this.requestDraw()
   },
