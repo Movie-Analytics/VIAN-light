@@ -47,7 +47,6 @@
               <template #activator>
                 <v-list-item
                   :title="timeline.name"
-                  :class="{ 'bg-grey-lighten-4': tempStore.selectedTimeline === timeline.id }"
                   class="pr-2"
                   draggable="true"
                   @dragstart="dragStart($event, id)"
