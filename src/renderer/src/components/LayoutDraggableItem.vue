@@ -13,7 +13,7 @@
       {{ title }}
     </v-card-title>
 
-    <v-card-text :style="cardTextStyle">
+    <v-card-text :style="cardTextStyle" class="d-flex flex-1-1 flex-column height-min-0">
       <slot></slot>
     </v-card-text>
 

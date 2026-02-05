@@ -56,9 +56,9 @@
     </template>
 
     <template #panel2>
-      <div class="flex-1-1 height-min-0 overflow-y-auto">
-        <v-card>
-          <v-card-text>
+      <div class="d-flex flex-1-1 flex-column height-min-0">
+        <v-card class="d-flex flex-1-1 flex-column height-min-0">
+          <v-card-text class="d-flex flex-1-1 flex-column height-min-0">
             <Timelines></Timelines>
           </v-card-text>
         </v-card>

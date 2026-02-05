@@ -1,3 +1,7 @@
 .height-min-0 {
   min-height: 0;
 }
+
+.height-fit-content {
+  height: fit-content;
+}
