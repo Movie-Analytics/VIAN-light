@@ -37,7 +37,7 @@ import { useMainStore } from '@renderer/stores/main'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
 
-const TIMELINE_HEIGHT = 48
+const TIMELINE_HEIGHT = 49
 
 export default {
   name: 'TimelineCanvas',

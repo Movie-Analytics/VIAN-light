@@ -5,3 +5,7 @@
 .height-fit-content {
   height: fit-content;
 }
+
+.mt-1px {
+  margin-top: 1px;
+}

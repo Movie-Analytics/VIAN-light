@@ -43,7 +43,7 @@
             class="height-fit-content pt-0 w-100"
             :opened="openedItems"
           >
-            <v-list-group v-for="(timeline, id) in tempStore.timelinesFold" :key="id" :value="id">
+            <v-list-group v-for="(timeline, id) in tempStore.timelinesFold" :key="id" :value="id" class="border-b-sm">
               <template #activator>
                 <v-list-item
                   :title="timeline.name"
@@ -104,12 +104,18 @@
                   >
                     <template #activator>
                       <v-list-item
+                        class="border-t-sm mt-1px"
                         :title="category.name"
                         @click="category.visible = !category.visible"
                       ></v-list-item>
                     </template>
 
-                    <v-list-item v-for="tag in category.tags" :key="tag.id" :title="tag.name">
+                    <v-list-item
+                      v-for="tag in category.tags"
+                      :key="tag.id"
+                      :title="tag.name"
+                      class="border-t-sm mt-1px"
+                    >
                     </v-list-item>
                   </v-list-group>
                 </v-list>
