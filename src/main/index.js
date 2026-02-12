@@ -166,22 +166,24 @@ ipcMain.on('log-error', (_, msg) => {
 })
 
 const migrate = async () => {
-  const fs = require('fs/promises')
+  const fs = require('fs')
   const path = require('path')
   const newPath = path.join(app.getPath('userData'), 'vian')
   const oldPath = newPath.replace('VIAN', 'VIAN-light').replace('vian', 'vian-light')
 
   try {
-    await fs.access(oldPath)
-    await fs.rename(oldPath, newPath)
+    fs.cpSync(oldPath, newPath, { recursive: true })
 
-    const walk = async (dir) => {
-      for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
+    const walk = (dir) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
         const full = path.join(dir, entry.name)
         if (entry.isDirectory()) walk(full)
         else if (full.endsWith('.json')) {
           const data = fs.readFileSync(full, 'utf8')
-          fs.writeFile(full, data.replace('VIAN', 'VIAN-light').replace('vian', 'vian-light'))
+          const updatedData = data.replace(/VIAN-light/gu, 'VIAN').replace(/vian-light/gu, 'vian')
+          fs.writeFileSync(full, updatedData, {}, (err) => {
+            console.log('Error writing', err)
+          })
         }
       }
     }
