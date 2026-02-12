@@ -22,7 +22,7 @@ import {
 } from './api_functions'
 import icon from '../../resources/icon.png?asset&asarUnpack'
 
-app.setName('VIAN-light')
+app.setName('VIAN')
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -165,4 +165,32 @@ ipcMain.on('log-error', (_, msg) => {
   logError(`Renderer Process Error: ${msg}`)
 })
 
+const migrate = async () => {
+  const fs = require('fs/promises')
+  const path = require('path')
+  const newPath = path.join(app.getPath('userData'), 'vian')
+  const oldPath = newPath.replace('VIAN', 'VIAN-light').replace('vian', 'vian-light')
+
+  try {
+    await fs.access(oldPath)
+    await fs.rename(oldPath, newPath)
+
+    const walk = async (dir) => {
+      for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name)
+        if (entry.isDirectory()) walk(full)
+        else if (full.endsWith('.json')) {
+          const data = fs.readFileSync(full, 'utf8')
+          fs.writeFile(full, data.replace('VIAN', 'VIAN-light').replace('vian', 'vian-light'))
+        }
+      }
+    }
+
+    await walk(newPath)
+  } catch (e) {
+    if (e.code !== 'ENOENT') console.error(e)
+  }
+}
+
+migrate()
 cleanUp()

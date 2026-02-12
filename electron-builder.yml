@@ -1,5 +1,5 @@
 appId: ch.uzh.vian
-productName: vian-light
+productName: vian
 directories:
   buildResources: build
 files:
@@ -19,7 +19,7 @@ asarUnpack:
   - "ffmpeglibs/lib/*.a"
   - "onnxlibs/lib/libonnxruntime.a"
 win:
-  executableName: vian-light
+  executableName: vian
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

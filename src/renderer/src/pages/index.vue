@@ -21,7 +21,7 @@
                 v-if="metaStore.vianVersion !== metaStore.vianLatestVersion"
                 color="primary"
                 class="ms-2"
-                href="https://github.com/Movie-Analytics/VIAN-light/releases"
+                href="https://github.com/Movie-Analytics/VIAN/releases"
                 target="_blank"
                 rel="noopener noreferrer"
               >

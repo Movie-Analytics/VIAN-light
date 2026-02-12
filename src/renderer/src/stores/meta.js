@@ -15,9 +15,7 @@ export const useMetaStore = defineStore('meta', {
   actions: {
     async checkVianUpdate() {
       try {
-        const r = await fetch(
-          'https://api.github.com/repos/Movie-Analytics/VIAN-light/releases/latest'
-        )
+        const r = await fetch('https://api.github.com/repos/Movie-Analytics/VIAN/releases/latest')
         if (!r.ok) {
           throw new Error(`HTTP ${r.status} ${r.statusText}`)
         }

@@ -1,4 +1,4 @@
-name: vian-light
+name: vian
 services:
   db:
     image: postgres:13
@@ -26,7 +26,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile_backend
-    command: uv run celery -b redis://vian-light-redis-1:6379/0 --result-backend redis://vian-light-redis-1:6379/0 -A tasks worker -E
+    command: uv run celery -b redis://vian-redis-1:6379/0 --result-backend redis://vian-redis-1:6379/0 -A tasks worker -E
     volumes:
       - postgres_data:/data
     depends_on:
@@ -34,10 +34,10 @@ services:
       - redis
     environment:
       - VIAN_SECRET_KEY=secret
-      - VIAN_DATABASE_URL=postgresql+psycopg2://vian:vian@vian-light-db-1/vian
-      - VIAN_REDIS_URL=redis://vian-light-redis-1:6379/0
+      - VIAN_DATABASE_URL=postgresql+psycopg2://vian:vian@vian-db-1/vian
+      - VIAN_REDIS_URL=redis://vian-redis-1:6379/0
       - VIAN_DATA_DIR=/data
-  
+
   backend:
     build:
       context: ..
@@ -53,8 +53,8 @@ services:
         condition: service_started
     environment:
       - VIAN_SECRET_KEY=secret
-      - VIAN_DATABASE_URL=postgresql+psycopg2://vian:vian@vian-light-db-1/vian
-      - VIAN_REDIS_URL=redis://vian-light-redis-1:6379/0
+      - VIAN_DATABASE_URL=postgresql+psycopg2://vian:vian@vian-db-1/vian
+      - VIAN_REDIS_URL=redis://vian-redis-1:6379/0
       - VIAN_DATA_DIR=/data
     volumes:
       - postgres_data:/data

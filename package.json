@@ -1,5 +1,5 @@
 {
-  "name": "vian-light",
+  "name": "vian",
   "version": "0.14.0",
   "description": "A video annotation and analysis software",
   "main": "./out/main/index.js",

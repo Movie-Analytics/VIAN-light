@@ -1,6 +1,6 @@
 :80 {
     handle /api/* {
-        reverse_proxy vian-light-backend-1:8000
+        reverse_proxy vian-backend-1:8000
     }
     header Content-Security-Policy "default-src 'self' *; media-src file: *; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src *"
 

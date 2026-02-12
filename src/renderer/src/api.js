@@ -424,7 +424,7 @@ class RemoteApi {
   onExportProject(url) {
     const a = document.createElement('a')
     a.href = url
-    a.download = 'vian_lite.zip'
+    a.download = 'vian.zip'
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
