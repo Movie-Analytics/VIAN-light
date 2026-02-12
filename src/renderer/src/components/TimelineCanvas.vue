@@ -20,7 +20,7 @@
         density="compact"
         class="bg-blue-grey-lighten-5 position-absolute"
         @change="overlayInputChange"
-        @keyup.enter="overlayInputChange"
+        @keydown.enter.prevent="overlayInputChange"
       ></v-textarea>
     </v-overlay>
 
