@@ -125,9 +125,13 @@ export default {
       }
     },
 
-    selectedTimelineSegment(newValue) {
-      if (newValue) {
-        this.annotationBuffer = newValue.annotation
+    selectedTimelineSegment: {
+      deep: true,
+
+      handler(newValue) {
+        if (newValue) {
+          this.annotationBuffer = newValue.annotation
+        }
       }
     }
   },
