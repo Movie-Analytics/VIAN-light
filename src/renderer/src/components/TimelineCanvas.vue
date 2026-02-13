@@ -38,6 +38,7 @@ import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
 
 const TIMELINE_HEIGHT = 49
+const PLAYHEAD_COLOR = '#ff0000'
 
 export default {
   name: 'TimelineCanvas',
@@ -132,7 +133,19 @@ export default {
       this.zoom.translateBy(d3.select(e.currentTarget), e.wheelDeltaX / this.transform.k, 0)
       this.requestDraw()
     })
-    d3.select(this.$refs.timeCanvas).on('click', this.clickHandlerTimeAxis)
+    d3.select(this.$refs.timeCanvas).on('click', this.timeAxisClickHandler)
+
+    const drag = d3
+      .drag()
+      .filter((e) => {
+        const [x, y] = d3.pointer(e, this.$refs.timeCanvas)
+        const pixel = this.tCtx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data
+        const color = this.rgbToHex(pixel[0], pixel[1], pixel[2])
+        return color === PLAYHEAD_COLOR
+      })
+      .on('drag', this.timeAxisDrag)
+    d3.select(this.$refs.timeCanvas).call(drag)
+
     this.drawSetup()
     this.requestDraw()
   },
@@ -180,12 +193,6 @@ export default {
       this.lastClick = Date.now()
     },
 
-    clickHandlerTimeAxis(e) {
-      const coordX = e.clientX - this.$refs.timeCanvas.getBoundingClientRect().left
-      const timePosition = this.transform.rescaleX(this.scale).invert(coordX) / this.mainStore.fps
-      this.tempStore.playJumpPosition = timePosition
-    },
-
     doubleClickPopup(entry) {
       this.overlayInput = true
       this.$nextTick().then(() => {
@@ -222,48 +229,48 @@ export default {
         return this.mainStore.timeReadableSec(Math.round(d / this.mainStore.fps))
       }
 
-      const ctx = this.tCtx
-      ctx.clearRect(0, 0, this.canvasWidth, 50)
+      const tCtx = this.tCtx
+      tCtx.clearRect(0, 0, this.canvasWidth, 50)
 
-      ctx.strokeStyle = this.axisColor
-      ctx.lineWidth = '1'
+      tCtx.strokeStyle = this.axisColor
+      tCtx.lineWidth = '1'
 
-      ctx.beginPath()
+      tCtx.beginPath()
       ticks.forEach((d) => {
-        ctx.moveTo(transScale(d), YbelowText)
-        ctx.lineTo(transScale(d), YbelowText - tickSize)
+        tCtx.moveTo(transScale(d), YbelowText)
+        tCtx.lineTo(transScale(d), YbelowText - tickSize)
       })
 
       smallTicks.forEach((d) => {
-        ctx.moveTo(transScale(d), YbelowText)
-        ctx.lineTo(transScale(d), YbelowText - smallTickSize)
+        tCtx.moveTo(transScale(d), YbelowText)
+        tCtx.lineTo(transScale(d), YbelowText - smallTickSize)
       })
-      ctx.stroke()
+      tCtx.stroke()
 
-      ctx.beginPath()
-      ctx.moveTo(0, YbelowText)
-      ctx.lineTo(this.canvasWidth, YbelowText)
-      ctx.stroke()
+      tCtx.beginPath()
+      tCtx.moveTo(0, YbelowText)
+      tCtx.lineTo(this.canvasWidth, YbelowText)
+      tCtx.stroke()
 
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'top'
-      ctx.fillStyle = this.axisColor
+      tCtx.textAlign = 'center'
+      tCtx.textBaseline = 'top'
+      tCtx.fillStyle = this.axisColor
       ticks.forEach((d) => {
-        ctx.beginPath()
-        ctx.fillText(tickFormat(d), transScale(d), 0)
+        tCtx.beginPath()
+        tCtx.fillText(tickFormat(d), transScale(d), 0)
       })
     },
 
     drawPlayHead(xPosition) {
       const yPosition = 26
       this.ctx.beginPath()
-      this.ctx.strokeStyle = 'red'
+      this.ctx.strokeStyle = PLAYHEAD_COLOR
       this.ctx.lineWidth = '2'
       this.ctx.moveTo(xPosition, this.canvasHeight)
       this.ctx.lineTo(xPosition, 0)
       this.ctx.stroke()
 
-      this.tCtx.fillStyle = 'red'
+      this.tCtx.fillStyle = PLAYHEAD_COLOR
       this.tCtx.beginPath()
       this.tCtx.moveTo(xPosition, yPosition)
       this.tCtx.lineTo(xPosition + 8, yPosition - 5)
@@ -274,7 +281,7 @@ export default {
       this.tCtx.closePath()
       this.tCtx.fill()
       this.tCtx.beginPath()
-      this.tCtx.strokeStyle = 'red'
+      this.tCtx.strokeStyle = PLAYHEAD_COLOR
       this.tCtx.lineWidth = '2'
       this.tCtx.moveTo(xPosition, 26)
       this.tCtx.lineTo(xPosition, 32)
@@ -770,6 +777,18 @@ export default {
     rgbToHex(r, g, b) {
       // eslint-disable-next-line
       return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1).toLowerCase()
+    },
+
+    timeAxisClickHandler(e) {
+      const coordX = e.clientX - this.$refs.timeCanvas.getBoundingClientRect().left
+      const timePosition = this.transform.rescaleX(this.scale).invert(coordX) / this.mainStore.fps
+      this.tempStore.playJumpPosition = timePosition
+    },
+
+    timeAxisDrag(e) {
+      const x = d3.pointer(e, this.$refs.timeCanvas)[0]
+      const timePosition = this.transform.rescaleX(this.scale).invert(x) / this.mainStore.fps
+      this.tempStore.playJumpPosition = timePosition
     }
   }
 }

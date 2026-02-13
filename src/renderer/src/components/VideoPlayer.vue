@@ -163,6 +163,7 @@ export default {
       // directly is prone to timing issues
       if (newValue !== null) {
         this.$refs.video.currentTime = newValue
+        this.tempStore.playPosition = newValue
         this.tempStore.playJumpPosition = null
       }
     }
