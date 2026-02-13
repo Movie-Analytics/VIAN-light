@@ -15,51 +15,50 @@ import VideoPlayer from '@renderer/components/VideoPlayer.vue'
 
 export default {
   name: 'LayoutDraggable',
-  expose: [],
   components: { LayoutDraggableItem, ShotDetail, ShotList, Timelines, VideoPlayer },
 
-  data: () => ({
-    items: [
-      {
-        component: 'VideoPlayer',
-        heightInitial: 450,
-        title: 'Player',
-        widthInitial: 500,
-        xInitial: 10,
-        yInitial: 70,
-        z: 0
-      },
-      {
-        component: 'ShotList',
-        heightInitial: 450,
-        title: 'Shot List',
-        widthInitial: 400,
-        xInitial: 550,
-        yInitial: 70,
-        z: 1
-      },
-      {
-        component: 'Timelines',
-        heightInitial: 400,
-        title: 'Timelines',
-        widthInitial: 500,
-        xInitial: 10,
-        yInitial: 550,
-        z: 2
-      },
-      {
-        component: 'ShotDetail',
-        heightInitial: 400,
-        title: 'Shot Details',
-        widthInitial: 400,
-        xInitial: 550,
-        yInitial: 550,
-        z: 3
-      }
-    ],
-
-    zOrder: ['Player', 'Shot List', 'Shot Details', 'Timelines']
-  }),
+  data() {
+    return {
+      items: [
+        {
+          component: 'VideoPlayer',
+          heightInitial: 450,
+          title: this.$t('components.layout.player'),
+          widthInitial: 500,
+          xInitial: 10,
+          yInitial: 70,
+          z: 0
+        },
+        {
+          component: 'ShotList',
+          heightInitial: 450,
+          title: this.$t('components.layout.shotList'),
+          widthInitial: 400,
+          xInitial: 550,
+          yInitial: 70,
+          z: 1
+        },
+        {
+          component: 'Timelines',
+          heightInitial: 400,
+          title: this.$t('components.layout.timelines'),
+          widthInitial: 500,
+          xInitial: 10,
+          yInitial: 550,
+          z: 2
+        },
+        {
+          component: 'ShotDetail',
+          heightInitial: 400,
+          title: this.$t('components.layout.shotDetails'),
+          widthInitial: 400,
+          xInitial: 550,
+          yInitial: 550,
+          z: 3
+        }
+      ]
+    }
+  },
 
   methods: {
     onDragged(name) {

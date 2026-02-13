@@ -3,13 +3,18 @@
     "title": "VIAN",
     "hello": "Hallo!"
   },
+
   "common": {
     "ok": "OK",
     "cancel": "Abbrechen",
     "generate": "Erstellen",
     "save": "Speichern",
-    "import": "Importieren"
+    "import": "Importieren",
+    "close": "Schließen",
+    "rename": "Umbenennen",
+    "delete": "Löschen"
   },
+
   "pages": {
     "login": {
       "appTitle": "VIAN",
@@ -33,6 +38,7 @@
         "signup": "Registrieren"
       }
     },
+
     "index": {
       "version": "Version",
       "updateAvailable": "Update verfügbar",
@@ -49,18 +55,14 @@
       },
       "uploading": "Video hochladen"
     },
+
     "video": {
-      "tooltips": {
-        "undo": "Rückgängig",
-        "redo": "Wiederholen",
-        "jobList": "Jobliste",
-        "home": "Start"
-      },
       "tabs": {
         "info": "Info",
         "segmentation": "Segmentierung",
         "annotation": "Annotation"
       },
+
       "info": {
         "fps": "FPS",
         "resolution": "Auflösung",
@@ -86,6 +88,7 @@
         "tabbedLayout": "Tab-Layout",
         "draggableLayout": "Verschiebbares Layout"
       },
+
       "dialogs": {
         "generateScreenshots": {
           "title": "Screenshots erzeugen",
@@ -100,7 +103,79 @@
           "exportAll": "Alle exportieren",
           "exportIndividually": "Einzeln exportieren"
         }
+      },
+
+      "tooltips": {
+        "undo": "Rückgängig",
+        "redo": "Wiederholen",
+        "jobList": "Jobliste",
+        "home": "Start"
+      },
+
+      "timelines": {
+        "addTrack": "Neue Spur hinzufügen",
+        "duplicate": "Duplizieren",
+        "delete": "Löschen",
+        "rename": "Umbenennen",
+        "linkVocabulary": "Mit Vokabular verknüpfen",
+        "renameTimelineTitle": "Timeline umbenennen",
+        "newTimelineName": "Neuer Timeline-Name",
+        "linkVocabularyTitle": "Vokabular mit Timeline verknüpfen",
+        "selectVocabulary": "Vokabular auswählen"
       }
+    }
+  },
+
+  "components": {
+    "vocabularyDialog": {
+      "title": "Vokabular verwalten"
+    },
+
+    "vocabularyDialogList": {
+      "add": "{itemType} hinzufügen",
+      "new": "Neue(r) {itemType}",
+      "types": {
+        "vocabulary": "Vokabular",
+        "category": "Kategorie",
+        "tag": "Tag"
+      }
+    },
+
+    "shotDetail": {
+      "noSelection": "Keine Elemente in der Timeline ausgewählt",
+      "multipleSelected": "Mehrere Elemente ausgewählt",
+      "shotLabel": "Shot",
+      "annotationsLabel": "Annotationen",
+      "linkedVocabulary": "Verknüpftes Vokabular",
+      "vocabularyAnnotationsLabel": "Vokabular-Annotationen",
+      "lockSegment": "Segment sperren",
+      "lockHelp": "Das Sperren eines Segments verhindert das Löschen, Verschieben und Ändern der Annotation."
+    },
+
+    "shotList": {
+      "selectTrack": "Spur auswählen",
+      "screenshotTimeline": "Screenshot-Timeline",
+      "id": "ID",
+      "annotation": "Annotation"
+    },
+
+    "imageDialog": {
+      "screenshotAt": "Screenshot bei"
+    },
+
+    "layout": {
+      "player": "Player",
+      "shotList": "Shot-Liste",
+      "timelines": "Timelines",
+      "shotDetails": "Shot-Details"
+    },
+
+    "videoPlayer": {
+      "playbackRateHelp": "Wiedergabegeschwindigkeit (KL-System)\n\nK: Stopp\nL: Vorwärts abspielen (2x, 4x, 8x, 16x)\n\nMehrfach drücken, um die Geschwindigkeit zu erhöhen"
+    },
+
+    "timelineCanvas": {
+      "annotations": "Annotationen"
     }
   }
 }

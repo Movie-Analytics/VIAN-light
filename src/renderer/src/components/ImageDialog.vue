@@ -8,7 +8,7 @@
       <v-card-actions>
         <v-spacer></v-spacer>
 
-        <v-btn text="Close" @click="closeDialog"></v-btn>
+        <v-btn :text="$t('common.close')" @click="closeDialog"></v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -32,7 +32,11 @@ export default {
     ...mapStores(useMainStore),
 
     title() {
-      return 'Screenshot at ' + this.mainStore.timeReadableFrame(this.screenshot.frame, true)
+      return (
+        this.$t('components.imageDialog.screenshotAt') +
+        ' ' +
+        this.mainStore.timeReadableFrame(this.screenshot.frame, true)
+      )
     }
   },
 

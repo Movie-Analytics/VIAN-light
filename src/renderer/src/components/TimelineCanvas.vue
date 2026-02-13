@@ -13,7 +13,7 @@
         auto-grow
         rows="1"
         max-rows="3"
-        label="Annotations"
+        :label="$t('components.timelineCanvas.annotations')"
         min-width="200"
         hide-details="true"
         variant="solo"
