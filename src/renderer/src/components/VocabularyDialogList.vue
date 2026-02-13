@@ -42,7 +42,7 @@
 
     <v-list-item
       :style="{ 'margin-start': indent }"
-      :title="`Add ${itemType}`"
+      :title="$t('components.vocabularyDialogList.add', { itemType: $t(itemTypeKey) })"
       prepend-icon="mdi-plus"
       @click="addItem"
     />
@@ -85,15 +85,22 @@ export default {
       return this.level < 3
     },
 
-    itemType() {
-      const types = { 1: 'vocabulary', 2: 'category', 3: 'tag' }
-      return types[this.level]
+    itemTypeKey() {
+      const keys = {
+        1: 'components.vocabularyDialogList.types.vocabulary',
+        2: 'components.vocabularyDialogList.types.category',
+        3: 'components.vocabularyDialogList.types.tag'
+      }
+      return keys[this.level]
     }
   },
 
   methods: {
     addItem() {
-      this.editingId = this.undoableStore.vocabularyAdd(this.id, 'New ' + this.itemType)
+      this.editingId = this.undoableStore.vocabularyAdd(
+        this.id,
+        this.$t('components.vocabularyDialogList.new', { itemType: this.$t(this.itemTypeKey) })
+      )
     },
 
     cancelEdit() {

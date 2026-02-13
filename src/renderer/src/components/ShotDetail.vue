@@ -1,6 +1,8 @@
 <template>
   <div>
-    <p v-if="tempStore.selectedSegments.size == 0">No elements in timeline selected</p>
+    <p v-if="tempStore.selectedSegments.size == 0">
+      {{ $t('components.shotDetail.noSelection') }}
+    </p>
 
     <v-sheet v-else-if="selectedTimelineSegment !== null">
       <div v-if="selectedTimelineSegment.image">
@@ -8,25 +10,26 @@
       </div>
 
       <div v-else>
-        <p class="font-weight-bold">Shot</p>
+        <p class="font-weight-bold">{{ $t('components.shotDetail.shotLabel') }}</p>
         {{ mainStore.timeReadableFrame(selectedTimelineSegment.start) }} -
         {{ mainStore.timeReadableFrame(selectedTimelineSegment.end) }}
+
         <v-textarea
           v-model="annotationBuffer"
           :disabled="selectedTimelineSegment.locked"
-          label="Annotations"
+          :label="$t('components.shotDetail.annotationsLabel')"
           rows="1"
           max-rows="3"
           auto-grow
         ></v-textarea>
 
         <div v-if="segmentVocabulary">
-          <p>Linked Vocabulary: {{ segmentVocabulary.name }}</p>
+          <p>{{ $t('components.shotDetail.linkedVocabulary') }}: {{ segmentVocabulary.name }}</p>
 
           <v-autocomplete
             v-model="selectedTimelineSegment.vocabAnnotation"
             :items="vocabularyItems"
-            label="Vocabulary annotations"
+            :label="$t('components.shotDetail.vocabularyAnnotationsLabel')"
             chips
             clearable
             multiple
@@ -36,14 +39,14 @@
         <v-checkbox v-model="selectedTimelineSegment.locked">
           <template #label>
             <div>
-              Lock segment
+              {{ $t('components.shotDetail.lockSegment') }}
               <v-tooltip location="bottom">
                 <template #activator="{ props: activatorProps }">
                   <v-btn density="compact" variant="text" icon v-bind="activatorProps">
                     <v-icon>mdi-information-outline</v-icon>
                   </v-btn>
                 </template>
-                Locking a segment prevents its deletion, movement, and changing the annotation.
+                {{ $t('components.shotDetail.lockHelp') }}
               </v-tooltip>
             </div>
           </template>
@@ -51,7 +54,7 @@
       </div>
     </v-sheet>
 
-    <p v-else>Multiple elements selected</p>
+    <p v-else>{{ $t('components.shotDetail.multipleSelected') }}</p>
 
     <ImageDialog ref="imageDialog"></ImageDialog>
   </div>

@@ -3,13 +3,18 @@
     "title": "VIAN-light",
     "hello": "Hallo!"
   },
+
   "common": {
     "ok": "OK",
     "cancel": "Abbrechen",
     "generate": "Erstellen",
     "save": "Speichern",
-    "import": "Importieren"
+    "import": "Importieren",
+    "close": "Schließen",
+    "rename": "Umbenennen",
+    "delete": "Löschen"
   },
+
   "pages": {
     "login": {
       "appTitle": "VIAN Light",
@@ -33,6 +38,7 @@
         "signup": "Registrieren"
       }
     },
+
     "index": {
       "version": "Version",
       "updateAvailable": "Update verfügbar",
@@ -48,58 +54,92 @@
         "projectFile": "Projektdatei"
       }
     },
+
     "video": {
-      "tooltips": {
-        "undo": "Rückgängig",
-        "redo": "Wiederholen",
-        "jobList": "Jobliste",
-        "home": "Start"
-      },
       "tabs": {
         "info": "Info",
         "segmentation": "Segmentierung",
         "annotation": "Annotation"
       },
+
       "info": {
         "fps": "FPS",
         "resolution": "Auflösung",
         "duration": "Dauer",
         "totalFrames": "Gesamtanzahl der Frames"
       },
-      "drawer": {
-        "shotBoundaryDetection": "Shotboundary-Erkennung",
-        "loadSubtitles": "Untertitel laden",
-        "generateScreenshots": "Screenshots erzeugen",
-        "manageVocabulary": "Vokabular verwalten",
-        "importData": "Daten importieren",
-        "importElan": "ELAN-Annotationen importieren (.eaf)",
-        "importTibavaWip": "TIB-AV-A Ergebnisse importieren (WiP)",
-        "exportData": "Daten exportieren",
-        "exportElan": "Als ELAN-Annotationen exportieren (.eaf)",
-        "exportCsv": "Annotationen als .csv exportieren",
-        "exportScreenshots": "Screenshots exportieren",
-        "exportProjectZip": "Projekt als .zip exportieren",
-        "switchToLightMode": "Zum Hellmodus wechseln",
-        "switchToDarkMode": "Zum Dunkelmodus wechseln",
-        "layout": "Layout",
-        "tabbedLayout": "Tab-Layout",
-        "draggableLayout": "Verschiebbares Layout"
+
+      "tooltips": {
+        "undo": "Rückgängig",
+        "redo": "Wiederholen",
+        "jobList": "Jobliste",
+        "home": "Start"
       },
-      "dialogs": {
-        "generateScreenshots": {
-          "title": "Screenshots erzeugen",
-          "description": "Alle N Sekunden einen Screenshot erstellen",
-          "intervalLabel": "N",
-          "perShotLabel": "Mindestens einen Screenshot pro Shot sicherstellen",
-          "shotTimelineLabel": "Shot-Timeline"
-        },
-        "exportScreenshots": {
-          "title": "Screenshots exportieren",
-          "description": "Du kannst entweder alle Screenshots auf einmal exportieren oder sie in einer Timeline einzeln auswählen und nur diese exportieren.",
-          "exportAll": "Alle exportieren",
-          "exportIndividually": "Einzeln exportieren"
-        }
+
+      "timelines": {
+        "addTrack": "Neue Spur hinzufügen",
+        "duplicate": "Duplizieren",
+        "delete": "Löschen",
+        "rename": "Umbenennen",
+        "linkVocabulary": "Mit Vokabular verknüpfen",
+        "renameTimelineTitle": "Timeline umbenennen",
+        "newTimelineName": "Neuer Timeline-Name",
+        "linkVocabularyTitle": "Vokabular mit Timeline verknüpfen",
+        "selectVocabulary": "Vokabular auswählen"
       }
+    }
+  },
+
+  "components": {
+    "vocabularyDialog": {
+      "title": "Vokabular verwalten"
+    },
+
+    "vocabularyDialogList": {
+      "add": "{itemType} hinzufügen",
+      "new": "Neue(r) {itemType}",
+      "types": {
+        "vocabulary": "Vokabular",
+        "category": "Kategorie",
+        "tag": "Tag"
+      }
+    },
+
+    "shotDetail": {
+      "noSelection": "Keine Elemente in der Timeline ausgewählt",
+      "multipleSelected": "Mehrere Elemente ausgewählt",
+      "shotLabel": "Shot",
+      "annotationsLabel": "Annotationen",
+      "linkedVocabulary": "Verknüpftes Vokabular",
+      "vocabularyAnnotationsLabel": "Vokabular-Annotationen",
+      "lockSegment": "Segment sperren",
+      "lockHelp": "Das Sperren eines Segments verhindert das Löschen, Verschieben und Ändern der Annotation."
+    },
+
+    "shotList": {
+      "selectTrack": "Spur auswählen",
+      "screenshotTimeline": "Screenshot-Timeline",
+      "id": "ID",
+      "annotation": "Annotation"
+    },
+
+    "imageDialog": {
+      "screenshotAt": "Screenshot bei"
+    },
+
+    "layout": {
+      "player": "Player",
+      "shotList": "Shot-Liste",
+      "timelines": "Timelines",
+      "shotDetails": "Shot-Details"
+    },
+
+    "videoPlayer": {
+      "playbackRateHelp": "Wiedergabegeschwindigkeit (KL-System)\n\nK: Stopp\nL: Vorwärts abspielen (2x, 4x, 8x, 16x)\n\nMehrfach drücken, um die Geschwindigkeit zu erhöhen"
+    },
+
+    "timelineCanvas": {
+      "annotations": "Annotationen"
     }
   }
 }

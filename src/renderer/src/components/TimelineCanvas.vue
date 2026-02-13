@@ -6,7 +6,7 @@
       <v-text-field
         ref="overlayTextfield"
         v-model="overlayInputModel"
-        label="Annotations"
+        :label="$t('components.timelineCanvas.annotations')"
         min-width="200"
         hide-details="true"
         variant="solo"

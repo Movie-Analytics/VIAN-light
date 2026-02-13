@@ -59,22 +59,22 @@
 
                       <v-list class="pb-0 pt-0">
                         <v-list-item
-                          title="Duplicate"
+                          :title="$t('pages.video.timelines.duplicate')"
                           @click="duplicateTimeline(timeline.id)"
                         ></v-list-item>
 
                         <v-list-item
-                          title="Delete"
+                          :title="$t('pages.video.timelines.delete')"
                           @click="deleteTimeline(timeline.id)"
                         ></v-list-item>
 
                         <v-list-item
-                          title="Rename"
+                          :title="$t('pages.video.timelines.rename')"
                           @click="renameDialogOpen(timeline.id)"
                         ></v-list-item>
 
                         <v-list-item
-                          title="Link to vocabulary"
+                          :title="$t('pages.video.timelines.linkVocabulary')"
                           :disabled="
                             !vocabularyExists ||
                             typeof timeline.vocabulary === 'string' ||
@@ -110,7 +110,7 @@
             </template>
           </v-list-group>
 
-          <v-list-item v-tooltip="'Add new track'" @click="addTimeline">
+          <v-list-item v-tooltip="$t('pages.video.timelines.addTrack')" @click="addTimeline">
             <v-icon>mdi-playlist-plus</v-icon>
           </v-list-item>
         </v-list>
@@ -123,36 +123,39 @@
 
     <v-dialog v-model="renameDialog" persistent max-width="400">
       <v-card>
-        <v-card-title>Rename Timeline</v-card-title>
+        <v-card-title>{{ $t('pages.video.timelines.renameTimelineTitle') }}</v-card-title>
 
         <v-card-text>
-          <v-text-field v-model="timelineName" label="New Timeline Name"></v-text-field>
+          <v-text-field
+            v-model="timelineName"
+            :label="$t('pages.video.timelines.newTimelineName')"
+          ></v-text-field>
         </v-card-text>
 
         <v-card-actions>
-          <v-btn color="warning" @click="renameDialog = false">Cancel</v-btn>
+          <v-btn color="warning" @click="renameDialog = false">{{ $t('common.cancel') }}</v-btn>
 
-          <v-btn color="primary" @click="renameTimeline">Save</v-btn>
+          <v-btn color="primary" @click="renameTimeline">{{ $t('common.save') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <v-dialog v-model="linkVocabDialog" persistent max-width="400">
       <v-card>
-        <v-card-title>Link vocabulary to timeline</v-card-title>
+        <v-card-title>{{ $t('pages.video.timelines.linkVocabularyTitle') }}</v-card-title>
 
         <v-card-text>
           <v-select
             v-model="selectedVocab"
-            label="Select vocabulary"
+            :label="$t('pages.video.timelines.selectVocabulary')"
             :items="vocabularies"
           ></v-select>
         </v-card-text>
 
         <v-card-actions>
-          <v-btn color="warning" @click="linkVocabDialog = false">Cancel</v-btn>
+          <v-btn color="warning" @click="linkVocabDialog = false">{{ $t('common.cancel') }}</v-btn>
 
-          <v-btn color="primary" @click="linkVocab">Save</v-btn>
+          <v-btn color="primary" @click="linkVocab">{{ $t('common.save') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

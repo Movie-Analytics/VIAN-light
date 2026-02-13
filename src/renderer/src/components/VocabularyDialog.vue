@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="dialogShown" persistent max-width="500">
     <v-card>
-      <v-card-title>Manage Vocabulary</v-card-title>
+      <v-card-title>{{ $t('components.vocabularyDialog.title') }}</v-card-title>
 
       <v-card-text>
         <VocabularyDialogList
@@ -12,9 +12,13 @@
       </v-card-text>
 
       <v-card-actions>
-        <v-btn color="info" @click="importVocab">Import</v-btn>
+        <v-btn color="info" @click="importVocab">
+          {{ $t('common.import') }}
+        </v-btn>
 
-        <v-btn color="warning" @click="dialogShown = false">Close</v-btn>
+        <v-btn color="warning" @click="dialogShown = false">
+          {{ $t('common.close') }}
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

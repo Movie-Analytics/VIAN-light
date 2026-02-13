@@ -3,13 +3,18 @@
     "title": "VIAN-light",
     "hello": "Hello!"
   },
+
   "common": {
     "ok": "OK",
     "cancel": "Cancel",
-    "generate": "Generate",
     "save": "Save",
-    "import": "Import"
+    "delete": "Delete",
+    "rename": "Rename",
+    "import": "Import",
+    "generate": "Generate",
+    "close": "Close"
   },
+
   "pages": {
     "login": {
       "appTitle": "VIAN Light",
@@ -33,6 +38,7 @@
         "signup": "Sign up"
       }
     },
+
     "index": {
       "version": "Version",
       "updateAvailable": "Update available",
@@ -48,58 +54,92 @@
         "projectFile": "Project file"
       }
     },
+
     "video": {
-      "tooltips": {
-        "undo": "Undo",
-        "redo": "Redo",
-        "jobList": "Job list",
-        "home": "Home"
-      },
       "tabs": {
         "info": "Info",
         "segmentation": "Segmentation",
         "annotation": "Annotation"
       },
+
       "info": {
         "fps": "FPS",
         "resolution": "Resolution",
         "duration": "Duration",
         "totalFrames": "Total number of frames"
       },
-      "drawer": {
-        "shotBoundaryDetection": "Shot Boundary Detection",
-        "loadSubtitles": "Load Subtitles",
-        "generateScreenshots": "Generate Screenshots",
-        "manageVocabulary": "Manage Vocabulary",
-        "importData": "Import Data",
-        "importElan": "Import ELAN Annotations (.eaf)",
-        "importTibavaWip": "Import TIB-AV-A Results (WiP)",
-        "exportData": "Export Data",
-        "exportElan": "Export as ELAN Annotations (.eaf)",
-        "exportCsv": "Export Annotations as .csv",
-        "exportScreenshots": "Export Screenshots",
-        "exportProjectZip": "Export Project as .zip",
-        "switchToLightMode": "Switch to Light Mode",
-        "switchToDarkMode": "Switch to Dark Mode",
-        "layout": "Layout",
-        "tabbedLayout": "Tabbed Layout",
-        "draggableLayout": "Draggable Layout"
+
+      "tooltips": {
+        "undo": "Undo",
+        "redo": "Redo",
+        "jobList": "Job list",
+        "home": "Home"
       },
-      "dialogs": {
-        "generateScreenshots": {
-          "title": "Generate Screenshots",
-          "description": "Create a screenshot every N seconds",
-          "intervalLabel": "N",
-          "perShotLabel": "Ensure at least one screenshot per shot",
-          "shotTimelineLabel": "Shot Timeline"
-        },
-        "exportScreenshots": {
-          "title": "Export Screenshots",
-          "description": "You can either export all screenshots at once or select them individually in a timeline and only export those.",
-          "exportAll": "Export all",
-          "exportIndividually": "Export individually"
-        }
+
+      "timelines": {
+        "addTrack": "Add new track",
+        "duplicate": "Duplicate",
+        "delete": "Delete",
+        "rename": "Rename",
+        "linkVocabulary": "Link to vocabulary",
+        "renameTimelineTitle": "Rename Timeline",
+        "newTimelineName": "New Timeline Name",
+        "linkVocabularyTitle": "Link vocabulary to timeline",
+        "selectVocabulary": "Select vocabulary"
       }
+    }
+  },
+
+  "components": {
+    "vocabularyDialog": {
+      "title": "Manage Vocabulary"
+    },
+
+    "vocabularyDialogList": {
+      "add": "Add {itemType}",
+      "new": "New {itemType}",
+      "types": {
+        "vocabulary": "vocabulary",
+        "category": "category",
+        "tag": "tag"
+      }
+    },
+
+    "shotDetail": {
+      "noSelection": "No elements in timeline selected",
+      "multipleSelected": "Multiple elements selected",
+      "shotLabel": "Shot",
+      "annotationsLabel": "Annotations",
+      "linkedVocabulary": "Linked Vocabulary",
+      "vocabularyAnnotationsLabel": "Vocabulary annotations",
+      "lockSegment": "Lock segment",
+      "lockHelp": "Locking a segment prevents its deletion, movement, and changing the annotation."
+    },
+
+    "shotList": {
+      "selectTrack": "Select Track",
+      "screenshotTimeline": "Screenshot Timeline",
+      "id": "ID",
+      "annotation": "Annotation"
+    },
+
+    "imageDialog": {
+      "screenshotAt": "Screenshot at"
+    },
+
+    "layout": {
+      "player": "Player",
+      "shotList": "Shot List",
+      "timelines": "Timelines",
+      "shotDetails": "Shot Details"
+    },
+
+    "videoPlayer": {
+      "playbackRateHelp": "Playback Rate (KL System)\n\nK: Stop\nL: Play forward (2x, 4x, 8x, 16x)\n\nPress multiple times to increase speed"
+    },
+
+    "timelineCanvas": {
+      "annotations": "Annotations"
     }
   }
 }

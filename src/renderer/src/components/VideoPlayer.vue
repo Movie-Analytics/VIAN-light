@@ -45,7 +45,7 @@
 
             <v-chip
               v-tooltip="{
-                text: 'Playback Rate (KL System)\n\nK: Stop\nL: Play forward (2x, 4x, 8x, 16x)\n\nPress multiple times to increase speed',
+                text: $t('components.videoPlayer.playbackRateHelp'),
                 location: 'top'
               }"
               class="playback-rate"

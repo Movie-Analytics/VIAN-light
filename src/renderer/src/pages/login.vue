@@ -1,70 +1,84 @@
 <template>
   <v-container max-width="600">
     <div class="my-10">
-      <h1 class="mb-3 text-center text-h1">VIAN Light</h1>
+      <h1 class="mb-3 text-center text-h1">
+        {{ $t('pages.login.appTitle') }}
+      </h1>
 
-      <p>VIAN Light is an open video annotation application. Some of it features are:</p>
+      <p>
+        {{ $t('pages.login.description') }}
+      </p>
 
       <ul class="ms-5 mt-1">
-        <li>automatic shotboundary detection</li>
+        <li>{{ $t('pages.login.features.shotboundary') }}</li>
 
-        <li>import and export to ELAN</li>
+        <li>{{ $t('pages.login.features.elan') }}</li>
 
-        <li>screenshot generation</li>
+        <li>{{ $t('pages.login.features.screenshots') }}</li>
 
-        <li>works in the browser or via Electron as a dekstop application</li>
+        <li>{{ $t('pages.login.features.electronBrowser') }}</li>
       </ul>
     </div>
 
     <v-card>
       <v-tabs v-model="tab" show-arrows>
-        <v-tab value="login">Login</v-tab>
+        <v-tab value="login">
+          {{ $t('pages.login.tabs.login') }}
+        </v-tab>
 
-        <v-tab value="signup">Signup</v-tab>
+        <v-tab value="signup">
+          {{ $t('pages.login.tabs.signup') }}
+        </v-tab>
       </v-tabs>
 
       <v-card-text>
         <v-tabs-window v-model="tab">
+          <!-- LOGIN -->
           <v-tabs-window-item value="login">
             <v-form>
               <v-text-field
                 v-model="email"
-                label="E-Mail"
+                :label="$t('pages.login.form.email')"
                 :rules="mailRule"
                 required
               ></v-text-field>
 
               <v-text-field
                 v-model="password"
-                label="Password"
+                :label="$t('pages.login.form.password')"
                 type="password"
                 :rules="lengthRule"
                 required
               ></v-text-field>
             </v-form>
 
-            <v-btn block class="ma-1" @click="login">Login</v-btn>
+            <v-btn block class="ma-1" @click="login">
+              {{ $t('pages.login.actions.login') }}
+            </v-btn>
           </v-tabs-window-item>
 
+          <!-- SIGNUP -->
           <v-tabs-window-item value="signup">
             <v-form>
               <v-text-field
                 v-model="email"
-                label="E-Mail"
+                :label="$t('pages.login.form.email')"
                 :rules="mailRule"
                 required
               ></v-text-field>
 
               <v-text-field
                 v-model="password"
-                label="Password"
+                :label="$t('pages.login.form.password')"
                 type="password"
                 :rules="lengthRule"
                 required
               ></v-text-field>
             </v-form>
 
-            <v-btn block class="ma-1" @click="signup">Sign up</v-btn>
+            <v-btn block class="ma-1" @click="signup">
+              {{ $t('pages.login.actions.signup') }}
+            </v-btn>
           </v-tabs-window-item>
         </v-tabs-window>
       </v-card-text>

@@ -4,7 +4,7 @@
       <v-select
         v-model="shotTimeline"
         :items="undoableStore.shotTimelines"
-        label="Select Track"
+        :label="$t('components.shotList.selectTrack')"
         class="me-2 shotlist-header-element"
         item-title="name"
         item-value="id"
@@ -13,7 +13,7 @@
       <v-select
         v-model="screenshotTimeline"
         :items="undoableStore.screenshotTimelines"
-        label="Screenshot Timeline"
+        :label="$t('components.shotList.screenshotTimeline')"
         class="shotlist-header-element"
         item-title="name"
         item-value="id"
@@ -36,7 +36,9 @@
         <template #default="{ item, index }">
           <div class="pa-3" :class="getEntryBgColor(item)">
             <div class="cursor-pointer" @click="jumpPlayer(item.start)">
-              <span class="font-weight-bold">ID {{ index + 1 }}</span>
+              <span class="font-weight-bold">
+                {{ $t('components.shotList.id') }} {{ index + 1 }}
+              </span>
 
               <span class="text-medium-emphasis">
                 ({{ mainStore.timeReadableFrame(item.start) }} -
@@ -46,7 +48,7 @@
 
             <div>
               <p>
-                <span>Annotation: {{ item.annotation }}</span>
+                <span> {{ $t('components.shotList.annotation') }}: {{ item.annotation }} </span>
               </p>
             </div>
 
@@ -68,79 +70,3 @@
     <ImageDialog ref="imageDialog"></ImageDialog>
   </v-sheet>
 </template>
-
-<script>
-import ImageDialog from '@renderer/components/ImageDialog.vue'
-import { mapStores } from 'pinia'
-import { useMainStore } from '@renderer/stores/main'
-import { useTempStore } from '@renderer/stores/temp'
-import { useUndoableStore } from '@renderer/stores/undoable'
-
-export default {
-  name: 'ShotList',
-  components: { ImageDialog },
-
-  data: () => ({
-    screenshotTimeline: null,
-    shotTimeline: null,
-    thumbZoom: 50
-  }),
-
-  computed: {
-    ...mapStores(useMainStore, useTempStore, useUndoableStore),
-
-    shots() {
-      const timeline = this.undoableStore.shotTimelines.find((s) => s.id === this.shotTimeline)
-      return timeline ? timeline.data : []
-    },
-
-    thumbZoomStyle() {
-      return {
-        height: `${this.thumbZoom}px`
-      }
-    }
-  },
-
-  watch: {
-    'undoableStore.timelines'(newVal) {
-      const timelineIds = newVal.map((t) => t.id)
-      if (!timelineIds.includes(this.shotTimeline)) this.shotTimeline = null
-      if (!timelineIds.includes(this.screenshotTimeline)) this.screenshotTimeline = null
-    }
-  },
-
-  methods: {
-    getEntryBgColor(shot) {
-      const framePos = this.tempStore.playPosition * this.mainStore.fps
-      if (shot.start <= framePos && framePos <= shot.end) {
-        return 'bg-grey-lighten-3'
-      }
-      return ''
-    },
-
-    getShotImages(shot) {
-      const timeline = this.undoableStore.screenshotTimelines.find(
-        (s) => s.id === this.screenshotTimeline
-      )
-      return timeline
-        ? timeline.data.filter((s) => s.frame >= shot.start && s.frame < shot.end)
-        : []
-    },
-
-    imageClicked(shot) {
-      this.$refs.imageDialog.show(shot)
-    },
-
-    jumpPlayer(pos) {
-      // Add extra time to ensure we are within the shot bounds
-      this.tempStore.playJumpPosition = pos / this.mainStore.fps + 0.001
-    }
-  }
-}
-</script>
-
-<style scoped>
-.shotlist-header-element {
-  min-width: 120px;
-}
-</style>
