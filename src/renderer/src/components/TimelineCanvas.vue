@@ -301,7 +301,7 @@ export default {
               selected: this.tempStore.selectedSegments.has(shot.id),
               timeline: timeline.id,
               type: 'shot',
-              width: shot.end - shot.start,
+              width: shot.end - shot.start + 1,
               x: shot.start,
               y: this.numTimelines * TIMELINE_HEIGHT
             })
@@ -366,7 +366,7 @@ export default {
                     tag: tag.id,
                     timeline: timeline.id,
                     type: 'select',
-                    width: shot.end - shot.start,
+                    width: shot.end - shot.start + 1,
                     x: shot.start,
                     y: this.numTimelines * TIMELINE_HEIGHT
                   })
@@ -515,7 +515,7 @@ export default {
       this.ctx.fillRect(
         rescale(this.tempStore.tmpShot.start),
         this.tempStore.tmpShot.y,
-        rescale(this.tempStore.tmpShot.end) - rescale(this.tempStore.tmpShot.start),
+        rescale(this.tempStore.tmpShot.end + 1) - rescale(this.tempStore.tmpShot.start),
         this.tempStore.tmpShot.height
       )
 
@@ -524,7 +524,7 @@ export default {
       this.ctx.fillRect(
         rescale(this.tempStore.adjacentShot.start),
         this.tempStore.adjacentShot.y,
-        rescale(this.tempStore.adjacentShot.end) - rescale(this.tempStore.adjacentShot.start),
+        rescale(this.tempStore.adjacentShot.end + 1) - rescale(this.tempStore.adjacentShot.start),
         this.tempStore.adjacentShot.height
       )
     },
@@ -598,11 +598,11 @@ export default {
       }
 
       this.tempStore.tmpShot = {
-        end: entry.x + entry.width,
+        end: entry.x + entry.width - 1,
         height: 44,
         max: this.mainStore.numFrames,
         min: 0,
-        origin: entry.hiddenLeftHandle === color ? entry.x + entry.width : entry.x,
+        origin: entry.hiddenLeftHandle === color ? entry.x + entry.width - 1 : entry.x,
         originalShot: entry,
         start: entry.x,
         y: entry.y
@@ -614,7 +614,7 @@ export default {
       if (adjacent?.timeline === entry.timeline) {
         // Prevent overlapping segments
         this.tempStore.tmpShot.min = leftSide
-          ? adjacent.x + adjacent.width + 1
+          ? adjacent.x + adjacent.width
           : this.tempStore.tmpShot.start
         this.tempStore.tmpShot.max = leftSide ? this.tempStore.tmpShot.end : adjacent.x - 1
 
@@ -623,10 +623,10 @@ export default {
         } else if (e.shiftKey) {
           this.tempStore.adjacentShot = {
             diff: leftSide
-              ? entry.x - (adjacent.x + adjacent.width)
-              : adjacent.x - (entry.x + entry.width),
+              ? entry.x - (adjacent.x + adjacent.width-1)
+              : adjacent.x - (entry.x + entry.width-1),
 
-            end: adjacent.x + adjacent.width,
+            end: adjacent.x + adjacent.width - 1,
             height: 44,
             leftSide,
             originalShot: adjacent,
@@ -667,8 +667,8 @@ export default {
           adjacentShot.start = tmpShot.end + adjacentShot.diff
         }
       } else {
-        tmpShot.start = clamp(xNew, tmpShot.min, tmpShot.origin - 1)
-        tmpShot.end = clamp(xNew, tmpShot.origin + 1, tmpShot.max)
+        tmpShot.start = clamp(xNew, tmpShot.min, tmpShot.origin)
+        tmpShot.end = clamp(xNew, tmpShot.origin, tmpShot.max)
       }
 
       this.requestDraw()
