@@ -623,8 +623,8 @@ export default {
         } else if (e.shiftKey) {
           this.tempStore.adjacentShot = {
             diff: leftSide
-              ? entry.x - (adjacent.x + adjacent.width-1)
-              : adjacent.x - (entry.x + entry.width-1),
+              ? entry.x - (adjacent.x + adjacent.width - 1)
+              : adjacent.x - (entry.x + entry.width - 1),
 
             end: adjacent.x + adjacent.width - 1,
             height: 44,

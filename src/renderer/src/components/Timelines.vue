@@ -43,7 +43,12 @@
             class="height-fit-content pt-0 w-100"
             :opened="openedItems"
           >
-            <v-list-group v-for="(timeline, id) in tempStore.timelinesFold" :key="id" :value="id" class="border-b-sm">
+            <v-list-group
+              v-for="(timeline, id) in tempStore.timelinesFold"
+              :key="id"
+              :value="id"
+              class="border-b-sm"
+            >
               <template #activator>
                 <v-list-item
                   :title="timeline.name"
