@@ -7,7 +7,7 @@ import en from './locales/en.json'
 const systemLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase()
 
 // Only support EN / DE
-const locale = systemLang.startsWith('de') ? 'de' : 'en'
+const locale = systemLang.startsWith('de') ? 'en' : 'en'
 
 export const i18n = createI18n({
   fallbackLocale: 'en',
