@@ -12,8 +12,8 @@
   },
   "pages": {
     "login": {
-      "appTitle": "VIAN Light",
-      "description": "VIAN Light is an open video annotation application. Some of its features are:",
+      "appTitle": "VIAN",
+      "description": "VIAN is an open video annotation application. Some of its features are:",
       "features": {
         "shotboundary": "automatic shotboundary detection",
         "elan": "import and export to ELAN",
