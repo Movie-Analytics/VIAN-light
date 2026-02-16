@@ -129,17 +129,21 @@ export default {
     d3.select(this.$refs.canvas).on('dblclick', (e) => {
       e.stopImmediatePropagation()
     })
-    d3.select(this.$refs.canvas).on('wheel', (e) => {
+    const panningHandler = (e) => {
       this.zoom.translateBy(d3.select(e.currentTarget), e.wheelDeltaX / this.transform.k, 0)
       this.requestDraw()
-    })
+    }
+    d3.select(this.$refs.canvas).on('wheel', panningHandler)
+    d3.select(this.$refs.timeCanvas).on('wheel', panningHandler)
     d3.select(this.$refs.timeCanvas).on('click', this.timeAxisClickHandler)
 
     const drag = d3
       .drag()
       .filter((e) => {
         const [x, y] = d3.pointer(e, this.$refs.timeCanvas)
-        const pixel = this.tCtx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data
+        const xdpr = Math.floor(x * this.dpr)
+        const ydpr = Math.floor(y * this.dpr)
+        const pixel = this.tCtx.getImageData(xdpr, ydpr, 1, 1).data
         const color = this.rgbToHex(pixel[0], pixel[1], pixel[2])
         return color === PLAYHEAD_COLOR
       })
