@@ -171,7 +171,14 @@ const migrate = async () => {
   const newPath = path.join(app.getPath('userData'), 'vian')
   const oldPath = newPath.replace('VIAN', 'VIAN-light').replace('vian', 'vian-light')
 
+  const markerPath = path.join(oldPath, 'migrated')
+
+  if (fs.existsSync(markerPath)) {
+    return
+  }
+
   try {
+    fs.writeFileSync(markerPath, '')
     fs.cpSync(oldPath, newPath, { recursive: true })
 
     const walk = (dir) => {
