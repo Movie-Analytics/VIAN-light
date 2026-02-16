@@ -13,7 +13,7 @@
       <v-icon>mdi-redo</v-icon>
     </v-btn>
 
-    <v-menu :close-on-content-click="false">
+    <v-menu v-model="jobMenuVisible" :close-on-content-click="false">
       <template #activator="{ props }">
         <v-btn
           v-tooltip="$t('pages.video.tooltips.jobList')"
@@ -295,6 +295,7 @@ export default {
     drawerRail: true,
     exportScreenshotsDialog: false,
     genScreenshotDialog: false,
+    jobMenuVisible: false,
     layout: 'tibava',
     screenshotInterval: 10,
     screenshotPerShot: false,
@@ -340,6 +341,17 @@ export default {
     drawerRail(newVal) {
       if (newVal) {
         this.drawerGroupsOpen = []
+      }
+    },
+
+    'tempStore.jobs'(newVal, oldVal) {
+      const numNewErrors = newVal.filter((j) => j.status === 'ERROR').length
+      const numOldErrors = oldVal.filter((j) => j.status === 'ERROR').length
+
+      const numNewRunning = newVal.filter((j) => j.status === 'RUNNING').length
+      const numOldRunning = oldVal.filter((j) => j.status === 'RUNNING').length
+      if (numNewErrors !== numOldErrors || numNewRunning !== numOldRunning) {
+        this.jobMenuVisible = true
       }
     }
   },
