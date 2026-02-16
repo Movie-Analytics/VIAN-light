@@ -1,4 +1,5 @@
-import { BrowserWindow, app } from 'electron'
+import { BrowserWindow, app, shell } from 'electron'
+import path from 'path'
 
 export const createMenu = () => {
   const template = [
@@ -129,6 +130,17 @@ export const createMenu = () => {
             }
           },
           label: 'Merge Segments'
+        }
+      ]
+    },
+    {
+      label: 'Help',
+      submenu: [
+        {
+          click: () => {
+            shell.openPath(path.join(app.getPath('userData'), 'vian'))
+          },
+          label: 'Open Files and Log'
         }
       ]
     }
