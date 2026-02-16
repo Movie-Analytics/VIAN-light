@@ -124,7 +124,7 @@ export const parseTsvAnnotations = (content) => {
       data: lines
         .slice(1)
         .map((l) => ({
-          annotation: l[annotationsIndex],
+          annotation: JSON.parse(l[annotationsIndex] || '[]').join(' • '),
           end: Math.floor(
             (parseFloat(l[secondsIndex]) + parseFloat(l[durationIndex])) * useMainStore().fps
           ),
