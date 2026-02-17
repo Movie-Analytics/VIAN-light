@@ -20,12 +20,18 @@ const importProject = (videoPath, zipPath, dataPath) => {
       zipfile.on('entry', (entry) => {
         if (entry.fileName.endsWith('/')) {
           fs.mkdirSync(path.join(projectPath, entry.fileName), { recursive: true })
-        } else {
+        } else if (
+          !entry.fileName.startsWith('__MACOS') &&
+          !path.basename(entry.fileName).startsWith('.')
+        ) {
+          console.log(entry, entry.fileName)
           const extractPromise = new Promise((resolveExtract, rejectExtract) => {
             zipfile.openReadStream(entry, (err3, readStream) => {
+              console.log('Entry:', entry)
               if (err3) rejectExtract(err3)
 
               const entryPath = path.join(projectPath, entry.fileName)
+              console.log('Entry path:', entryPath)
               const writeStream = fs.createWriteStream(entryPath)
 
               readStream.on('end', () => {
@@ -36,6 +42,7 @@ const importProject = (videoPath, zipPath, dataPath) => {
               readStream.on('error', rejectExtract)
               writeStream.on('error', rejectExtract)
               readStream.pipe(writeStream)
+              console.log('Reached end')
             })
           })
 
