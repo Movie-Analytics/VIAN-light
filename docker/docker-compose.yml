@@ -28,7 +28,7 @@ services:
       dockerfile: docker/Dockerfile_backend
     command: uv run celery -b redis://vian-redis-1:6379/0 --result-backend redis://vian-redis-1:6379/0 -A tasks worker -E
     volumes:
-      - postgres_data:/data
+      - backend_data:/data
     depends_on:
       - db
       - redis
@@ -57,7 +57,7 @@ services:
       - VIAN_REDIS_URL=redis://vian-redis-1:6379/0
       - VIAN_DATA_DIR=/data
     volumes:
-      - postgres_data:/data
+      - backend_data:/data
 
   frontend:
     build:
