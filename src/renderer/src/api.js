@@ -457,7 +457,6 @@ class RemoteApi {
   }
 }
 
-// eslint-disable-next-line
-const api = isElectron ? window.electronAPI : new RemoteApi()
+const api = IS_ELECTRON ? window.electronAPI : new RemoteApi()
 
 export default api

@@ -13,7 +13,8 @@ export default defineConfig({
   },
   renderer: {
     define: {
-      isElectron: true
+      IS_ELECTRON: true,
+      APP_VERSION: JSON.stringify(process.env.npm_package_version)
     },
     resolve: {
       alias: {

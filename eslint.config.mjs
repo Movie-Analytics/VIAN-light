@@ -13,7 +13,9 @@ export default [
     languageOptions: {
       ecmaVersion: 'latest',
       globals: {
-        $t: 'readonly'
+        $t: 'readonly',
+        APP_VERSION: 'readonly',
+        IS_ELECTRON: 'readonly'
       },
       sourceType: 'module'
     },

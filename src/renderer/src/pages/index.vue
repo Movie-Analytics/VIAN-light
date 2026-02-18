@@ -150,8 +150,7 @@ export default {
     ...mapStores(useMetaStore, useMainStore, useTempStore, useUndoableStore, useUndoStore),
 
     electron() {
-      // eslint-disable-next-line
-      return isElectron
+      return IS_ELECTRON
     },
 
     importButtonDisabled() {
@@ -186,8 +185,7 @@ export default {
 
     importProject() {
       this.tempStore.$reset()
-      // eslint-disable-next-line
-      if (isElectron) {
+      if (IS_ELECTRON) {
         this.metaStore.importProject(this.importVideoFile.path, this.importZipFile.path)
       } else {
         this.metaStore.importProject(this.importVideoFile, this.importZipFile)

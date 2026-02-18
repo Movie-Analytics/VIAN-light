@@ -3,13 +3,12 @@ import { defineStore } from 'pinia'
 import api from '@renderer/api'
 import { useMainStore } from './main'
 import { useUndoStore } from './undo'
-import { version } from '../../../../package.json'
 
 export const useMetaStore = defineStore('meta', {
   state: () => ({
     projects: [],
-    vianLatestVersion: version,
-    vianVersion: version
+    vianLatestVersion: APP_VERSION,
+    vianVersion: APP_VERSION
   }),
   /* eslint-disable-next-line vue/sort-keys */
   actions: {

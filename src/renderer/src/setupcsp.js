@@ -1,6 +1,5 @@
 export const setupCsp = () => {
-  // eslint-disable-next-line
-  if (isElectron) {
+  if (IS_ELECTRON) {
     // Only add CSP meta tag in Electron
     const meta = document.createElement('meta')
     meta.httpEquiv = 'Content-Security-Policy'

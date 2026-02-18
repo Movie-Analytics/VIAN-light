@@ -20,8 +20,7 @@ export default {
     useMetaStore().initialize()
     useTempStore().initialize()
 
-    // eslint-disable-next-line
-    if (isElectron) {
+    if (IS_ELECTRON) {
       this.$router.push('/')
     } else {
       this.$router.push('login')
