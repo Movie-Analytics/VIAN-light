@@ -29,9 +29,10 @@ const exportScreenshots = async (storePath, location, frames) => {
     t.data.forEach((s) => {
       if (frames && !frames.includes(s.frame)) return
       const imagePath = s.image.replace('app://', '')
-      let newImageName = path.basename(imagePath).slice(0, -path.extname(imagePath).length)
 
-      newImageName = timeSec(Number.parseInt(newImageName, 10) / mainStore.fps) + '.jpg'
+      const newImageName = (timeSec(s.frame / mainStore.fps) + '.jpg')
+        .replaceAll(':', '-')
+        .replace(',', '_')
       fs.copyFileSync(imagePath, path.join(timelinePath, newImageName))
     })
   })
