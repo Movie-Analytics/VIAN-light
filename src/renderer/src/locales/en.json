@@ -73,7 +73,7 @@
         "manageVocabulary": "Manage Vocabulary",
         "importData": "Import Data",
         "importElan": "Import ELAN Annotations (.eaf)",
-        "importTibavaWip": "Import TIB-AV-A Results (WiP)",
+        "importTibavaWip": "Import Data (.tsv)",
         "exportData": "Export Data",
         "exportElan": "Export as ELAN Annotations (.eaf)",
         "exportCsv": "Export Annotations as .csv",
