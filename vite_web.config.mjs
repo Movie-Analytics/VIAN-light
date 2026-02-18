@@ -6,7 +6,8 @@ import vue from '@vitejs/plugin-vue'
 
 const baseConfig = {
   define: {
-    IS_ELECTRON: false
+    IS_ELECTRON: false,
+    APP_VERSION: JSON.stringify(process.env.npm_package_version)
   },
   plugins: [
     VueRouter({ root: process.cwd() + '/src/renderer' }),
