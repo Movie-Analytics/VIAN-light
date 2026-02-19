@@ -119,7 +119,10 @@ class RemoteApi {
 
       fileInput.onchange = (event) => {
         const [file] = event.target.files
-        if (!file) return resolve(null)
+        if (!file) {
+          resolve(null)
+          return
+        }
 
         const formData = new FormData()
         formData.append('file', file)
