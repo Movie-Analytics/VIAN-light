@@ -125,7 +125,7 @@
         class="full-width-snackbar-content"
       >
         <div class="pb-2 text-subtitle-1">
-          {{ $t('pages.index.uploading') }}: {{ metaStore.uploadProgress }}
+          {{ $t('pages.index.uploading') }}
         </div>
 
         <v-progress-linear v-model="metaStore.uploadProgress" />
