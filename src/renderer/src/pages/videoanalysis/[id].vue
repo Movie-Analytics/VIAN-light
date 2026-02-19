@@ -407,7 +407,7 @@ export default {
     shortcuts.clear('z', false, true)
     shortcuts.clear('z', true, true)
     shortcuts.clear('z', true, false, true)
-    shortcuts.clear('z', true, false, true)
+    shortcuts.clear('z', false, false, true)
     api.unregisterVideoViewCallbacks()
   },
 
