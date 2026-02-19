@@ -46,7 +46,8 @@
         "title": "Import Project",
         "video": "Video",
         "projectFile": "Project file"
-      }
+      },
+      "uploading": "Video uploading"
     },
     "video": {
       "tooltips": {

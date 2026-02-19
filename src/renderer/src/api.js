@@ -111,39 +111,48 @@ class RemoteApi {
     return response.ok
   }
 
-  openVideo() {
+  openVideo(cb) {
     return new Promise((resolve) => {
       const fileInput = document.createElement('input')
       fileInput.type = 'file'
       fileInput.accept = 'video/mp4'
 
-      fileInput.onchange = async (event) => {
+      fileInput.onchange = (event) => {
         const [file] = event.target.files
-        if (!file) {
-          resolve(null)
+        if (!file) return resolve(null)
+
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const xhr = new XMLHttpRequest()
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable && cb) {
+            cb(Math.round((e.loaded / e.total) * 100))
+          }
         }
 
-        try {
-          const formData = new FormData()
-          formData.append('file', file)
-
-          const response = await fetch(this.baseApi + 'upload-video', {
-            body: formData,
-            headers: {
-              Authorization: `Bearer ${this.bearerToken}`
-            },
-            method: 'POST'
-          })
-
-          if (!response.ok) {
+        xhr.onload = () => {
+          cb(null)
+          if (xhr.status === 200) {
+            try {
+              resolve(JSON.parse(xhr.responseText))
+            } catch {
+              resolve(null)
+            }
+          } else {
             resolve(null)
           }
+        }
 
-          const result = await response.json()
-          resolve(result)
-        } catch {
+        xhr.onerror = () => {
+          cb(null)
           resolve(null)
         }
+
+        xhr.open('POST', this.baseApi + 'upload-video')
+        xhr.setRequestHeader('Authorization', `Bearer ${this.bearerToken}`)
+        xhr.send(formData)
       }
       fileInput.click()
     })

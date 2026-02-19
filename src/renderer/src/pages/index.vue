@@ -117,6 +117,19 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+
+      <v-snackbar
+        v-model="progressSnackbar"
+        max-width="100%"
+        vertical
+        class="full-width-snackbar-content"
+      >
+        <div class="pb-2 text-subtitle-1">
+          {{ $t('pages.index.uploading') }}: {{ metaStore.uploadProgress }}
+        </div>
+
+        <v-progress-linear v-model="metaStore.uploadProgress" />
+      </v-snackbar>
     </v-main>
   </div>
 </template>
@@ -155,6 +168,10 @@ export default {
 
     importButtonDisabled() {
       return this.importVideoFile === null || this.importZipFile === null
+    },
+
+    progressSnackbar() {
+      return this.metaStore.uploadProgress !== null
     }
   },
 

@@ -7,6 +7,7 @@ import { useUndoStore } from './undo'
 export const useMetaStore = defineStore('meta', {
   state: () => ({
     projects: [],
+    uploadProgress: null,
     vianLatestVersion: APP_VERSION,
     vianVersion: APP_VERSION
   }),
@@ -51,7 +52,9 @@ export const useMetaStore = defineStore('meta', {
       this.projects.push(project)
     },
     async openVideo() {
-      const videoInfo = await api.openVideo()
+      const videoInfo = await api.openVideo((p) => {
+        this.uploadProgress = p
+      })
       if (!videoInfo) return null
       const project = {
         id: crypto.randomUUID(),

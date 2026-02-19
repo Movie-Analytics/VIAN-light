@@ -46,7 +46,8 @@
         "title": "Projekt importieren",
         "video": "Video",
         "projectFile": "Projektdatei"
-      }
+      },
+      "uploading": "Video hochladen"
     },
     "video": {
       "tooltips": {
