@@ -165,41 +165,4 @@ ipcMain.on('log-error', (_, msg) => {
   logError(`Renderer Process Error: ${msg}`)
 })
 
-const migrate = async () => {
-  const fs = require('fs')
-  const path = require('path')
-  const newPath = path.join(app.getPath('userData'), 'vian')
-  const oldPath = newPath.replace('VIAN', 'VIAN-light').replace('vian', 'vian-light')
-
-  const markerPath = path.join(oldPath, 'migrated')
-
-  if (fs.existsSync(markerPath)) {
-    return
-  }
-
-  try {
-    fs.writeFileSync(markerPath, '')
-    fs.cpSync(oldPath, newPath, { recursive: true })
-
-    const walk = (dir) => {
-      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-        const full = path.join(dir, entry.name)
-        if (entry.isDirectory()) walk(full)
-        else if (full.endsWith('.json')) {
-          const data = fs.readFileSync(full, 'utf8')
-          const updatedData = data.replace(/VIAN-light/gu, 'VIAN').replace(/vian-light/gu, 'vian')
-          fs.writeFileSync(full, updatedData, {}, (err) => {
-            console.log('Error writing', err)
-          })
-        }
-      }
-    }
-
-    await walk(newPath)
-  } catch (e) {
-    if (e.code !== 'ENOENT') console.error(e)
-  }
-}
-
-migrate()
 cleanUp()
