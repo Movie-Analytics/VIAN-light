@@ -402,7 +402,7 @@ export default {
         })
         .scaleExtent([1, this.mainStore.videoDuration * 0.15])
         .filter((e) => {
-          e.preventDefault()
+          if (e.ctrlKey) e.preventDefault()
           // Only allow zoom via pinch on touchpad and ctrl+zoom with mouse
           if (e.type === 'wheel') return e.ctrlKey
           return true
