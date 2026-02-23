@@ -172,7 +172,7 @@ export default {
         const [entry] = entries
         if (entry.type === 'select') {
           this.undoableStore.addVocabAnnotation(entry.id, entry.tag)
-        } else if (Date.now() - this.lastClick < 500) {
+        } else if (Date.now() - this.lastClick < 500 && !entry.locked) {
           this.doubleClickPopup(entry)
           this.tempStore.selectedSegments = new Map([[entry.id, entry.timeline]])
         } else if (
