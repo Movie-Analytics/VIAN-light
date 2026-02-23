@@ -22,6 +22,7 @@ const exportScreenshots = async (storePath, location, frames) => {
   const undoableStore = JSON.parse(fs.readFileSync(path.join(storePath, 'undoable.json'), 'utf8'))
   const mainStore = JSON.parse(fs.readFileSync(path.join(storePath, 'main.json'), 'utf8'))
 
+  let copied = 0
   undoableStore.timelines.forEach((t) => {
     if (!t.type.startsWith('screenshots')) return
     const timelinePath = path.join(tmpPath, `${t.name}-${t.id}`)
@@ -33,9 +34,17 @@ const exportScreenshots = async (storePath, location, frames) => {
       const newImageName = (timeSec(s.frame / mainStore.fps) + '.jpg')
         .replaceAll(':', '-')
         .replace(',', '_')
-      fs.copyFileSync(imagePath, path.join(timelinePath, newImageName))
+      try {
+        fs.copyFileSync(imagePath, path.join(timelinePath, newImageName))
+        copied += 1
+      } catch (err) {
+        console.error('Failed to copy screenshot:', imagePath, err)
+      }
     })
   })
+  if (copied === 0) {
+    throw new Error('Failed to copy screenshots')
+  }
 
   const finalLocation = location.endsWith('.zip') ? location : `${location}.zip`
   const output = fs.createWriteStream(finalLocation)
