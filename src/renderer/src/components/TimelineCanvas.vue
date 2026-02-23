@@ -207,6 +207,7 @@ export default {
         this.$refs.overlayTextfield.$el.style.top = entry.y + 2 + 'px'
         this.overlayInputEntry = this.undoableStore.getSegmentForId(entry.timeline, entry.id)
         this.overlayInputModel = this.overlayInputEntry.annotation
+        this.$refs.overlayTextfield.focus()
       })
     },
 
