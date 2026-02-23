@@ -337,55 +337,68 @@ std::vector<std::vector<int>> VideoReader::DetectShots(const std::string& onnx_m
 int VideoReader::generateScreenshot(const std::string& directory, int frame_num) {
     AVPacket packet;
     int response;
-    int64_t target_jump;
-    int64_t target;
+    AVRational fr;
+    AVRational tb;
     int frame_num_jump;
+    int64_t target;
+    int64_t target_jump;
+    bool has_prev = false;
+    AVFrame* prevframe = av_frame_alloc();
+    int64_t ts;
 
     frame_num_jump = frame_num - 100;
     if (frame_num_jump < 0) {
         frame_num_jump = 0;
     }
-    target = av_rescale_q((frame_num+1) / av_q2d(format_ctx->streams[video_stream_index]->r_frame_rate) * AV_TIME_BASE,
-                                   AV_TIME_BASE_Q,
-                                   format_ctx->streams[video_stream_index]->time_base);
-    target_jump = av_rescale_q(frame_num_jump / av_q2d(format_ctx->streams[video_stream_index]->r_frame_rate) * AV_TIME_BASE,
-                                   AV_TIME_BASE_Q,
-                                   format_ctx->streams[video_stream_index]->time_base);
 
-    // Fix format specifier for int64_t
-    fprintf(stderr, "Seeking to frame %d (target: %lld)\n", frame_num, target);
+    fr = format_ctx->streams[video_stream_index]->avg_frame_rate;
+    tb = format_ctx->streams[video_stream_index]->time_base;
 
-    response = av_seek_frame(format_ctx, video_stream_index, target_jump, AVSEEK_FLAG_BACKWARD);
+    target = av_rescale_q(frame_num, av_inv_q(fr), tb);
+    target_jump = av_rescale_q(frame_num_jump, av_inv_q(fr), tb);
+
+    fprintf(stderr, "Seeking to frame %d (target ts: %lld)\n", frame_num, (long long)target);
+
+    response = av_seek_frame(format_ctx, video_stream_index,
+                             target_jump, AVSEEK_FLAG_BACKWARD);
+    if (response < 0)
+        return -1;
+
     avcodec_flush_buffers(codec_ctx);
 
     while (av_read_frame(format_ctx, &packet) >= 0) {
         if (packet.stream_index == video_stream_index) {
-            response = avcodec_send_packet(codec_ctx, &packet);
-            if (response < 0) {
-                av_packet_unref(&packet);
-                return -1;
-            }
+            if (avcodec_send_packet(codec_ctx, &packet) == 0) {
+                while (avcodec_receive_frame(codec_ctx, frame) == 0) {
+                    ts = frame->best_effort_timestamp;
 
-            response = avcodec_receive_frame(codec_ctx, frame);
-            if (response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
-                av_packet_unref(&packet);
-                continue;
-            } else if (response < 0) {
-                av_packet_unref(&packet);
-                return -1;
-            }
+                    if (ts > target && has_prev) {
+                        // Use previous frame if we are passed the timestamp
+                        av_frame_unref(frame);
+                        av_frame_ref(frame, prevframe);
+                    }
+                    if (ts >= target) {
+                        fprintf(stderr, "Reached target ts %lld\n", (long long)ts);
 
-            if (packet.pts == target) {
-                fprintf(stderr, "Found target frame %d\n", frame_num);
-                response = saveFrame(directory, frame_num);
-                av_packet_unref(&packet);
-                return response;
+                        int ret = saveFrame(directory, frame_num);
+                        av_packet_unref(&packet);
+                        av_frame_free(&prevframe);
+                        return ret;
+                    }
+
+                    // Store copy as previous frame
+                    av_frame_unref(prevframe);
+                    av_frame_ref(prevframe, frame);
+                    has_prev = true;
+                }
             }
-            av_packet_unref(&packet);
         }
+
         av_packet_unref(&packet);
     }
-    return 0;
+
+    av_frame_free(&prevframe);
+    return -1;
 }
 
 int VideoReader::saveFrame(const std::string& directory, int frame_num) {
