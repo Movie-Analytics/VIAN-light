@@ -463,8 +463,9 @@ export default {
       for (const d of data) {
         const x = Math.round(rescale(d.x))
         const xwidth = Math.round(rescale(d.x + d.width))
-        // eslint-disable-next-line no-continue
-        if (xwidth < 0 || x > this.canvasWidth || xwidth - x <= 0) continue
+        if (xwidth < 0 || x > this.canvasWidth || (xwidth - x <= 0 && d.type !== 'screenshot'))
+          // eslint-disable-next-line no-continue
+          continue
 
         hCtx.fillStyle = d.hiddenColor
         if (d.type === 'shot') {
