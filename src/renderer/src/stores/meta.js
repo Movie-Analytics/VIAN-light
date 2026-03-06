@@ -21,6 +21,7 @@ export const useMetaStore = defineStore('meta', {
         }
         const data = await r.json()
         this.vianLatestVersion = data.tag_name
+        this.vianVersion = APP_VERSION
       } catch (e) {
         console.warn('Could not fetch latest version', e)
       }
@@ -40,12 +41,12 @@ export const useMetaStore = defineStore('meta', {
       })
 
       api.onImportProject(this.onImportProject)
-      this.checkVianUpdate()
     },
     async loadStore() {
       const state = await api.loadStore('meta')
       if (state !== null) {
         this.$patch(state)
+        this.checkVianUpdate()
       }
     },
     onImportProject(project) {
