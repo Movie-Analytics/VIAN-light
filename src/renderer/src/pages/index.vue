@@ -155,7 +155,7 @@ export default {
       importVideoFile: null,
       importZipFile: null,
       projectName: '',
-      renameDialog: false
+      renameDialog: false,
       vianLatestVersion: null,
       vianVersion: APP_VERSION
     }
