@@ -8,24 +8,9 @@ export const useMetaStore = defineStore('meta', {
   state: () => ({
     projects: [],
     uploadProgress: null,
-    vianLatestVersion: APP_VERSION,
-    vianVersion: APP_VERSION
   }),
   /* eslint-disable-next-line vue/sort-keys */
   actions: {
-    async checkVianUpdate() {
-      try {
-        const r = await fetch('https://api.github.com/repos/Movie-Analytics/VIAN/releases/latest')
-        if (!r.ok) {
-          throw new Error(`HTTP ${r.status} ${r.statusText}`)
-        }
-        const data = await r.json()
-        this.vianLatestVersion = data.tag_name
-        this.vianVersion = APP_VERSION
-      } catch (e) {
-        console.warn('Could not fetch latest version', e)
-      }
-    },
     deleteProject(projectId) {
       this.projects = this.projects.filter((project) => project.id !== projectId)
     },
@@ -46,7 +31,6 @@ export const useMetaStore = defineStore('meta', {
       const state = await api.loadStore('meta')
       if (state !== null) {
         this.$patch(state)
-        this.checkVianUpdate()
       }
     },
     onImportProject(project) {

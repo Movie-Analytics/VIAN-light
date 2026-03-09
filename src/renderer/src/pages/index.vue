@@ -15,10 +15,10 @@
             <p class="text-h1">{{ $t('app.title') }}</p>
 
             <div class="mt-4 text-center">
-              <span>{{ $t('pages.index.version') }}: {{ metaStore.vianVersion }}</span>
+              <span>{{ $t('pages.index.version') }}: {{ vianVersion }}</span>
 
               <v-chip
-                v-if="metaStore.vianVersion !== metaStore.vianLatestVersion"
+                v-if="vianLatestVersion && vianVersion !== vianLatestVersion"
                 color="primary"
                 class="ms-2"
                 href="https://github.com/Movie-Analytics/VIAN/releases"
@@ -156,6 +156,8 @@ export default {
       importZipFile: null,
       projectName: '',
       renameDialog: false
+      vianLatestVersion: null,
+      vianVersion: APP_VERSION
     }
   },
 
@@ -187,6 +189,7 @@ export default {
 
   created() {
     this.metaStore.loadStore()
+    this.checkVianUpdate()
   },
 
   methods: {
@@ -194,6 +197,19 @@ export default {
       this.currentProjectId = project.id
       this.projectName = project.name
       this.renameDialog = true
+    },
+
+    async checkVianUpdate() {
+      try {
+        const r = await fetch('https://api.github.com/repos/Movie-Analytics/VIAN/releases/latest')
+        if (!r.ok) {
+          throw new Error(`HTTP ${r.status} ${r.statusText}`)
+        }
+        const data = await r.json()
+        this.vianLatestVersion = data.tag_name
+      } catch (e) {
+        console.warn('Could not fetch latest version', e)
+      }
     },
 
     deleteProject(projectId) {
