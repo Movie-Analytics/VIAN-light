@@ -105,6 +105,7 @@ export default [
             'undoableStore',
             '$router',
             '$route',
+            '$t',
             '$vuetify'
           ]
         }

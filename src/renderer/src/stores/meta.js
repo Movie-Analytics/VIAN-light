@@ -7,7 +7,7 @@ import { useUndoStore } from './undo'
 export const useMetaStore = defineStore('meta', {
   state: () => ({
     projects: [],
-    uploadProgress: null,
+    uploadProgress: null
   }),
   /* eslint-disable-next-line vue/sort-keys */
   actions: {

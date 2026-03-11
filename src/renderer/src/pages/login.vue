@@ -33,7 +33,6 @@
 
       <v-card-text>
         <v-tabs-window v-model="tab">
-          <!-- LOGIN -->
           <v-tabs-window-item value="login">
             <v-form>
               <v-text-field
@@ -57,7 +56,6 @@
             </v-btn>
           </v-tabs-window-item>
 
-          <!-- SIGNUP -->
           <v-tabs-window-item value="signup">
             <v-form>
               <v-text-field
