@@ -1,7 +1,10 @@
 <template>
   <v-sheet class="d-flex flex-1-1 flex-column height-min-0">
     <div>
-      <v-tooltip :text="$t('components.timelines.tooltips.deleteSelectedSegment')" location="bottom">
+      <v-tooltip
+        :text="$t('components.timelines.tooltips.deleteSelectedSegment')"
+        location="bottom"
+      >
         <template #activator="{ props }">
           <span v-bind="props">
             <v-btn
@@ -35,7 +38,10 @@
         </template>
       </v-tooltip>
 
-      <v-tooltip :text="$t('components.timelines.tooltips.mergeSelectedSegments')" location="bottom">
+      <v-tooltip
+        :text="$t('components.timelines.tooltips.mergeSelectedSegments')"
+        location="bottom"
+      >
         <template #activator="{ props }">
           <span v-bind="props">
             <v-btn
@@ -84,9 +90,11 @@
                     <v-list-item-action start>
                       <v-tooltip
                         v-if="timeline.categories"
-                        :text="timeline.visible
-                          ? $t('components.timelines.tooltips.hideCategories')
-                          : $t('components.timelines.tooltips.showCategories')"
+                        :text="
+                          timeline.visible
+                            ? $t('components.timelines.tooltips.hideCategories')
+                            : $t('components.timelines.tooltips.showCategories')
+                        "
                         location="bottom"
                       >
                         <template #activator="{ props }">
@@ -95,9 +103,11 @@
                             variant="text"
                             density="compact"
                             v-bind="props"
-                            :aria-label="timeline.visible
-                              ? $t('components.timelines.tooltips.hideCategories')
-                              : $t('components.timelines.tooltips.showCategories')"
+                            :aria-label="
+                              timeline.visible
+                                ? $t('components.timelines.tooltips.hideCategories')
+                                : $t('components.timelines.tooltips.showCategories')
+                            "
                             @click="timeline.visible = !timeline.visible"
                           >
                             <v-icon>mdi-expand-all</v-icon>

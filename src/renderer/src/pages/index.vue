@@ -8,15 +8,13 @@
           <v-btn
             icon
             v-bind="props"
-            @click="logout"
             :aria-label="$t('pages.index.tooltips.logout')"
+            @click="logout"
           >
             <v-icon>mdi-logout</v-icon>
           </v-btn>
         </template>
       </v-tooltip>
-
-      
     </v-app-bar>
 
     <v-main class="fill-height">
@@ -65,14 +63,13 @@
               <v-card-title>{{ project.name }}</v-card-title>
 
               <v-card-actions>
-
                 <v-tooltip :text="$t('pages.index.tooltips.openProject')" location="bottom">
                   <template #activator="{ props }">
                     <v-btn
                       icon
                       v-bind="props"
-                      @click.stop="openProject(project.id)"
                       :aria-label="$t('pages.index.tooltips.openProject')"
+                      @click.stop="openProject(project.id)"
                     >
                       <v-icon>mdi-movie-search-outline</v-icon>
                     </v-btn>
@@ -84,29 +81,26 @@
                     <v-btn
                       icon
                       v-bind="props"
-                      @click.stop="changeProjectName(project)"
                       :aria-label="$t('pages.index.tooltips.renameProject')"
+                      @click.stop="changeProjectName(project)"
                     >
                       <v-icon>mdi-pencil</v-icon>
                     </v-btn>
                   </template>
                 </v-tooltip>
 
-
-
                 <v-tooltip :text="$t('pages.index.tooltips.deleteProject')" location="bottom">
                   <template #activator="{ props }">
                     <v-btn
                       icon
                       v-bind="props"
-                      @click.stop="deleteProject(project.id)"
                       :aria-label="$t('pages.index.tooltips.deleteProject')"
+                      @click.stop="deleteProject(project.id)"
                     >
                       <v-icon>mdi-delete</v-icon>
                     </v-btn>
                   </template>
                 </v-tooltip>
-
               </v-card-actions>
             </v-card>
           </v-col>

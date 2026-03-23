@@ -16,7 +16,10 @@
 
     <template #append>
       <div v-if="isEditing" class="d-flex">
-        <v-tooltip :text="$t('components.vocabularyDialogListItem.tooltips.save')" location="bottom">
+        <v-tooltip
+          :text="$t('components.vocabularyDialogListItem.tooltips.save')"
+          location="bottom"
+        >
           <template #activator="{ props }">
             <v-btn
               icon="mdi-check"
@@ -29,7 +32,10 @@
           </template>
         </v-tooltip>
 
-        <v-tooltip :text="$t('components.vocabularyDialogListItem.tooltips.cancel')" location="bottom">
+        <v-tooltip
+          :text="$t('components.vocabularyDialogListItem.tooltips.cancel')"
+          location="bottom"
+        >
           <template #activator="{ props }">
             <v-btn
               icon="mdi-close"
@@ -44,7 +50,10 @@
       </div>
 
       <div v-else class="d-flex">
-        <v-tooltip :text="$t('components.vocabularyDialogListItem.tooltips.editItem')" location="bottom">
+        <v-tooltip
+          :text="$t('components.vocabularyDialogListItem.tooltips.editItem')"
+          location="bottom"
+        >
           <template #activator="{ props }">
             <v-btn
               icon="mdi-pencil"
@@ -56,7 +65,12 @@
             />
           </template>
         </v-tooltip>
-        <v-tooltip :text="$t('components.vocabularyDialogListItem.tooltips.exportItem')" location="bottom" v-if="showExport">
+
+        <v-tooltip
+          v-if="showExport"
+          :text="$t('components.vocabularyDialogListItem.tooltips.exportItem')"
+          location="bottom"
+        >
           <template #activator="{ props }">
             <v-btn
               icon="mdi-file-export"
@@ -69,7 +83,10 @@
           </template>
         </v-tooltip>
 
-        <v-tooltip :text="$t('components.vocabularyDialogListItem.tooltips.deleteItem')" location="bottom">
+        <v-tooltip
+          :text="$t('components.vocabularyDialogListItem.tooltips.deleteItem')"
+          location="bottom"
+        >
           <template #activator="{ props }">
             <v-btn
               icon="mdi-trash-can"

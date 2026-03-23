@@ -52,9 +52,11 @@
             </v-tooltip>
 
             <v-tooltip
-              :text="playingState
-                ? $t('components.videoPlayer.tooltips.pausePlayback')
-                : $t('components.videoPlayer.tooltips.playVideo')"
+              :text="
+                playingState
+                  ? $t('components.videoPlayer.tooltips.pausePlayback')
+                  : $t('components.videoPlayer.tooltips.playVideo')
+              "
               location="top"
             >
               <template #activator="{ props }">
@@ -63,12 +65,15 @@
                   size="small"
                   icon
                   v-bind="props"
-                  :aria-label="playingState
-                    ? $t('components.videoPlayer.tooltips.pausePlayback')
-                    : $t('components.videoPlayer.tooltips.playVideo')"
+                  :aria-label="
+                    playingState
+                      ? $t('components.videoPlayer.tooltips.pausePlayback')
+                      : $t('components.videoPlayer.tooltips.playVideo')
+                  "
                   @click="playPauseClicked"
                 >
                   <v-icon v-if="playingState">mdi-pause</v-icon>
+
                   <v-icon v-else>mdi-play</v-icon>
                 </v-btn>
               </template>
@@ -155,9 +160,11 @@
 
             <div class="volume-control">
               <v-tooltip
-                :text="volume === 0
-                  ? $t('components.videoPlayer.tooltips.unmuteOrAdjustVolume')
-                  : $t('components.videoPlayer.tooltips.adjustVolume')"
+                :text="
+                  volume === 0
+                    ? $t('components.videoPlayer.tooltips.unmuteOrAdjustVolume')
+                    : $t('components.videoPlayer.tooltips.adjustVolume')
+                "
                 location="top"
               >
                 <template #activator="{ props }">
@@ -166,9 +173,11 @@
                     size="small"
                     icon
                     v-bind="props"
-                    :aria-label="volume === 0
-                      ? $t('components.videoPlayer.tooltips.unmuteOrAdjustVolume')
-                      : $t('components.videoPlayer.tooltips.adjustVolume')"
+                    :aria-label="
+                      volume === 0
+                        ? $t('components.videoPlayer.tooltips.unmuteOrAdjustVolume')
+                        : $t('components.videoPlayer.tooltips.adjustVolume')
+                    "
                     @click.stop="toggleVolumeSlider"
                   >
                     <v-icon>{{ volume === 0 ? 'mdi-volume-mute' : 'mdi-volume-high' }}</v-icon>
@@ -204,21 +213,26 @@
 
             <v-tooltip
               v-if="undoableStore.subtitles !== null"
-              :text="undoableStore.subtitlesVisible
-                ? $t('components.videoPlayer.tooltips.hideSubtitles')
-                : $t('components.videoPlayer.tooltips.showSubtitles')"
+              :text="
+                undoableStore.subtitlesVisible
+                  ? $t('components.videoPlayer.tooltips.hideSubtitles')
+                  : $t('components.videoPlayer.tooltips.showSubtitles')
+              "
               location="top"
             >
               <template #activator="{ props }">
                 <v-btn
                   icon
                   v-bind="props"
-                  :aria-label="undoableStore.subtitlesVisible
-                    ? $t('components.videoPlayer.tooltips.hideSubtitles')
-                    : $t('components.videoPlayer.tooltips.showSubtitles')"
+                  :aria-label="
+                    undoableStore.subtitlesVisible
+                      ? $t('components.videoPlayer.tooltips.hideSubtitles')
+                      : $t('components.videoPlayer.tooltips.showSubtitles')
+                  "
                   @click="toggleSubtitles"
                 >
                   <v-icon v-if="undoableStore.subtitlesVisible">mdi-subtitles</v-icon>
+
                   <v-icon v-else>mdi-subtitles-outline</v-icon>
                 </v-btn>
               </template>
