@@ -3,18 +3,14 @@
     <v-app-bar v-if="!electron" density="compact">
       <v-spacer></v-spacer>
 
-      <v-tooltip :text="$t('pages.index.tooltips.logout')" location="bottom">
-        <template #activator="{ props }">
-          <v-btn
-            icon
-            v-bind="props"
-            :aria-label="$t('pages.index.tooltips.logout')"
-            @click="logout"
-          >
-            <v-icon>mdi-logout</v-icon>
-          </v-btn>
-        </template>
-      </v-tooltip>
+      <v-btn
+        v-tooltip="{ text: $t('pages.index.tooltips.logout'), location: 'bottom' }"
+        icon
+        :aria-label="$t('pages.index.tooltips.logout')"
+        @click="logout"
+      >
+        <v-icon>mdi-logout</v-icon>
+      </v-btn>
     </v-app-bar>
 
     <v-main class="fill-height">
@@ -63,44 +59,32 @@
               <v-card-title>{{ project.name }}</v-card-title>
 
               <v-card-actions>
-                <v-tooltip :text="$t('pages.index.tooltips.openProject')" location="bottom">
-                  <template #activator="{ props }">
-                    <v-btn
-                      icon
-                      v-bind="props"
-                      :aria-label="$t('pages.index.tooltips.openProject')"
-                      @click.stop="openProject(project.id)"
-                    >
-                      <v-icon>mdi-movie-search-outline</v-icon>
-                    </v-btn>
-                  </template>
-                </v-tooltip>
+                <v-btn
+                  v-tooltip="{ text: $t('pages.index.tooltips.openProject'), location: 'bottom' }"
+                  icon
+                  :aria-label="$t('pages.index.tooltips.openProject')"
+                  @click.stop="openProject(project.id)"
+                >
+                  <v-icon>mdi-movie-search-outline</v-icon>
+                </v-btn>
 
-                <v-tooltip :text="$t('pages.index.tooltips.renameProject')" location="bottom">
-                  <template #activator="{ props }">
-                    <v-btn
-                      icon
-                      v-bind="props"
-                      :aria-label="$t('pages.index.tooltips.renameProject')"
-                      @click.stop="changeProjectName(project)"
-                    >
-                      <v-icon>mdi-pencil</v-icon>
-                    </v-btn>
-                  </template>
-                </v-tooltip>
+                <v-btn
+                  v-tooltip="{ text: $t('pages.index.tooltips.renameProject'), location: 'bottom' }"
+                  icon
+                  :aria-label="$t('pages.index.tooltips.renameProject')"
+                  @click.stop="changeProjectName(project)"
+                >
+                  <v-icon>mdi-pencil</v-icon>
+                </v-btn>
 
-                <v-tooltip :text="$t('pages.index.tooltips.deleteProject')" location="bottom">
-                  <template #activator="{ props }">
-                    <v-btn
-                      icon
-                      v-bind="props"
-                      :aria-label="$t('pages.index.tooltips.deleteProject')"
-                      @click.stop="deleteProject(project.id)"
-                    >
-                      <v-icon>mdi-delete</v-icon>
-                    </v-btn>
-                  </template>
-                </v-tooltip>
+                <v-btn
+                  v-tooltip="{ text: $t('pages.index.tooltips.deleteProject'), location: 'bottom' }"
+                  icon
+                  :aria-label="$t('pages.index.tooltips.deleteProject')"
+                  @click.stop="deleteProject(project.id)"
+                >
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
               </v-card-actions>
             </v-card>
           </v-col>
