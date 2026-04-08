@@ -40,14 +40,18 @@
           <template #label>
             <div>
               {{ $t('components.shotDetail.lockSegment') }}
-              <v-tooltip location="bottom">
-                <template #activator="{ props: activatorProps }">
-                  <v-btn density="compact" variant="text" icon v-bind="activatorProps">
-                    <v-icon>mdi-information-outline</v-icon>
-                  </v-btn>
-                </template>
-                {{ $t('components.shotDetail.lockHelp') }}
-              </v-tooltip>
+              <v-btn
+                v-tooltip="{
+                  text: $t('components.shotDetail.lockHelp'),
+                  location: 'bottom'
+                }"
+                density="compact"
+                variant="text"
+                icon
+                :aria-label="$t('components.shotDetail.lockHelp')"
+              >
+                <v-icon>mdi-information-outline</v-icon>
+              </v-btn>
             </div>
           </template>
         </v-checkbox>

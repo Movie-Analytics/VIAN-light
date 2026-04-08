@@ -17,30 +17,65 @@
     <template #append>
       <div v-if="isEditing" class="d-flex">
         <v-btn
+          v-tooltip="{
+            text: $t('components.vocabularyDialogListItem.tooltips.save'),
+            location: 'bottom'
+          }"
           icon="mdi-check"
           variant="text"
           size="small"
+          :aria-label="$t('components.vocabularyDialogListItem.tooltips.save')"
           @click.stop="$emit('save', editValue)"
         />
 
-        <v-btn icon="mdi-close" variant="text" size="small" @click.stop="$emit('cancel')" />
+        <v-btn
+          v-tooltip="{
+            text: $t('components.vocabularyDialogListItem.tooltips.cancel'),
+            location: 'bottom'
+          }"
+          icon="mdi-close"
+          variant="text"
+          size="small"
+          :aria-label="$t('components.vocabularyDialogListItem.tooltips.cancel')"
+          @click.stop="$emit('cancel')"
+        />
       </div>
 
       <div v-else class="d-flex">
-        <v-btn icon="mdi-pencil" variant="text" size="small" @click.stop="$emit('edit', item.id)" />
+        <v-btn
+          v-tooltip="{
+            text: $t('components.vocabularyDialogListItem.tooltips.editItem'),
+            location: 'bottom'
+          }"
+          icon="mdi-pencil"
+          variant="text"
+          size="small"
+          :aria-label="$t('components.vocabularyDialogListItem.tooltips.editItem')"
+          @click.stop="$emit('edit', item.id)"
+        />
 
         <v-btn
           v-if="showExport"
+          v-tooltip="{
+            text: $t('components.vocabularyDialogListItem.tooltips.exportItem'),
+            location: 'bottom'
+          }"
           icon="mdi-file-export"
           variant="text"
           size="small"
+          :aria-label="$t('components.vocabularyDialogListItem.tooltips.exportItem')"
           @click.stop="$emit('export', item.id)"
         />
 
         <v-btn
+          v-tooltip="{
+            text: $t('components.vocabularyDialogListItem.tooltips.deleteItem'),
+            location: 'bottom'
+          }"
           icon="mdi-trash-can"
           variant="text"
           size="small"
+          :aria-label="$t('components.vocabularyDialogListItem.tooltips.deleteItem')"
           @click.stop="$emit('delete', item.id)"
         />
       </div>

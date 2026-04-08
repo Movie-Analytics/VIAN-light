@@ -1,35 +1,59 @@
 <template>
   <v-sheet class="d-flex flex-1-1 flex-column height-min-0">
     <div>
-      <v-btn
-        density="compact"
-        variant="text"
-        :disabled="!segmentDeletable"
-        icon
-        @click="segmentDelete"
+      <span
+        v-tooltip="{
+          text: $t('components.timelines.tooltips.deleteSelectedSegment'),
+          location: 'bottom'
+        }"
       >
-        <v-icon>mdi-delete</v-icon>
-      </v-btn>
+        <v-btn
+          density="compact"
+          variant="text"
+          :disabled="!segmentDeletable"
+          icon
+          :aria-label="$t('components.timelines.tooltips.deleteSelectedSegment')"
+          @click="segmentDelete"
+        >
+          <v-icon>mdi-delete</v-icon>
+        </v-btn>
+      </span>
 
-      <v-btn
-        density="compact"
-        variant="text"
-        :disabled="!segmentSplitable"
-        icon
-        @click="segmentSplit"
+      <span
+        v-tooltip="{
+          text: $t('components.timelines.tooltips.splitSelectedSegment'),
+          location: 'bottom'
+        }"
       >
-        <v-icon>mdi-table-split-cell</v-icon>
-      </v-btn>
+        <v-btn
+          density="compact"
+          variant="text"
+          :disabled="!segmentSplitable"
+          icon
+          :aria-label="$t('components.timelines.tooltips.splitSelectedSegment')"
+          @click="segmentSplit"
+        >
+          <v-icon>mdi-table-split-cell</v-icon>
+        </v-btn>
+      </span>
 
-      <v-btn
-        density="compact"
-        variant="text"
-        :disabled="!segmentMergable"
-        icon
-        @click="segmentMerge"
+      <span
+        v-tooltip="{
+          text: $t('components.timelines.tooltips.mergeSelectedSegments'),
+          location: 'bottom'
+        }"
       >
-        <v-icon>mdi-table-merge-cells</v-icon>
-      </v-btn>
+        <v-btn
+          density="compact"
+          variant="text"
+          :disabled="!segmentMergable"
+          icon
+          :aria-label="$t('components.timelines.tooltips.mergeSelectedSegments')"
+          @click="segmentMerge"
+        >
+          <v-icon>mdi-table-merge-cells</v-icon>
+        </v-btn>
+      </span>
     </div>
 
     <div id="timelineAxesContainer"></div>
@@ -63,9 +87,20 @@
                     <v-list-item-action start>
                       <v-btn
                         v-if="timeline.categories"
+                        v-tooltip="{
+                          text: timeline.visible
+                            ? $t('components.timelines.tooltips.hideCategories')
+                            : $t('components.timelines.tooltips.showCategories'),
+                          location: 'bottom'
+                        }"
                         icon
                         variant="text"
                         density="compact"
+                        :aria-label="
+                          timeline.visible
+                            ? $t('components.timelines.tooltips.hideCategories')
+                            : $t('components.timelines.tooltips.showCategories')
+                        "
                         @click="timeline.visible = !timeline.visible"
                       >
                         <v-icon>mdi-expand-all</v-icon>
