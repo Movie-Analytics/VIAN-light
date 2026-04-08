@@ -21,93 +21,83 @@
       <div class="d-flex flex-0-0 flex-column">
         <div class="d-flex justify-space-between min-wide-control px-2">
           <div class="align-center d-flex">
-            <v-tooltip :text="$t('components.videoPlayer.tooltips.jumpBackward')" location="top">
-              <template #activator="{ props }">
-                <v-btn
-                  density="comfortable"
-                  size="small"
-                  icon
-                  v-bind="props"
-                  :aria-label="$t('components.videoPlayer.tooltips.jumpBackward')"
-                  @click="jumpBackward"
-                >
-                  <v-icon>mdi-skip-backward</v-icon>
-                </v-btn>
-              </template>
-            </v-tooltip>
+            <v-btn
+              v-tooltip="{
+                text: $t('components.videoPlayer.tooltips.jumpBackward'),
+                location: 'top'
+              }"
+              density="comfortable"
+              size="small"
+              icon
+              :aria-label="$t('components.videoPlayer.tooltips.jumpBackward')"
+              @click="jumpBackward"
+            >
+              <v-icon>mdi-skip-backward</v-icon>
+            </v-btn>
 
-            <v-tooltip :text="$t('components.videoPlayer.tooltips.previousFrame')" location="top">
-              <template #activator="{ props }">
-                <v-btn
-                  density="comfortable"
-                  size="small"
-                  icon
-                  v-bind="props"
-                  :aria-label="$t('components.videoPlayer.tooltips.previousFrame')"
-                  @click="backwardClicked"
-                >
-                  <v-icon>mdi-step-backward</v-icon>
-                </v-btn>
-              </template>
-            </v-tooltip>
+            <v-btn
+              v-tooltip="{
+                text: $t('components.videoPlayer.tooltips.previousFrame'),
+                location: 'top'
+              }"
+              density="comfortable"
+              size="small"
+              icon
+              :aria-label="$t('components.videoPlayer.tooltips.previousFrame')"
+              @click="backwardClicked"
+            >
+              <v-icon>mdi-step-backward</v-icon>
+            </v-btn>
 
-            <v-tooltip
-              :text="
+            <v-btn
+              v-tooltip="{
+                text: playingState
+                  ? $t('components.videoPlayer.tooltips.pausePlayback')
+                  : $t('components.videoPlayer.tooltips.playVideo'),
+                location: 'top'
+              }"
+              density="comfortable"
+              size="small"
+              icon
+              :aria-label="
                 playingState
                   ? $t('components.videoPlayer.tooltips.pausePlayback')
                   : $t('components.videoPlayer.tooltips.playVideo')
               "
-              location="top"
+              @click="playPauseClicked"
             >
-              <template #activator="{ props }">
-                <v-btn
-                  density="comfortable"
-                  size="small"
-                  icon
-                  v-bind="props"
-                  :aria-label="
-                    playingState
-                      ? $t('components.videoPlayer.tooltips.pausePlayback')
-                      : $t('components.videoPlayer.tooltips.playVideo')
-                  "
-                  @click="playPauseClicked"
-                >
-                  <v-icon v-if="playingState">mdi-pause</v-icon>
+              <v-icon v-if="playingState">mdi-pause</v-icon>
 
-                  <v-icon v-else>mdi-play</v-icon>
-                </v-btn>
-              </template>
-            </v-tooltip>
+              <v-icon v-else>mdi-play</v-icon>
+            </v-btn>
 
-            <v-tooltip :text="$t('components.videoPlayer.tooltips.nextFrame')" location="top">
-              <template #activator="{ props }">
-                <v-btn
-                  density="comfortable"
-                  size="small"
-                  icon
-                  v-bind="props"
-                  :aria-label="$t('components.videoPlayer.tooltips.nextFrame')"
-                  @click="forwardClicked"
-                >
-                  <v-icon>mdi-step-forward</v-icon>
-                </v-btn>
-              </template>
-            </v-tooltip>
+            <v-btn
+              v-tooltip="{
+                text: $t('components.videoPlayer.tooltips.nextFrame'),
+                location: 'top'
+              }"
+              density="comfortable"
+              size="small"
+              icon
+              :aria-label="$t('components.videoPlayer.tooltips.nextFrame')"
+              @click="forwardClicked"
+            >
+              <v-icon>mdi-step-forward</v-icon>
+            </v-btn>
 
-            <v-tooltip :text="$t('components.videoPlayer.tooltips.jumpForward')" location="top">
-              <template #activator="{ props }">
-                <v-btn
-                  density="comfortable"
-                  size="small"
-                  icon
-                  v-bind="props"
-                  :aria-label="$t('components.videoPlayer.tooltips.jumpForward')"
-                  @click="jumpForward"
-                >
-                  <v-icon>mdi-skip-forward</v-icon>
-                </v-btn>
-              </template>
-            </v-tooltip>
+            <v-btn
+              v-tooltip="{
+                text: $t('components.videoPlayer.tooltips.jumpForward'),
+                location: 'top'
+              }"
+              density="comfortable"
+              size="small"
+              icon
+              :aria-label="$t('components.videoPlayer.tooltips.jumpForward')"
+              @click="jumpForward"
+            >
+              <v-icon>mdi-skip-forward</v-icon>
+            </v-btn>
 
             <v-chip
               v-tooltip="{
@@ -124,66 +114,56 @@
           </div>
 
           <div class="align-center d-flex">
-            <v-tooltip
+            <v-btn
               v-if="pictureInPictureEnabled"
-              :text="$t('components.videoPlayer.tooltips.pictureInPicture')"
-              location="top"
+              v-tooltip="{
+                text: $t('components.videoPlayer.tooltips.pictureInPicture'),
+                location: 'top'
+              }"
+              density="comfortable"
+              size="small"
+              icon
+              :aria-label="$t('components.videoPlayer.tooltips.pictureInPicture')"
+              @click="pictureInPictureClicked"
             >
-              <template #activator="{ props }">
-                <v-btn
-                  density="comfortable"
-                  size="small"
-                  icon
-                  v-bind="props"
-                  :aria-label="$t('components.videoPlayer.tooltips.pictureInPicture')"
-                  @click="pictureInPictureClicked"
-                >
-                  <v-icon>mdi-picture-in-picture-top-right</v-icon>
-                </v-btn>
-              </template>
-            </v-tooltip>
+              <v-icon>mdi-picture-in-picture-top-right</v-icon>
+            </v-btn>
 
-            <v-tooltip :text="$t('components.videoPlayer.tooltips.takeScreenshot')" location="top">
-              <template #activator="{ props }">
-                <v-btn
-                  density="comfortable"
-                  size="small"
-                  icon
-                  v-bind="props"
-                  :aria-label="$t('components.videoPlayer.tooltips.takeScreenshot')"
-                  @click="screenshotClicked"
-                >
-                  <v-icon>mdi-camera</v-icon>
-                </v-btn>
-              </template>
-            </v-tooltip>
+            <v-btn
+              v-tooltip="{
+                text: $t('components.videoPlayer.tooltips.takeScreenshot'),
+                location: 'top'
+              }"
+              density="comfortable"
+              size="small"
+              icon
+              :aria-label="$t('components.videoPlayer.tooltips.takeScreenshot')"
+              @click="screenshotClicked"
+            >
+              <v-icon>mdi-camera</v-icon>
+            </v-btn>
 
             <div class="volume-control">
-              <v-tooltip
-                :text="
+              <v-btn
+                v-tooltip="{
+                  text:
+                    volume === 0
+                      ? $t('components.videoPlayer.tooltips.unmuteOrAdjustVolume')
+                      : $t('components.videoPlayer.tooltips.adjustVolume'),
+                  location: 'top'
+                }"
+                density="comfortable"
+                size="small"
+                icon
+                :aria-label="
                   volume === 0
                     ? $t('components.videoPlayer.tooltips.unmuteOrAdjustVolume')
                     : $t('components.videoPlayer.tooltips.adjustVolume')
                 "
-                location="top"
+                @click.stop="toggleVolumeSlider"
               >
-                <template #activator="{ props }">
-                  <v-btn
-                    density="comfortable"
-                    size="small"
-                    icon
-                    v-bind="props"
-                    :aria-label="
-                      volume === 0
-                        ? $t('components.videoPlayer.tooltips.unmuteOrAdjustVolume')
-                        : $t('components.videoPlayer.tooltips.adjustVolume')
-                    "
-                    @click.stop="toggleVolumeSlider"
-                  >
-                    <v-icon>{{ volume === 0 ? 'mdi-volume-mute' : 'mdi-volume-high' }}</v-icon>
-                  </v-btn>
-                </template>
-              </v-tooltip>
+                <v-icon>{{ volume === 0 ? 'mdi-volume-mute' : 'mdi-volume-high' }}</v-icon>
+              </v-btn>
 
               <v-menu
                 v-model="showVolumeSlider"
@@ -211,32 +191,26 @@
               </v-menu>
             </div>
 
-            <v-tooltip
+            <v-btn
               v-if="undoableStore.subtitles !== null"
-              :text="
+              v-tooltip="{
+                text: undoableStore.subtitlesVisible
+                  ? $t('components.videoPlayer.tooltips.hideSubtitles')
+                  : $t('components.videoPlayer.tooltips.showSubtitles'),
+                location: 'top'
+              }"
+              icon
+              :aria-label="
                 undoableStore.subtitlesVisible
                   ? $t('components.videoPlayer.tooltips.hideSubtitles')
                   : $t('components.videoPlayer.tooltips.showSubtitles')
               "
-              location="top"
+              @click="toggleSubtitles"
             >
-              <template #activator="{ props }">
-                <v-btn
-                  icon
-                  v-bind="props"
-                  :aria-label="
-                    undoableStore.subtitlesVisible
-                      ? $t('components.videoPlayer.tooltips.hideSubtitles')
-                      : $t('components.videoPlayer.tooltips.showSubtitles')
-                  "
-                  @click="toggleSubtitles"
-                >
-                  <v-icon v-if="undoableStore.subtitlesVisible">mdi-subtitles</v-icon>
+              <v-icon v-if="undoableStore.subtitlesVisible">mdi-subtitles</v-icon>
 
-                  <v-icon v-else>mdi-subtitles-outline</v-icon>
-                </v-btn>
-              </template>
-            </v-tooltip>
+              <v-icon v-else>mdi-subtitles-outline</v-icon>
+            </v-btn>
           </div>
         </div>
 
@@ -290,6 +264,7 @@ export default {
     'tempStore.playJumpPosition'(newValue) {
       // Use a proxy value because updating currentTime based on playPosition
       // directly is prone to timing issues
+
       if (newValue !== null) {
         this.$refs.video.currentTime = newValue
         this.tempStore.playPosition = newValue
@@ -434,6 +409,7 @@ export default {
 
     toggleVolumeSlider(event) {
       // Don't show slider if it's a double click
+
       if (event?.detail === 2) return
       this.showVolumeSlider = !this.showVolumeSlider
     },
@@ -474,6 +450,7 @@ video {
 }
 .volume-slider :deep(> .v-input__control) {
   /* min height sets the height of the slider here */
+
   min-height: 80px;
 }
 #video-grid {
