@@ -247,7 +247,6 @@ export const useUndoableStore = defineStore('undoable', {
       })
     },
     onShotBoundaryDetection(data) {
-      if (this.id !== this.detectionProjectId) return
       this.timelines.push({
         data: data.map((shot) => ({
           annotation: '',
@@ -292,7 +291,6 @@ export const useUndoableStore = defineStore('undoable', {
       this.timelines = items
     },
     runShotBoundaryDetection() {
-      this.detectionProjectId = this.id
       api.runShotBoundaryDetection(useMainStore().video)
     },
     splitSegment(timelineId, segmentId, position) {
