@@ -54,7 +54,6 @@ export default {
       hCtx: null,
       isDrawingScheduled: false,
       lastClick: Date.now(),
-      lastSelectedId: null,
       numTimelines: 0,
       overlayInput: false,
       overlayInputEntry: null,
@@ -182,13 +181,14 @@ export default {
         ) {
           // Only allow selection from the same timeline
           this.tempStore.selectedSegments = new Map([[entry.id, entry.timeline]])
-        } else if (event.shiftKey && this.lastSelectedId !== null) {
-          // Range select: select all segments between lastSelectedId and entry in the same timeline
+        } else if (event.shiftKey && this.tempStore.selectedSegments.size > 0) {
+          // Range select: select all segments between the current selection anchor and entry
+          const [anchorId] = this.tempStore.selectedSegments.entries().next().value
           const timelineSegments = this.data
             .filter((d) => d.timeline === entry.timeline && d.type !== 'select')
             .sort((a, b) => a.x - b.x)
           const ids = timelineSegments.map((d) => d.id)
-          const anchorIdx = ids.indexOf(this.lastSelectedId)
+          const anchorIdx = ids.indexOf(anchorId)
           const targetIdx = ids.indexOf(entry.id)
           if (anchorIdx !== -1 && targetIdx !== -1) {
             const from = Math.min(anchorIdx, targetIdx)
@@ -209,7 +209,6 @@ export default {
         } else {
           this.tempStore.selectedSegments = new Map([[entry.id, entry.timeline]])
         }
-        this.lastSelectedId = entry.id
         this.requestDraw()
       }
       this.lastClick = Date.now()
