@@ -25,6 +25,10 @@
     </v-overlay>
 
     <canvas ref="hiddenCanvas" height="0" class="d-none"></canvas>
+
+    <v-snackbar v-model="moveWarning" color="warning" timeout="3000" location="top">
+      {{ $t('components.timelineCanvas.moveWarning') }}
+    </v-snackbar>
   </div>
 </template>
 
@@ -54,6 +58,7 @@ export default {
       hCtx: null,
       isDrawingScheduled: false,
       lastClick: Date.now(),
+      moveWarning: false,
       numTimelines: 0,
       overlayInput: false,
       overlayInputEntry: null,
@@ -542,13 +547,15 @@ export default {
 
     drawTmpShot(rescale) {
       if (this.tempStore.tmpShot === null) return
-      this.ctx.fillStyle = 'yellow'
+      this.ctx.globalAlpha = this.tempStore.tmpShot.invalid ? 0.4 : 1
+      this.ctx.fillStyle = this.tempStore.tmpShot.invalid ? '#ffcccc' : 'yellow'
       this.ctx.fillRect(
         rescale(this.tempStore.tmpShot.start),
         this.tempStore.tmpShot.y,
         rescale(this.tempStore.tmpShot.end + 1) - rescale(this.tempStore.tmpShot.start),
         this.tempStore.tmpShot.height
       )
+      this.ctx.globalAlpha = 1
 
       if (this.tempStore.adjacentShot === null) return
       this.ctx.fillStyle = 'orange'
@@ -593,10 +600,33 @@ export default {
       const coordX = e.clientX - rect.left
       const coordY = e.clientY - rect.top
 
-      // New timeline segment
+      // New timeline segment or move existing segment
       if (e.altKey) {
         const timelineIndex = this.getTimelineForCoordinate(coordY)
         if (this.undoableStore.timelines[timelineIndex].type !== 'shots') return
+
+        // Check if clicking on an existing segment body
+        const colorData = this.hCtx.getImageData(x, y, 1, 1).data
+        const color = this.rgbToHex(colorData[0], colorData[1], colorData[2])
+        const segmentEntries = this.data.filter((d) => d.hiddenColor === color)
+        if (segmentEntries.length > 0 && !segmentEntries[0].locked) {
+          const entry = segmentEntries[0]
+          const xNew = Math.round(this.transform.rescaleX(this.scale).invert(coordX))
+          window.addEventListener('mouseup', this.mouseup)
+          this.tempStore.tmpShot = {
+            dragOffset: xNew - entry.x,
+            end: entry.x + entry.width - 1,
+            height: 44,
+            max: this.mainStore.numFrames,
+            min: 0,
+            moving: true,
+            originalShot: entry,
+            segmentWidth: entry.width - 1,
+            start: entry.x,
+            y: entry.y
+          }
+          return
+        }
 
         const height = coordY - (coordY % TIMELINE_HEIGHT)
         const start = this.transform.rescaleX(this.scale).invert(coordX)
@@ -701,9 +731,27 @@ export default {
           tmpShot.end = clamp(xNew, tmpShot.origin + 1, adjacentShot.end - adjacentShot.diff - 1)
           adjacentShot.start = tmpShot.end + adjacentShot.diff
         }
+      } else if (tmpShot.moving) {
+        const newStart = clamp(
+          xNew - tmpShot.dragOffset,
+          tmpShot.min,
+          tmpShot.max - tmpShot.segmentWidth
+        )
+        tmpShot.start = newStart
+        tmpShot.end = newStart + tmpShot.segmentWidth
+        const timeline = this.undoableStore.timelines.find(
+          (t) => t.id === tmpShot.originalShot.timeline
+        )
+        tmpShot.invalid = timeline.data.some(
+          (s) => s.id !== tmpShot.originalShot.id && newStart <= s.end && tmpShot.end >= s.start
+        )
       } else {
         tmpShot.start = clamp(xNew, tmpShot.min, tmpShot.origin)
         tmpShot.end = clamp(xNew, tmpShot.origin, tmpShot.max)
+        const timeline = this.undoableStore.timelines[tmpShot.timelineIndex]
+        tmpShot.invalid = timeline.data.some(
+          (s) => tmpShot.start <= s.end && tmpShot.end >= s.start
+        )
       }
 
       this.requestDraw()
@@ -714,12 +762,25 @@ export default {
       if (this.tempStore.tmpShot === null) return
       window.removeEventListener('mouseup', this.mouseup)
       e.stopImmediatePropagation()
-      if (this.tempStore.tmpShot.originalShot === null) {
-        this.undoableStore.addShotToNth(
-          this.tempStore.tmpShot.timelineIndex,
-          this.tempStore.tmpShot.start,
-          this.tempStore.tmpShot.end
+      if (this.tempStore.tmpShot.moving) {
+        const { start, end, originalShot } = this.tempStore.tmpShot
+        const timeline = this.undoableStore.timelines.find((t) => t.id === originalShot.timeline)
+        const overlaps = timeline.data.some(
+          (s) => s.id !== originalShot.id && start <= s.end && end >= s.start
         )
+        if (overlaps) {
+          this.moveWarning = true
+        } else {
+          this.undoableStore.changeShotBoundaries(originalShot.id, start, end)
+        }
+      } else if (this.tempStore.tmpShot.originalShot === null) {
+        if (!this.tempStore.tmpShot.invalid) {
+          this.undoableStore.addShotToNth(
+            this.tempStore.tmpShot.timelineIndex,
+            this.tempStore.tmpShot.start,
+            this.tempStore.tmpShot.end
+          )
+        }
       } else {
         this.undoableStore.changeShotBoundaries(
           this.tempStore.tmpShot.originalShot.id,

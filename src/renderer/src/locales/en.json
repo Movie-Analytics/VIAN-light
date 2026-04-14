@@ -216,7 +216,8 @@
     },
 
     "timelineCanvas": {
-      "annotations": "Annotations"
+      "annotations": "Annotations",
+      "moveWarning": "Segment cannot be moved here as it would overlap with another segment."
     }
   }
 }
