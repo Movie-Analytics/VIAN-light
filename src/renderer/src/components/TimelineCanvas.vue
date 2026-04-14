@@ -595,11 +595,12 @@ export default {
 
       // New timeline segment
       if (e.altKey) {
-        const nTimeline = this.getTimelineForCoordinate(coordY)
-        if (this.undoableStore.timelines[nTimeline].type !== 'shots') return
+        const timelineIndex = this.getTimelineForCoordinate(coordY)
+        if (this.undoableStore.timelines[timelineIndex].type !== 'shots') return
 
         const height = coordY - (coordY % TIMELINE_HEIGHT)
         const start = this.transform.rescaleX(this.scale).invert(coordX)
+        window.addEventListener('mouseup', this.mouseup)
         this.tempStore.tmpShot = {
           end: start,
           height: 44,
@@ -608,6 +609,7 @@ export default {
           origin: start,
           originalShot: null,
           start,
+          timelineIndex,
           y: height
         }
         return
@@ -628,6 +630,7 @@ export default {
         return
       }
 
+      window.addEventListener('mouseup', this.mouseup)
       this.tempStore.tmpShot = {
         end: entry.x + entry.width - 1,
         height: 44,
@@ -668,7 +671,8 @@ export default {
       }
     },
 
-    mouseleave() {
+    mouseleave(e) {
+      if (e.buttons === 1) return
       if (this.tempStore.tmpShot !== null) {
         this.tempStore.tmpShot = null
         this.tempStore.adjacentShot = null
@@ -708,11 +712,11 @@ export default {
 
     mouseup(e) {
       if (this.tempStore.tmpShot === null) return
+      window.removeEventListener('mouseup', this.mouseup)
       e.stopImmediatePropagation()
-      const coord = d3.pointer(e, this.$refs.canvas)
       if (this.tempStore.tmpShot.originalShot === null) {
         this.undoableStore.addShotToNth(
-          this.getTimelineForCoordinate(coord[1]),
+          this.tempStore.tmpShot.timelineIndex,
           this.tempStore.tmpShot.start,
           this.tempStore.tmpShot.end
         )
