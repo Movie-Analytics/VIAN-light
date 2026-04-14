@@ -408,6 +408,9 @@ export default {
     shortcuts.clear('z', true, true)
     shortcuts.clear('z', true, false, true)
     shortcuts.clear('z', false, false, true)
+    this.tempStore.jobs
+      .filter((j) => j.status === 'RUNNING')
+      .forEach((j) => this.tempStore.terminateJob(j.id))
     api.unregisterVideoViewCallbacks()
   },
 
