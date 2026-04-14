@@ -2,7 +2,6 @@
   <v-app-bar density="compact">
     <v-app-bar-title>
       {{ $t('app.title') }}
-      <span class="text-body-2 text-medium-emphasis">{{ mainStore.video }}</span>
     </v-app-bar-title>
 
     <v-btn v-tooltip="$t('pages.video.tooltips.undo')" :disabled="!isUndoable" icon @click="undo">
