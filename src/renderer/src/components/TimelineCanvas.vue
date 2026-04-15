@@ -130,7 +130,6 @@ export default {
     d3.select(this.$refs.canvas).on('mousedown', (e) => this.mousedown(e))
     d3.select(this.$refs.canvas).on('mouseleave', (e) => this.mouseleave(e))
     d3.select(this.$refs.canvas).on('mousemove', (e) => this.mousemove(e))
-    d3.select(this.$refs.canvas).on('mouseup', (e) => this.mouseup(e))
     d3.select(this.$refs.canvas).on('dblclick', (e) => {
       e.stopImmediatePropagation()
     })
