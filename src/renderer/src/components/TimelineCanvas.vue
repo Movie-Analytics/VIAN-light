@@ -29,6 +29,17 @@
     <v-snackbar v-model="moveWarning" color="warning" timeout="3000" location="top">
       {{ $t('components.timelineCanvas.moveWarning') }}
     </v-snackbar>
+
+    <input
+      v-if="transform.k > 1"
+      type="range"
+      class="timeline-scrollbar"
+      min="0"
+      :max="scrollMax"
+      :value="scrollBarValue"
+      :style="{ '--thumb-width': scrollThumbWidth + 'px' }"
+      @input="onScroll(Number($event.target.value))"
+    />
   </div>
 </template>
 
@@ -65,6 +76,7 @@ export default {
       overlayInputModel: '',
       resizeoberserver: null,
       scale: null,
+      scrollBarValue: 0,
       tCtx: null,
       transform: d3.zoomIdentity,
       unloadedImages: 0,
@@ -73,7 +85,19 @@ export default {
   },
 
   computed: {
-    ...mapStores(useMainStore, useTempStore, useUndoableStore)
+    ...mapStores(useMainStore, useTempStore, useUndoableStore),
+
+    scrollMax() {
+      return Math.max(0, Math.round(this.canvasWidth * (this.transform.k - 1)))
+    },
+
+    scrollThumbWidth() {
+      return Math.max(20, Math.round(this.canvasWidth / this.transform.k))
+    },
+
+    scrollValue() {
+      return Math.round(-this.transform.x)
+    }
   },
 
   watch: {
@@ -97,6 +121,10 @@ export default {
         this.drawSetup()
         this.requestDraw()
       }
+    },
+
+    scrollValue(val) {
+      this.scrollBarValue = val
     },
 
     'tempStore.playPosition'() {
@@ -807,6 +835,11 @@ export default {
       this.overlayInput = false
     },
 
+    onScroll(value) {
+      const target = d3.zoomIdentity.translate(-value, 0).scale(this.transform.k)
+      d3.select(this.$refs.canvas).call(this.zoom.transform, target)
+    },
+
     overlayInputChange() {
       this.overlayInputEntry.annotation = this.overlayInputModel
       this.overlayInput = false
@@ -885,5 +918,32 @@ export default {
 <style scoped>
 canvas {
   width: 100%;
+}
+
+.timeline-scrollbar {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  height: 8px;
+  margin: 2px 0 0;
+  width: 100%;
+}
+
+.timeline-scrollbar::-webkit-slider-runnable-track {
+  background: #e0e0e0;
+  border-radius: 4px;
+  height: 8px;
+}
+
+.timeline-scrollbar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #aaaaaa;
+  border-radius: 4px;
+  cursor: pointer;
+  height: 8px;
+  margin-top: 0;
+  width: var(--thumb-width, 40px);
 }
 </style>
