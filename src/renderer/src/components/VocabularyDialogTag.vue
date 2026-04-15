@@ -12,6 +12,30 @@
         @keyup.stop=""
         @keyup.enter="$emit('save', editValue)"
       />
+
+      <v-btn
+        v-tooltip="{
+          text: $t('components.vocabularyDialogListItem.tooltips.cancel'),
+          location: 'bottom'
+        }"
+        icon="mdi-close"
+        variant="text"
+        size="x-small"
+        :aria-label="$t('components.vocabularyDialogListItem.tooltips.cancel')"
+        @click.stop="$emit('cancel')"
+      />
+
+      <v-btn
+        v-tooltip="{
+          text: $t('components.vocabularyDialogListItem.tooltips.save'),
+          location: 'bottom'
+        }"
+        icon="mdi-check"
+        variant="text"
+        size="x-small"
+        :aria-label="$t('components.vocabularyDialogListItem.tooltips.save')"
+        @click.stop="$emit('save', editValue)"
+      />
     </template>
 
     <template v-else>
@@ -57,7 +81,7 @@ export default {
     }
   },
 
-  emits: ['edit', 'save', 'delete'],
+  emits: ['cancel', 'edit', 'save', 'delete'],
 
   data() {
     return {

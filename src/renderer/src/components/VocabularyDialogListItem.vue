@@ -83,6 +83,7 @@
         @edit="startEdit(tag.id)"
         @save="saveEdit"
         @delete="deleteTag(tag.id)"
+        @cancel="cancelEdit(tag.id)"
       ></VocabularyDialogTag>
 
       <v-chip variant="outlined" prepend-icon="mdi-plus" class="ma-1" @click="addTag">
@@ -188,12 +189,7 @@ export default {
 </script>
 
 <style scoped>
-.editable-chip .v-text-field :deep(.v-field__input) {
-  padding: 0 !important;
-  height: auto !important;
-  text-align: center;
-}
-.editable-chip .v-text-field :deep(.v-input__details) {
+.v-text-field :deep(.v-input__details) {
   display: none;
 }
 .tag-container {
