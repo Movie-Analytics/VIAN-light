@@ -1,5 +1,5 @@
 <template>
-  <v-chip closable class="editable-chip ma-1" @click:close="$emit('delete')" @click="$emit('edit')">
+  <v-chip class="editable-chip ma-1 pr-1" @click="$emit('edit')">
     <template v-if="isEditing">
       <v-text-field
         ref="name"
@@ -16,6 +16,25 @@
 
     <template v-else>
       {{ item.name }}
+      <v-menu>
+        <template #activator="{ props }">
+          <v-btn variant="text" density="compact" icon v-bind="props">
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+
+        <v-list class="pb-0 pt-0">
+          <v-list-item
+            :title="$t('components.vocabularyDialogListItem.tooltips.editItem')"
+            @click.stop="$emit('edit')"
+          ></v-list-item>
+
+          <v-list-item
+            :title="$t('components.vocabularyDialogListItem.tooltips.deleteItem')"
+            @click.stop="$emit('delete', item.id)"
+          ></v-list-item>
+        </v-list>
+      </v-menu>
     </template>
   </v-chip>
 </template>

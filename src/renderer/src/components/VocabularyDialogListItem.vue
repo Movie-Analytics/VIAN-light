@@ -85,7 +85,7 @@
         @delete="deleteTag(tag.id)"
       ></VocabularyDialogTag>
 
-      <v-chip prepend-icon="mdi-plus" class="ma-1" @click="addTag">
+      <v-chip variant="outlined" prepend-icon="mdi-plus" class="ma-1" @click="addTag">
         {{
           $t('components.vocabularyDialogList.add', {
             itemType: $t('components.vocabularyDialogList.types.tag')
