@@ -187,7 +187,7 @@ export default {
           this.tempStore.selectedSegments = new Map([[entry.id, entry.timeline]])
         } else if (event.shiftKey && this.tempStore.selectedSegments.size > 0) {
           // Range select: select all segments between the current selection anchor and entry
-          const [anchorId] = this.tempStore.selectedSegments.entries().next().value
+          const anchorId = [...this.tempStore.selectedSegments.keys()].pop()
           const timelineSegments = this.data
             .filter((d) => d.timeline === entry.timeline && d.type !== 'select')
             .sort((a, b) => a.x - b.x)
