@@ -1,12 +1,14 @@
 <template>
-  <v-list-item>
+  <v-list-item :active="isSelected" @click="$emit('select')">
     <v-list-item-title v-if="isEditing">
       <v-text-field
+        ref="name"
         v-model="editValue"
         density="compact"
         @click.stop=""
         @keydown.stop=""
         @keyup.stop=""
+        @keyup.enter="$emit('save', editValue)"
       />
     </v-list-item-title>
 
@@ -18,18 +20,6 @@
       <div v-if="isEditing" class="d-flex">
         <v-btn
           v-tooltip="{
-            text: $t('components.vocabularyDialogListItem.tooltips.save'),
-            location: 'bottom'
-          }"
-          icon="mdi-check"
-          variant="text"
-          size="small"
-          :aria-label="$t('components.vocabularyDialogListItem.tooltips.save')"
-          @click.stop="$emit('save', editValue)"
-        />
-
-        <v-btn
-          v-tooltip="{
             text: $t('components.vocabularyDialogListItem.tooltips.cancel'),
             location: 'bottom'
           }"
@@ -38,6 +28,18 @@
           size="small"
           :aria-label="$t('components.vocabularyDialogListItem.tooltips.cancel')"
           @click.stop="$emit('cancel')"
+        />
+
+        <v-btn
+          v-tooltip="{
+            text: $t('components.vocabularyDialogListItem.tooltips.save'),
+            location: 'bottom'
+          }"
+          icon="mdi-check"
+          variant="text"
+          size="small"
+          :aria-label="$t('components.vocabularyDialogListItem.tooltips.save')"
+          @click.stop="$emit('save', editValue)"
         />
       </div>
 
@@ -51,7 +53,7 @@
           variant="text"
           size="small"
           :aria-label="$t('components.vocabularyDialogListItem.tooltips.editItem')"
-          @click.stop="$emit('edit', item.id)"
+          @click.stop="$emit('edit')"
         />
 
         <v-btn
@@ -80,6 +82,23 @@
         />
       </div>
     </template>
+
+  </v-list-item>
+
+  <v-list-item v-if="item.tags">
+    <v-list>
+      <v-chip v-for="tag in item.tags" :key="tag.id" closable>
+        {{ tag.name }}
+      </v-chip>
+
+      <v-chip prepend-icon="mdi-plus">
+        {{
+          $t('components.vocabularyDialogList.add', {
+            itemType: $t('components.vocabularyDialogList.types.tag')
+          })
+        }}
+      </v-chip>
+    </v-list>
   </v-list-item>
 </template>
 
@@ -89,6 +108,10 @@ export default {
 
   props: {
     isEditing: {
+      type: Boolean
+    },
+
+    isSelected: {
       type: Boolean
     },
 
@@ -102,7 +125,7 @@ export default {
     }
   },
 
-  emits: ['edit', 'save', 'cancel', 'export', 'delete'],
+  emits: ['select', 'edit', 'save', 'cancel', 'export', 'delete'],
 
   data() {
     return {
@@ -110,8 +133,23 @@ export default {
     }
   },
 
-  mounted() {
+  watch: {
+    async isEditing(newVal) {
+      if (newVal) {
+        await this.$nextTick()
+        this.$refs.name.focus()
+        this.$refs.name.select()
+      }
+    }
+  },
+
+  async mounted() {
     this.editValue = this.item.name
+    if (this.isEditing) {
+      await this.$nextTick()
+      this.$refs.name.focus()
+      this.$refs.name.select()
+    }
   }
 }
 </script>

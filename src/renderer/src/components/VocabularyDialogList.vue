@@ -1,52 +1,65 @@
 <template>
-  <v-list>
-    <template v-if="isHierarchical">
-      <v-list-group v-for="item in items" :key="item.id" :value="item.id">
-        <template #activator="{ props }">
+  <v-container>
+    <v-row>
+      <v-col>
+        <v-list active-class="v-list-item--active">
           <VocabularyDialogListItem
-            :style="{ 'margin-start': indent }"
-            v-bind="props"
+            v-for="item in items"
+            :key="item.id"
             :item="item"
-            :is-editing="item.id === editingId"
-            :show-export="level === 1"
-            @edit="startEdit"
+            :is-editing="item.id === vocabularyId"
+            :is-selected="item.id === selectedVocabularyId"
+            show-export
+            @edit="startEdit('vocabulary', item.id)"
             @save="saveEdit"
             @cancel="cancelEdit"
             @export="exportToFile"
             @delete="deleteItem(item.id)"
+            @select="select('vocabulary', item)"
           />
-        </template>
 
-        <vocabulary-dialog-list
-          :id="item.id"
-          :items="item.categories || item.tags"
-          :level="level + 1"
-          @export="$emit('export', $event)"
-        />
-      </v-list-group>
-    </template>
+          <v-list-item
+            :title="
+              $t('components.vocabularyDialogList.add', {
+                itemType: $t('components.vocabularyDialogList.types.vocabulary')
+              })
+            "
+            prepend-icon="mdi-plus"
+            @click="addVocabulary"
+          />
+        </v-list>
+      </v-col>
 
-    <template v-else>
-      <VocabularyDialogListItem
-        v-for="item in items"
-        :key="item.id"
-        :style="{ 'margin-start': indent }"
-        :item="item"
-        :is-editing="item.id === editingId"
-        @edit="startEdit"
-        @save="saveEdit"
-        @cancel="cancelEdit"
-        @delete="deleteItem(item.id)"
-      />
-    </template>
+      <v-col v-if="selectedVocabularyId">
+        <v-list active-class="v-list-item--active">
+          <VocabularyDialogListItem
+            v-for="item in selectedVocabulary.categories"
+            :key="item.id"
+            :item="item"
+            :is-editing="item.id === categoryId"
+            :is-selected="item.id === selectedCategoryId"
+            @edit="startEdit('category', item.id)"
+            @save="saveEdit"
+            @cancel="cancelEdit"
+            @delete="deleteItem(item.id)"
+            @select="select('category', item)"
+          />
 
-    <v-list-item
-      :style="{ 'margin-start': indent }"
-      :title="$t('components.vocabularyDialogList.add', { itemType: $t(itemTypeKey) })"
-      prepend-icon="mdi-plus"
-      @click="addItem"
-    />
-  </v-list>
+          <v-list-item
+            :title="
+              $t('components.vocabularyDialogList.add', {
+                itemType: $t('components.vocabularyDialogList.types.category')
+              })
+            "
+            prepend-icon="mdi-plus"
+            @click="addCategory"
+          />
+        </v-list>
+      </v-col>
+
+      <v-spacer v-else></v-spacer>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
@@ -62,49 +75,57 @@ export default {
 
   props: {
     id: { type: [String, null], required: true },
-    items: { type: Array, required: true },
-    level: { type: Number, required: true }
+    items: { type: Array, required: true }
   },
-
-  emits: ['export'],
 
   data() {
     return {
-      editingId: null
+      categoryId: null,
+      selectedCategory: null,
+      selectedCategoryId: null,
+      selectedVocabulary: null,
+      selectedVocabularyId: null,
+      tagId: null,
+      vocabularyId: null
     }
   },
 
   computed: {
-    ...mapStores(useUndoableStore),
-
-    indent() {
-      return (this.level - 1) * 30 + 'px'
-    },
-
-    isHierarchical() {
-      return this.level < 3
-    },
-
-    itemTypeKey() {
-      const keys = {
-        1: 'components.vocabularyDialogList.types.vocabulary',
-        2: 'components.vocabularyDialogList.types.category',
-        3: 'components.vocabularyDialogList.types.tag'
-      }
-      return keys[this.level]
-    }
+    ...mapStores(useUndoableStore)
   },
 
   methods: {
-    addItem() {
-      this.editingId = this.undoableStore.vocabularyAdd(
+    addCategory() {
+      console.log(this.selectedVocabulary)
+      const itemType = this.$t('components.vocabularyDialogList.types.category')
+      this.categoryId = this.undoableStore.vocabularyAdd(
+        this.selectedVocabularyId,
+        this.$t('components.vocabularyDialogList.new', { itemType })
+      )
+      console.log(this.categoryId)
+    },
+
+    addTag() {
+      const itemType = this.$t('components.vocabularyDialogList.types.tag')
+      this.tagId = this.undoableStore.vocabularyAdd(
+        this.selectedCategoryId,
+        this.$t('components.vocabularyDialogList.new', { itemType })
+      )
+      console.log(this.tagId)
+    },
+
+    addVocabulary() {
+      const itemType = this.$t('components.vocabularyDialogList.types.vocabulary')
+      this.vocabularyId = this.undoableStore.vocabularyAdd(
         this.id,
-        this.$t('components.vocabularyDialogList.new', { itemType: this.$t(this.itemTypeKey) })
+        this.$t('components.vocabularyDialogList.new', { itemType })
       )
     },
 
     cancelEdit() {
-      this.editingId = null
+      this.vocabularyId = null
+      this.categoryId = null
+      this.tagId = null
     },
 
     deleteItem(id) {
@@ -116,12 +137,38 @@ export default {
     },
 
     saveEdit(newName) {
-      this.undoableStore.vocabularyRename(this.editingId, newName)
+      if (this.vocabularyId) {
+        this.undoableStore.vocabularyRename(this.vocabularyId, newName)
+      } else if (this.categoryId) {
+        this.undoableStore.vocabularyRename(this.categoryId, newName)
+      } else if (this.tagId) {
+        this.undoableStore.vocabularyRename(this.tagId, newName)
+      }
       this.cancelEdit()
     },
 
-    startEdit(id) {
-      this.editingId = id
+    select(itemType, item) {
+      console.log(item)
+      if (itemType === 'vocabulary') {
+        this.selectedVocabularyId = item.id
+        this.selectedVocabulary = item
+      } else if (itemType === 'category') {
+        this.selectedCategoryId = item.id
+        this.selectedCategory = item
+      } else {
+        // TODO
+      }
+    },
+
+    startEdit(itemType, id) {
+      if (itemType === 'vocabulary') {
+        this.vocabularyId = id
+      } else if (itemType === 'category') {
+        this.categoryId = id
+      } else {
+        this.tagId = id
+        // TODO
+      }
     }
   }
 }
