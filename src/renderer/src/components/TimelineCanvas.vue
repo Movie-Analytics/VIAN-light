@@ -776,9 +776,8 @@ export default {
         tmpShot.start = clamp(xNew, tmpShot.min, tmpShot.origin)
         tmpShot.end = clamp(xNew, tmpShot.origin, tmpShot.max)
         const timeline = this.undoableStore.timelines[tmpShot.timelineIndex]
-        tmpShot.invalid = timeline.data.some(
-          (s) => tmpShot.start <= s.end && tmpShot.end >= s.start
-        )
+        tmpShot.invalid =
+          timeline?.data.some((s) => tmpShot.start <= s.end && tmpShot.end >= s.start) ?? false
       }
 
       this.requestDraw()
