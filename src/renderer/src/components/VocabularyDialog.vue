@@ -14,12 +14,8 @@
 
         <v-spacer></v-spacer>
 
-        <v-btn color="warning" @click="0">
-          {{ $t('common.cancel') }}
-        </v-btn>
-
-        <v-btn color="primary" @click="dialogShown = false">
-          {{ $t('common.save') }}
+        <v-btn color="info" @click="dialogShown = false">
+          {{ $t('common.close') }}
         </v-btn>
       </v-card-actions>
     </v-card>

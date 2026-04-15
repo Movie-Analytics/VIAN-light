@@ -151,9 +151,9 @@
       "tooltips": {
         "save": "Save",
         "cancel": "Cancel",
-        "editItem": "Rename item",
-        "exportItem": "Export item",
-        "deleteItem": "Delete item"
+        "editItem": "Rename",
+        "exportItem": "Export",
+        "deleteItem": "Delete"
       }
     },
 

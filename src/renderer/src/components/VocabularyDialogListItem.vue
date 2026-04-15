@@ -44,47 +44,36 @@
       </div>
 
       <div v-else class="d-flex">
-        <v-btn
-          v-tooltip="{
-            text: $t('components.vocabularyDialogListItem.tooltips.editItem'),
-            location: 'bottom'
-          }"
-          icon="mdi-pencil"
-          variant="text"
-          size="small"
-          :aria-label="$t('components.vocabularyDialogListItem.tooltips.editItem')"
-          @click.stop="$emit('edit')"
-        />
+        <v-menu>
+          <template #activator="{ props }">
+            <v-btn variant="text" density="compact" icon v-bind="props">
+              <v-icon>mdi-dots-vertical</v-icon>
+            </v-btn>
+          </template>
 
-        <v-btn
-          v-if="showExport"
-          v-tooltip="{
-            text: $t('components.vocabularyDialogListItem.tooltips.exportItem'),
-            location: 'bottom'
-          }"
-          icon="mdi-file-export"
-          variant="text"
-          size="small"
-          :aria-label="$t('components.vocabularyDialogListItem.tooltips.exportItem')"
-          @click.stop="$emit('export', item.id)"
-        />
+          <v-list class="pb-0 pt-0">
+            <v-list-item
+              :title="$t('components.vocabularyDialogListItem.tooltips.editItem')"
+              @click.stop="$emit('edit')"
+            ></v-list-item>
 
-        <v-btn
-          v-tooltip="{
-            text: $t('components.vocabularyDialogListItem.tooltips.deleteItem'),
-            location: 'bottom'
-          }"
-          icon="mdi-trash-can"
-          variant="text"
-          size="small"
-          :aria-label="$t('components.vocabularyDialogListItem.tooltips.deleteItem')"
-          @click.stop="$emit('delete', item.id)"
-        />
+            <v-list-item
+              v-if="showExport"
+              :title="$t('components.vocabularyDialogListItem.tooltips.exportItem')"
+              @click.stop="$emit('export', item.id)"
+            ></v-list-item>
+
+            <v-list-item
+              :title="$t('components.vocabularyDialogListItem.tooltips.deleteItem')"
+              @click.stop="$emit('delete', item.id)"
+            ></v-list-item>
+          </v-list>
+        </v-menu>
       </div>
     </template>
   </v-list-item>
 
-  <v-list-item v-if="item.tags">
+  <v-list-item v-if="item.tags" class="tag-container">
     <v-list>
       <VocabularyDialogTag
         v-for="tag in item.tags"
@@ -206,5 +195,8 @@ export default {
 }
 .editable-chip .v-text-field :deep(.v-input__details) {
   display: none;
+}
+.tag-container {
+  border-bottom: 1px solid black;
 }
 </style>
