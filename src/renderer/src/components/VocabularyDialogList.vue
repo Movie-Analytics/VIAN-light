@@ -85,7 +85,6 @@ export default {
       selectedCategoryId: null,
       selectedVocabulary: null,
       selectedVocabularyId: null,
-      tagId: null,
       vocabularyId: null
     }
   },
@@ -96,22 +95,11 @@ export default {
 
   methods: {
     addCategory() {
-      console.log(this.selectedVocabulary)
       const itemType = this.$t('components.vocabularyDialogList.types.category')
       this.categoryId = this.undoableStore.vocabularyAdd(
         this.selectedVocabularyId,
         this.$t('components.vocabularyDialogList.new', { itemType })
       )
-      console.log(this.categoryId)
-    },
-
-    addTag() {
-      const itemType = this.$t('components.vocabularyDialogList.types.tag')
-      this.tagId = this.undoableStore.vocabularyAdd(
-        this.selectedCategoryId,
-        this.$t('components.vocabularyDialogList.new', { itemType })
-      )
-      console.log(this.tagId)
     },
 
     addVocabulary() {
@@ -125,7 +113,6 @@ export default {
     cancelEdit() {
       this.vocabularyId = null
       this.categoryId = null
-      this.tagId = null
     },
 
     deleteItem(id) {
@@ -141,22 +128,17 @@ export default {
         this.undoableStore.vocabularyRename(this.vocabularyId, newName)
       } else if (this.categoryId) {
         this.undoableStore.vocabularyRename(this.categoryId, newName)
-      } else if (this.tagId) {
-        this.undoableStore.vocabularyRename(this.tagId, newName)
       }
       this.cancelEdit()
     },
 
     select(itemType, item) {
-      console.log(item)
       if (itemType === 'vocabulary') {
         this.selectedVocabularyId = item.id
         this.selectedVocabulary = item
       } else if (itemType === 'category') {
         this.selectedCategoryId = item.id
         this.selectedCategory = item
-      } else {
-        // TODO
       }
     },
 
@@ -165,9 +147,6 @@ export default {
         this.vocabularyId = id
       } else if (itemType === 'category') {
         this.categoryId = id
-      } else {
-        this.tagId = id
-        // TODO
       }
     }
   }

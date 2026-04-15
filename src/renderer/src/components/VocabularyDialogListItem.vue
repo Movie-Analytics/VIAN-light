@@ -82,16 +82,21 @@
         />
       </div>
     </template>
-
   </v-list-item>
 
   <v-list-item v-if="item.tags">
     <v-list>
-      <v-chip v-for="tag in item.tags" :key="tag.id" closable>
-        {{ tag.name }}
-      </v-chip>
+      <VocabularyDialogTag
+        v-for="tag in item.tags"
+        :key="tag.id"
+        :item="tag"
+        :is-editing="tag.id === tagId"
+        @edit="startEdit(tag.id)"
+        @save="saveEdit"
+        @delete="deleteTag(tag.id)"
+      ></VocabularyDialogTag>
 
-      <v-chip prepend-icon="mdi-plus">
+      <v-chip prepend-icon="mdi-plus" class="ma-1" @click="addTag">
         {{
           $t('components.vocabularyDialogList.add', {
             itemType: $t('components.vocabularyDialogList.types.tag')
@@ -103,8 +108,13 @@
 </template>
 
 <script>
+import VocabularyDialogTag from '@renderer/components/VocabularyDialogTag.vue'
+import { mapStores } from 'pinia'
+import { useUndoableStore } from '@renderer/stores/undoable'
+
 export default {
   name: 'VocabularyDialogListItem',
+  components: { VocabularyDialogTag },
 
   props: {
     isEditing: {
@@ -129,8 +139,13 @@ export default {
 
   data() {
     return {
-      editValue: ''
+      editValue: '',
+      tagId: null
     }
+  },
+
+  computed: {
+    ...mapStores(useUndoableStore)
   },
 
   watch: {
@@ -150,6 +165,46 @@ export default {
       this.$refs.name.focus()
       this.$refs.name.select()
     }
+  },
+
+  methods: {
+    addTag() {
+      const itemType = this.$t('components.vocabularyDialogList.types.tag')
+      this.tagId = this.undoableStore.vocabularyAdd(
+        this.item.id,
+        this.$t('components.vocabularyDialogList.new', { itemType })
+      )
+    },
+
+    cancelEdit() {
+      this.tagId = null
+    },
+
+    deleteTag(id) {
+      this.undoableStore.vocabularyDelete(id)
+    },
+
+    saveEdit(newName) {
+      if (this.tagId) {
+        this.undoableStore.vocabularyRename(this.tagId, newName)
+      }
+      this.cancelEdit()
+    },
+
+    startEdit(id) {
+      this.tagId = id
+    }
   }
 }
 </script>
+
+<style scoped>
+.editable-chip .v-text-field :deep(.v-field__input) {
+  padding: 0 !important;
+  height: auto !important;
+  text-align: center;
+}
+.editable-chip .v-text-field :deep(.v-input__details) {
+  display: none;
+}
+</style>
