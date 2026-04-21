@@ -6,22 +6,57 @@
 
     <canvas ref="canvas" height="0"></canvas>
 
-    <v-overlay v-model="overlayInput" contained>
-      <v-textarea
-        ref="overlayTextfield"
-        v-model="overlayInputModel"
-        auto-grow
-        rows="1"
-        max-rows="3"
-        :label="$t('components.timelineCanvas.annotations')"
-        min-width="200"
-        hide-details="true"
-        variant="solo"
-        density="compact"
-        class="bg-blue-grey-lighten-5 position-absolute"
-        @change="overlayInputChange"
-        @keydown.enter.prevent="overlayInputChange"
-      ></v-textarea>
+    <v-overlay v-model="overlayInput" persistent scrim="false">
+      <v-card
+        :class="{
+          'cursor-grabbing': isDragging
+        }"
+        class="overlay-card position-absolute"
+        elevation="10"
+        :style="{
+          left: overlayPosX + 'px',
+          top: overlayPosY + 'px'
+        }"
+      >
+        <v-card-title class="align-center cursor-move d-flex pa-2" @mousedown="startDrag">
+          <span class="text-subtitle-1">{{ $t('components.timelineCanvas.annotations') }}</span>
+
+          <v-spacer></v-spacer>
+
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            density="compact"
+            @click="overlayInput = false"
+          ></v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-2">
+          <v-textarea
+            ref="overlayTextfield"
+            v-model="overlayInputModel"
+            auto-grow
+            rows="3"
+            max-rows="10"
+            hide-details="true"
+            variant="outlined"
+            density="comfortable"
+            @keydown.ctrl.enter.prevent="overlayInputChange"
+          ></v-textarea>
+        </v-card-text>
+
+        <v-card-actions class="pa-2">
+          <v-spacer></v-spacer>
+
+          <v-btn color="warning" @click="overlayInput = false">
+            {{ $t('common.cancel') }}
+          </v-btn>
+
+          <v-btn color="primary" @click="overlayInputChange">
+            {{ $t('common.save') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
     </v-overlay>
 
     <canvas ref="hiddenCanvas" height="0" class="d-none"></canvas>
@@ -66,7 +101,10 @@ export default {
       ctx: null,
       data: [],
       dpr: window.devicePixelRatio || 1,
+      dragStartX: 0,
+      dragStartY: 0,
       hCtx: null,
+      isDragging: false,
       isDrawingScheduled: false,
       lastClick: Date.now(),
       moveWarning: false,
@@ -74,6 +112,8 @@ export default {
       overlayInput: false,
       overlayInputEntry: null,
       overlayInputModel: '',
+      overlayPosX: 0,
+      overlayPosY: 0,
       resizeoberserver: null,
       scale: null,
       scrollBarValue: 0,
@@ -249,11 +289,21 @@ export default {
     doubleClickPopup(entry) {
       this.overlayInput = true
       this.$nextTick().then(() => {
-        const x = Math.round(this.transform.rescaleX(this.scale)(entry.x))
-        // Stay within canvas
-        const leftPos = Math.min(Math.max(x, 0), this.$refs.canvas.offsetWidth - 200)
-        this.$refs.overlayTextfield.$el.style.left = leftPos + 'px'
-        this.$refs.overlayTextfield.$el.style.top = entry.y + 2 + 'px'
+        const rect = this.$refs.canvas.getBoundingClientRect()
+        const x = Math.round(this.transform.rescaleX(this.scale)(entry.x)) + rect.left
+        const maxWidth = 500
+
+        // Stay within viewport horizontally
+        this.overlayPosX = Math.min(Math.max(x, 0), window.innerWidth - maxWidth)
+
+        // Try to position below segment
+        let topPos = entry.y + 46 + rect.top
+        // If it goes off-viewport at bottom, position above segment
+        if (topPos + 300 > window.innerHeight) {
+          topPos = Math.max(0, entry.y + rect.top - 300)
+        }
+        this.overlayPosY = topPos
+
         this.overlayInputEntry = this.undoableStore.getSegmentForId(entry.timeline, entry.id)
         this.overlayInputModel = this.overlayInputEntry.annotation
         this.$refs.overlayTextfield.focus()
@@ -834,6 +884,12 @@ export default {
       this.overlayInput = false
     },
 
+    onDrag(e) {
+      if (!this.isDragging) return
+      this.overlayPosX = e.clientX - this.dragStartX
+      this.overlayPosY = e.clientY - this.dragStartY
+    },
+
     onScroll(value) {
       const target = d3.zoomIdentity.translate(-value, 0).scale(this.transform.k)
       d3.select(this.$refs.canvas).call(this.zoom.transform, target)
@@ -899,6 +955,20 @@ export default {
       return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1).toLowerCase()
     },
 
+    startDrag(e) {
+      this.isDragging = true
+      this.dragStartX = e.clientX - this.overlayPosX
+      this.dragStartY = e.clientY - this.overlayPosY
+      window.addEventListener('mousemove', this.onDrag)
+      window.addEventListener('mouseup', this.stopDrag)
+    },
+
+    stopDrag() {
+      this.isDragging = false
+      window.removeEventListener('mousemove', this.onDrag)
+      window.removeEventListener('mouseup', this.stopDrag)
+    },
+
     timeAxisClickHandler(e) {
       const coordX = e.clientX - this.$refs.timeCanvas.getBoundingClientRect().left
       const timePosition = this.transform.rescaleX(this.scale).invert(coordX) / this.mainStore.fps
@@ -944,5 +1014,18 @@ canvas {
   height: 8px;
   margin-top: 0;
   width: var(--thumb-width, 40px);
+}
+
+.overlay-card {
+  min-width: 400px;
+  max-width: 500px;
+}
+
+.cursor-move {
+  cursor: move;
+}
+
+.cursor-grabbing {
+  cursor: grabbing;
 }
 </style>

@@ -218,7 +218,7 @@
     },
 
     "timelineCanvas": {
-      "annotations": "Annotationen",
+      "annotations": "Annotation",
       "moveWarning": "Segment kann hier nicht verschoben werden, da es sich mit einem anderen Segment überschneiden würde."
     }
   }
