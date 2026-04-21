@@ -115,7 +115,7 @@ export default {
     getEntryBgColor(shot) {
       const framePos = this.tempStore.playPosition * this.mainStore.fps
       if (shot.start <= framePos && framePos <= shot.end) {
-        return 'bg-grey-lighten-3'
+        return this.$vuetify.theme.global.name === 'dark' ? 'bg-grey-darken-3' : 'bg-grey-lighten-3'
       }
       return ''
     },
