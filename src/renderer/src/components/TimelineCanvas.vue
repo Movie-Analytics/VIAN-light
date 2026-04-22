@@ -6,7 +6,7 @@
 
     <canvas ref="canvas" height="0"></canvas>
 
-    <v-overlay v-model="overlayInput" persistent scrim="false">
+    <v-overlay v-model="overlayInput" persistent scrim="false" @keydown.esc="overlayInput = false">
       <v-card
         :class="{
           'cursor-grabbing': isDragging
@@ -37,11 +37,11 @@
             v-model="overlayInputModel"
             auto-grow
             rows="3"
-            max-rows="10"
+            max-rows="5"
             hide-details="true"
             variant="outlined"
             density="comfortable"
-            @keydown.ctrl.enter.prevent="overlayInputChange"
+            @keydown.enter.exact.prevent="overlayInputChange"
           ></v-textarea>
         </v-card-text>
 
@@ -1019,13 +1019,5 @@ canvas {
 .overlay-card {
   min-width: 400px;
   max-width: 500px;
-}
-
-.cursor-move {
-  cursor: move;
-}
-
-.cursor-grabbing {
-  cursor: grabbing;
 }
 </style>
