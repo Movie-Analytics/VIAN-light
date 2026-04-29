@@ -303,7 +303,10 @@ export default {
 
     segmentsLocked() {
       return Array.from(this.tempStore.selectedSegments.entries())
-        .map((shot) => this.undoableStore.getSegmentForId(shot[1], shot[0]).locked)
+        .map(([shotId, timelineId]) => {
+          const timeline = this.undoableStore.getTimelineById(timelineId)
+          return timeline.locked || this.undoableStore.getSegmentForId(timelineId, shotId).locked
+        })
         .some((v) => v)
     },
 
