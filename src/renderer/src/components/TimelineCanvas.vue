@@ -138,6 +138,11 @@ export default {
 
     scrollValue() {
       return Math.round(-this.transform.x)
+    },
+
+    selectedTimelineId() {
+      if (this.tempStore.selectedSegments.size === 0) return null
+      return this.tempStore.selectedSegments.values().next().value
     }
   },
 
@@ -626,6 +631,26 @@ export default {
           ctx.stroke()
         }
         ctx.restore()
+      }
+
+      if (this.selectedTimelineId) {
+        const activeEntry = data.find((d) => d.timeline === this.selectedTimelineId)
+        if (activeEntry) {
+          const y = activeEntry.y
+          const bottom = y + TIMELINE_HEIGHT - 5
+          ctx.save()
+          ctx.strokeStyle = '#2196f3'
+          ctx.lineWidth = 2
+          ctx.beginPath()
+          ctx.moveTo(0, y)
+          ctx.lineTo(this.canvasWidth, y)
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.moveTo(0, bottom)
+          ctx.lineTo(this.canvasWidth, bottom)
+          ctx.stroke()
+          ctx.restore()
+        }
       }
     },
 

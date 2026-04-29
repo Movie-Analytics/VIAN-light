@@ -76,6 +76,7 @@
               <template #activator>
                 <v-list-item
                   class="pr-2"
+                  :class="[{ 'active-track': id === selectedTimelineId }]"
                   draggable="true"
                   @dragstart="dragStart($event, id)"
                   @dragend="dragEnd"
@@ -333,6 +334,11 @@ export default {
         .some((v) => v)
     },
 
+    selectedTimelineId() {
+      if (this.tempStore.selectedSegments.size === 0) return null
+      return this.tempStore.selectedSegments.values().next().value
+    },
+
     shotTimelinesExists() {
       return this.undoableStore.timelines.filter((t) => t.type === 'shots').length > 0
     },
@@ -516,6 +522,14 @@ export default {
 <style scoped>
 #timeline-list {
   padding-top: 30px;
+}
+
+:deep(.active-track) {
+  background-color: rgba(var(--v-theme-primary), 0.15);
+}
+
+:deep(.active-track .v-list-item-title) {
+  font-weight: 600;
 }
 
 #timeline-list :deep(.v-list-item-title),
