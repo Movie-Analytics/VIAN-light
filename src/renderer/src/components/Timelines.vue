@@ -75,7 +75,6 @@
             >
               <template #activator>
                 <v-list-item
-                  :title="timeline.name"
                   class="pr-2"
                   draggable="true"
                   @dragstart="dragStart($event, id)"
@@ -83,6 +82,16 @@
                   @dragover="dragOver"
                   @drop="dragDrop($event, id)"
                 >
+                  <template #title>
+                    <div class="track-name-wrap">
+                      <span
+                        class="track-name-text"
+                        :ref="el => { if (el) trackNameRefs[id] = el }"
+                      >{{ timeline.name }}</span>
+                      <div v-if="overflowingTracks[id]" class="track-name-popover">{{ timeline.name }}</div>
+                    </div>
+                  </template>
+
                   <template #append>
                     <v-list-item-action start>
                       <v-btn
@@ -253,6 +262,8 @@ export default {
 
   data() {
     return {
+      overflowingTracks: {},
+      trackNameRefs: {},
       linkVocabDialog: false,
       renameDialog: false,
       selectedTimeline: null,
@@ -327,6 +338,7 @@ export default {
     'undoableStore.timelines.length'(newVal, oldVal) {
       if (newVal !== oldVal) {
         this.createTimelineFolds()
+        this.checkTrackNameOverflow()
       }
     },
 
@@ -340,6 +352,7 @@ export default {
   },
 
   mounted() {
+    this.checkTrackNameOverflow()
     // Register shorcuts and menu actions
     shortcuts.register('Delete', this.segmentDelete)
     shortcuts.register('Backspace', this.segmentDelete)
@@ -360,6 +373,16 @@ export default {
   methods: {
     addTimeline() {
       this.undoableStore.addNewTimeline()
+    },
+
+    checkTrackNameOverflow() {
+      this.$nextTick(() => {
+        const overflowing = {}
+        for (const [id, el] of Object.entries(this.trackNameRefs)) {
+          overflowing[id] = el.scrollWidth > el.offsetWidth
+        }
+        this.overflowingTracks = overflowing
+      })
     },
 
     toggleTimelineLock(id) {
@@ -481,5 +504,41 @@ export default {
 <style scoped>
 #timeline-list {
   padding-top: 30px;
+}
+
+#timeline-list :deep(.v-list-item-title),
+#timeline-list :deep(.v-list-item__content) {
+  overflow: visible;
+}
+
+.track-name-wrap {
+  position: relative;
+}
+
+.track-name-text {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.track-name-popover {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  z-index: 100;
+  background-color: rgb(var(--v-theme-surface));
+  white-space: normal;
+  max-width: 240px;
+  padding: 2px 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  line-height: 1.4;
+}
+
+.track-name-wrap:hover .track-name-popover {
+  display: block;
 }
 </style>
