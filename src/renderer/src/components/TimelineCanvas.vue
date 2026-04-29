@@ -579,19 +579,6 @@ export default {
             ctx.restore()
           }
           hCtx.fillRect(x, d.y, xwidth - x, d.height)
-
-          // Draw handles for grabbing
-          ctx.globalAlpha = 0.1
-          ctx.fillStyle = 'black'
-          const resizeWidth = Math.round(rescale(d.x + Math.min(d.width * 0.2, 20)) - x)
-          ctx.fillRect(x, d.y, resizeWidth, 20)
-          ctx.fillRect(xwidth - resizeWidth, d.y, resizeWidth, 20)
-          ctx.globalAlpha = 1.0
-
-          hCtx.fillStyle = d.hiddenLeftHandle
-          hCtx.fillRect(x, d.y, resizeWidth, 20)
-          hCtx.fillStyle = d.hiddenRightHandle
-          hCtx.fillRect(xwidth - resizeWidth, d.y, resizeWidth, 20)
         } else if (d.type === 'select') {
           ctx.fillStyle = d.fill
           ctx.fillRect(x, d.y, xwidth - x, d.height)
@@ -642,6 +629,47 @@ export default {
         rescale(this.tempStore.adjacentShot.end + 1) - rescale(this.tempStore.adjacentShot.start),
         this.tempStore.adjacentShot.height
       )
+    },
+
+    findEdgeAt(coordX, coordY) {
+      const EDGE_ZONE = 8
+      const JOINT_ZONE = 2
+      const rescale = this.transform.rescaleX(this.scale)
+      let best = null
+      let bestScore = -1
+
+      for (let i = 0; i < this.data.length; i += 1) {
+        const d = this.data[i]
+        if (d.type === 'shot' && coordY >= d.y && coordY <= d.y + d.height) {
+          const rightEdgeX = rescale(d.x + d.width)
+          const distRight = Math.abs(coordX - rightEdgeX)
+          if (distRight <= EDGE_ZONE) {
+            const score = (EDGE_ZONE - distRight) * (coordX <= rightEdgeX ? 2 : 1)
+            if (score > bestScore) {
+              bestScore = score
+              const next = this.data[i + 1]
+              const touching =
+                next && next.type === 'shot' && next.timeline === d.timeline && d.x + d.width === next.x
+              best = { entry: d, joint: touching && distRight <= JOINT_ZONE, leftSide: false }
+            }
+          }
+
+          const leftEdgeX = rescale(d.x)
+          const distLeft = Math.abs(coordX - leftEdgeX)
+          if (distLeft <= EDGE_ZONE) {
+            const score = (EDGE_ZONE - distLeft) * (coordX >= leftEdgeX ? 2 : 1)
+            if (score > bestScore) {
+              bestScore = score
+              const prev = this.data[i - 1]
+              const touching =
+                prev && prev.type === 'shot' && prev.timeline === d.timeline && prev.x + prev.width === d.x
+              best = { entry: d, joint: touching && distLeft <= JOINT_ZONE, leftSide: true }
+            }
+          }
+        }
+      }
+
+      return best
     },
 
     getTimelineForCoordinate(y) {
@@ -723,15 +751,10 @@ export default {
       }
 
       // Move boundary of existing segment
-      const colorData = this.hCtx.getImageData(x, y, 1, 1).data
-      const color = this.rgbToHex(colorData[0], colorData[1], colorData[2])
-      if (color === '#000000') return
-      const entries = this.data.filter(
-        (d) => d.hiddenLeftHandle === color || d.hiddenRightHandle === color
-      )
-      if (entries.length === 0) return
+      const edgeHit = this.findEdgeAt(coordX, coordY)
+      if (!edgeHit) return
       e.stopImmediatePropagation()
-      const [entry] = entries
+      const { entry, leftSide } = edgeHit
 
       if (entry.locked) {
         return
@@ -743,13 +766,12 @@ export default {
         height: 44,
         max: this.mainStore.numFrames,
         min: 0,
-        origin: entry.hiddenLeftHandle === color ? entry.x + entry.width - 1 : entry.x,
+        origin: leftSide ? entry.x + entry.width - 1 : entry.x,
         originalShot: entry,
         start: entry.x,
         y: entry.y
       }
       const currentIndex = this.data.indexOf(entry)
-      const leftSide = entry.hiddenLeftHandle === color
       const adjacent = leftSide ? this.data[currentIndex - 1] : this.data[currentIndex + 1]
 
       if (adjacent?.timeline === entry.timeline) {
@@ -759,9 +781,9 @@ export default {
           : this.tempStore.tmpShot.start
         this.tempStore.tmpShot.max = leftSide ? this.tempStore.tmpShot.end : adjacent.x - 1
 
-        if (e.shiftKey && adjacent.locked) {
+        if (edgeHit.joint && adjacent.locked) {
           this.tempStore.tmpShot = null
-        } else if (e.shiftKey) {
+        } else if (edgeHit.joint) {
           this.tempStore.adjacentShot = {
             diff: leftSide
               ? entry.x - (adjacent.x + adjacent.width - 1)
@@ -780,6 +802,7 @@ export default {
 
     mouseleave(e) {
       if (e.buttons === 1) return
+      this.$refs.canvas.style.cursor = 'default'
       if (this.tempStore.tmpShot !== null) {
         this.tempStore.tmpShot = null
         this.tempStore.adjacentShot = null
@@ -792,13 +815,29 @@ export default {
       const coordX = e.clientX - rect.left
       const xNew = Math.round(this.transform.rescaleX(this.scale).invert(coordX))
 
+      if (e.buttons !== 1) {
+        const coordY = e.clientY - rect.top
+        const edge = this.findEdgeAt(coordX, coordY)
+        if (edge) {
+          if (edge.joint) {
+            this.$refs.canvas.style.cursor = 'ew-resize'
+          } else if (edge.leftSide) {
+            this.$refs.canvas.style.cursor = 'e-resize'
+          } else {
+            this.$refs.canvas.style.cursor = 'w-resize'
+          }
+        } else {
+          this.$refs.canvas.style.cursor = 'default'
+        }
+      }
+
       if (e.buttons !== 1 || this.tempStore.tmpShot === null) return
-      if (e.altKey || e.shiftKey) e.stopImmediatePropagation()
+      if (e.altKey || this.tempStore.adjacentShot) e.stopImmediatePropagation()
 
       // Limit the bounds so that no overlapping or inverted segments (end before start) get created
       const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
       const { tmpShot, adjacentShot } = { ...this.tempStore }
-      if (e.shiftKey && adjacentShot) {
+      if (adjacentShot) {
         if (adjacentShot.leftSide) {
           tmpShot.start = clamp(xNew, adjacentShot.start + adjacentShot.diff + 1, tmpShot.origin)
           tmpShot.end = clamp(xNew, tmpShot.end, tmpShot.origin + 1)
@@ -864,7 +903,7 @@ export default {
           this.tempStore.tmpShot.end
         )
 
-        if (e.shiftKey && this.tempStore.adjacentShot) {
+        if (this.tempStore.adjacentShot) {
           this.undoableStore.changeShotBoundaries(
             this.tempStore.adjacentShot.originalShot.id,
             this.tempStore.adjacentShot.start,
@@ -874,6 +913,7 @@ export default {
       }
       this.tempStore.tmpShot = null
       this.tempStore.adjacentShot = null
+      this.$refs.canvas.style.cursor = 'default'
     },
 
     onCanvasResize() {
