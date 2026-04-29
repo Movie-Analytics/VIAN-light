@@ -100,7 +100,6 @@ export default {
       canvasWidth: 500,
       ctx: null,
       data: [],
-      lockedRows: [],
       dpr: window.devicePixelRatio || 1,
       dragStartX: 0,
       dragStartY: 0,
@@ -108,6 +107,7 @@ export default {
       isDragging: false,
       isDrawingScheduled: false,
       lastClick: Date.now(),
+      lockedRows: [],
       moveWarning: false,
       numTimelines: 0,
       overlayInput: false,
@@ -401,11 +401,9 @@ export default {
       for (const timeline of this.undoableStore.timelines) {
         for (const [shotIndex, shot] of timeline.data.entries()) {
           if (timeline.type === 'shots') {
-            const effectiveLocked = !!(timeline.locked || shot.locked)
-            let color = '#aaaaaa'
-            if (shotIndex % 2 === 0) color = '#cccccc'
-            if (effectiveLocked) color = '#cccccc'
-            const annotation = shotIndex + 1 + ': ' + (shot.annotation || '').slice(0, 40)
+            const effectiveLocked = [timeline.locked, shot.locked].some(Boolean)
+            const color = shotIndex % 2 === 0 || effectiveLocked ? '#cccccc' : '#aaaaaa'
+            const annotation = shotIndex + 1 + ': ' + (shot.annotation ?? '').slice(0, 40)
             data.push({
               annotation,
               fill: color,
@@ -671,7 +669,10 @@ export default {
               bestScore = score
               const next = this.data[i + 1]
               const touching =
-                next && next.type === 'shot' && next.timeline === d.timeline && d.x + d.width === next.x
+                next &&
+                next.type === 'shot' &&
+                next.timeline === d.timeline &&
+                d.x + d.width === next.x
               best = { entry: d, joint: touching && distRight <= JOINT_ZONE, leftSide: false }
             }
           }
@@ -684,7 +685,10 @@ export default {
               bestScore = score
               const prev = this.data[i - 1]
               const touching =
-                prev && prev.type === 'shot' && prev.timeline === d.timeline && prev.x + prev.width === d.x
+                prev &&
+                prev.type === 'shot' &&
+                prev.timeline === d.timeline &&
+                prev.x + prev.width === d.x
               best = { entry: d, joint: touching && distLeft <= JOINT_ZONE, leftSide: true }
             }
           }

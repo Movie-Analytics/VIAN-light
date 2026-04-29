@@ -36,7 +36,12 @@
           ></v-autocomplete>
         </div>
 
-        <v-checkbox v-model="selectedTimelineSegment.locked" :disabled="undoableStore.getTimelineById(tempStore.selectedSegments.values().next().value).locked">
+        <v-checkbox
+          v-model="selectedTimelineSegment.locked"
+          :disabled="
+            undoableStore.getTimelineById(tempStore.selectedSegments.values().next().value).locked
+          "
+        >
           <template #label>
             <div>
               {{ $t('components.shotDetail.lockSegment') }}
@@ -91,7 +96,9 @@ export default {
       if (this.tempStore.selectedSegments.size !== 1) return false
       const [shotid, timelineid] = this.tempStore.selectedSegments.entries().next().value
       const timeline = this.undoableStore.getTimelineById(timelineid)
-      return !!(timeline.locked || this.undoableStore.getSegmentForId(timelineid, shotid).locked)
+      return Boolean(
+        timeline.locked || this.undoableStore.getSegmentForId(timelineid, shotid).locked
+      )
     },
 
     segmentVocabulary() {

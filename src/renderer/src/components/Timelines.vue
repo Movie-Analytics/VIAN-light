@@ -85,10 +85,18 @@
                   <template #title>
                     <div class="track-name-wrap">
                       <span
+                        :ref="
+                          (el) => {
+                            if (el) trackNameRefs[id] = el
+                          }
+                        "
                         class="track-name-text"
-                        :ref="el => { if (el) trackNameRefs[id] = el }"
-                      >{{ timeline.name }}</span>
-                      <div v-if="overflowingTracks[id]" class="track-name-popover">{{ timeline.name }}</div>
+                        >{{ timeline.name }}</span
+                      >
+
+                      <div v-if="overflowingTracks[id]" class="track-name-popover">
+                        {{ timeline.name }}
+                      </div>
                     </div>
                   </template>
 
@@ -105,7 +113,11 @@
                         :aria-label="$t('components.timelines.tooltips.lockTrack')"
                         @click.stop="toggleTimelineLock(id)"
                       >
-                        <v-icon>{{ undoableStore.getTimelineById(id).locked ? 'mdi-lock' : 'mdi-lock-open-outline' }}</v-icon>
+                        <v-icon>{{
+                          undoableStore.getTimelineById(id).locked
+                            ? 'mdi-lock'
+                            : 'mdi-lock-open-outline'
+                        }}</v-icon>
                       </v-btn>
 
                       <v-btn
@@ -262,13 +274,13 @@ export default {
 
   data() {
     return {
-      overflowingTracks: {},
-      trackNameRefs: {},
       linkVocabDialog: false,
+      overflowingTracks: {},
       renameDialog: false,
       selectedTimeline: null,
       selectedVocab: null,
-      timelineName: ''
+      timelineName: '',
+      trackNameRefs: {}
     }
   },
 
@@ -375,21 +387,6 @@ export default {
       this.undoableStore.addNewTimeline()
     },
 
-    checkTrackNameOverflow() {
-      this.$nextTick(() => {
-        const overflowing = {}
-        for (const [id, el] of Object.entries(this.trackNameRefs)) {
-          overflowing[id] = el.scrollWidth > el.offsetWidth
-        }
-        this.overflowingTracks = overflowing
-      })
-    },
-
-    toggleTimelineLock(id) {
-      const timeline = this.undoableStore.getTimelineById(id)
-      timeline.locked = !timeline.locked
-    },
-
     canLinkVocabulary(timelineId) {
       const timeline = this.undoableStore.getTimelineById(timelineId)
 
@@ -398,6 +395,16 @@ export default {
         typeof timeline.vocabulary === 'string' ||
         timeline.type !== 'shots'
       )
+    },
+
+    checkTrackNameOverflow() {
+      this.$nextTick().then(() => {
+        const overflowing = {}
+        for (const [id, el] of Object.entries(this.trackNameRefs)) {
+          overflowing[id] = el.scrollWidth > el.offsetWidth
+        }
+        this.overflowingTracks = overflowing
+      })
     },
 
     createTimelineFolds() {
@@ -496,6 +503,11 @@ export default {
         Math.round(this.tempStore.playPosition * this.mainStore.fps)
       )
       this.tempStore.selectedSegments = new Map()
+    },
+
+    toggleTimelineLock(id) {
+      const timeline = this.undoableStore.getTimelineById(id)
+      timeline.locked = !timeline.locked
     }
   }
 }
