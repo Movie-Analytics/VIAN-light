@@ -213,6 +213,7 @@
         "mergeSelectedSegments": "Ausgewählte Segmente zusammenführen",
         "showCategories": "Kategorien anzeigen",
         "hideCategories": "Kategorien ausblenden",
+        "lockTrack": "Track sperren/entsperren",
         "timelineOptions": "Timeline-Optionen"
       }
     },

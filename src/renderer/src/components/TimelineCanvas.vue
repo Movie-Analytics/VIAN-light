@@ -100,6 +100,7 @@ export default {
       canvasWidth: 500,
       ctx: null,
       data: [],
+      lockedRows: [],
       dpr: window.devicePixelRatio || 1,
       dragStartX: 0,
       dragStartY: 0,
@@ -394,21 +395,23 @@ export default {
 
     drawSetup() {
       const data = []
+      const lockedRows = []
 
       this.numTimelines = 0
       for (const timeline of this.undoableStore.timelines) {
         for (const [shotIndex, shot] of timeline.data.entries()) {
           if (timeline.type === 'shots') {
+            const effectiveLocked = !!(timeline.locked || shot.locked)
             let color = '#aaaaaa'
             if (shotIndex % 2 === 0) color = '#cccccc'
-            if (shot.locked) color = '#eeeeee'
+            if (effectiveLocked) color = '#cccccc'
             const annotation = shotIndex + 1 + ': ' + (shot.annotation || '').slice(0, 40)
             data.push({
               annotation,
               fill: color,
               height: 44,
               id: shot.id,
-              locked: shot.locked,
+              locked: effectiveLocked,
               selected: this.tempStore.selectedSegments.has(shot.id),
               timeline: timeline.id,
               type: 'shot',
@@ -487,9 +490,11 @@ export default {
             }
           }
         }
+        if (timeline.locked) lockedRows.push(this.numTimelines * TIMELINE_HEIGHT)
         this.numTimelines += 1
       }
 
+      this.lockedRows = lockedRows
       this.zoom = d3
         .zoom()
         .wheelDelta((event) => {
@@ -573,7 +578,7 @@ export default {
           if (xwidth - x > 20) {
             ctx.save()
             ctx.rect(x, d.y, xwidth - x, d.height)
-            ctx.fillStyle = 'black'
+            ctx.fillStyle = d.locked ? '#666' : 'black'
             ctx.clip()
             ctx.fillText(d.annotation, x + 10, d.y + 15)
             ctx.restore()
@@ -606,6 +611,23 @@ export default {
           })
           ctx.stroke()
         }
+      }
+
+      ctx.strokeStyle = 'rgba(0,0,0,0.22)'
+      ctx.lineWidth = 4
+      const step = 16
+      for (const y of this.lockedRows) {
+        ctx.save()
+        ctx.beginPath()
+        ctx.rect(0, y, this.canvasWidth, TIMELINE_HEIGHT - 5)
+        ctx.clip()
+        for (let xi = -TIMELINE_HEIGHT; xi < this.canvasWidth + step; xi += step) {
+          ctx.beginPath()
+          ctx.moveTo(xi, y)
+          ctx.lineTo(xi + TIMELINE_HEIGHT, y + TIMELINE_HEIGHT)
+          ctx.stroke()
+        }
+        ctx.restore()
       }
     },
 

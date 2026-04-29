@@ -86,6 +86,20 @@
                   <template #append>
                     <v-list-item-action start>
                       <v-btn
+                        v-tooltip="{
+                          text: $t('components.timelines.tooltips.lockTrack'),
+                          location: 'bottom'
+                        }"
+                        icon
+                        variant="text"
+                        density="compact"
+                        :aria-label="$t('components.timelines.tooltips.lockTrack')"
+                        @click.stop="toggleTimelineLock(id)"
+                      >
+                        <v-icon>{{ undoableStore.getTimelineById(id).locked ? 'mdi-lock' : 'mdi-lock-open-outline' }}</v-icon>
+                      </v-btn>
+
+                      <v-btn
                         v-if="timeline.categories"
                         v-tooltip="{
                           text: timeline.visible
@@ -343,6 +357,11 @@ export default {
   methods: {
     addTimeline() {
       this.undoableStore.addNewTimeline()
+    },
+
+    toggleTimelineLock(id) {
+      const timeline = this.undoableStore.getTimelineById(id)
+      timeline.locked = !timeline.locked
     },
 
     canLinkVocabulary(timelineId) {

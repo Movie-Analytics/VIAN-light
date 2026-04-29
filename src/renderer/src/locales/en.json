@@ -211,6 +211,7 @@
         "mergeSelectedSegments": "Merge selected segments",
         "showCategories": "Show categories",
         "hideCategories": "Hide categories",
+        "lockTrack": "Lock/unlock track",
         "timelineOptions": "Timeline options"
       }
     },
