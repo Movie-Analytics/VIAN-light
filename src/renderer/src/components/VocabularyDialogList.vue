@@ -14,7 +14,7 @@
             @save="saveEdit"
             @cancel="cancelEdit"
             @export="exportToFile"
-            @delete="deleteItem(item.id)"
+            @delete="deleteVocabulary(item.id)"
             @select="select('vocabulary', item)"
           />
 
@@ -41,7 +41,7 @@
             @edit="startEdit('category', item.id)"
             @save="saveEdit"
             @cancel="cancelEdit"
-            @delete="deleteItem(item.id)"
+            @delete="deleteCategory(item.id)"
             @select="select('category', item)"
           />
 
@@ -115,8 +115,16 @@ export default {
       this.categoryId = null
     },
 
-    deleteItem(id) {
+    deleteCategory(id) {
       this.undoableStore.vocabularyDelete(id)
+      this.selectedCategoryId = null
+      this.selectedCategory = null
+    },
+
+    deleteVocabulary(id) {
+      this.undoableStore.vocabularyDelete(id)
+      this.selectedVocabularyId = null
+      this.selectedVocabulary = null
     },
 
     exportToFile(id) {
