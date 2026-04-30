@@ -8,13 +8,13 @@
       </v-card-text>
 
       <v-card-actions>
-        <v-btn class="w-50" color="info" @click="importVocab">
+        <v-btn color="primary" @click="importVocab">
           {{ $t('common.import') }}
         </v-btn>
 
         <v-spacer></v-spacer>
 
-        <v-btn color="info" @click="dialogShown = false">
+        <v-btn color="primary" @click="dialogShown = false">
           {{ $t('common.close') }}
         </v-btn>
       </v-card-actions>

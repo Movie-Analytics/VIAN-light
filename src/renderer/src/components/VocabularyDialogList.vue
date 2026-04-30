@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-row>
-      <v-col>
+      <v-col class="list-column">
         <v-list active-class="v-list-item--active">
           <VocabularyDialogListItem
             v-for="item in items"
@@ -30,7 +30,7 @@
         </v-list>
       </v-col>
 
-      <v-col v-if="selectedVocabularyId">
+      <v-col v-if="selectedVocabularyId" class="list-column">
         <v-list active-class="v-list-item--active">
           <VocabularyDialogListItem
             v-for="item in selectedVocabulary.categories"
@@ -170,3 +170,10 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.list-column {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+</style>
