@@ -407,7 +407,7 @@ export default {
         for (const [shotIndex, shot] of timeline.data.entries()) {
           if (timeline.type === 'shots') {
             const effectiveLocked = [timeline.locked, shot.locked].some(Boolean)
-            const color = shotIndex % 2 === 0 || effectiveLocked ? '#cccccc' : '#aaaaaa'
+            const color = this.numTimelines % 2 === 0 ? '#cccccc' : '#999999'
             const annotation = shotIndex + 1 + ': ' + (shot.annotation ?? '').slice(0, 40)
             data.push({
               annotation,
@@ -472,8 +472,7 @@ export default {
                 //TODO: reduce nesting and complexity here
                 /* eslint-disable max-depth */
                 for (const [shotIndex, shot] of timeline.data.entries()) {
-                  let color = '#aaaaaa'
-                  if (shotIndex % 2 === 0) color = '#cccccc'
+                  let color = this.numTimelines % 2 === 0 ? '#cccccc' : '#999999'
                   if (shot.vocabAnnotation.includes(tag.id)) color = '#aa5555'
 
                   data.push({
@@ -586,10 +585,16 @@ export default {
             ctx.fillText(d.annotation, x + 10, d.y + 15)
             ctx.restore()
           }
+          ctx.strokeStyle = 'black'
+          ctx.lineWidth = 1
+          ctx.strokeRect(x, d.y, xwidth - x, d.height)
           hCtx.fillRect(x, d.y, xwidth - x, d.height)
         } else if (d.type === 'select') {
           ctx.fillStyle = d.fill
           ctx.fillRect(x, d.y, xwidth - x, d.height)
+          ctx.strokeStyle = 'black'
+          ctx.lineWidth = 1
+          ctx.strokeRect(x, d.y, xwidth - x, d.height)
           hCtx.fillRect(x, d.y, xwidth - x, d.height)
         } else if (d.type === 'screenshot') {
           const image = imageCache.get(d.uri)
