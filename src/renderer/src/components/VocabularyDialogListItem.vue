@@ -79,7 +79,7 @@
         v-for="tag in item.tags"
         :key="tag.id"
         :item="tag"
-        :is-editing="tag.id === tagId"
+        :is-editing="tag.id === editTagId"
         @edit="startEdit(tag.id)"
         @save="saveEdit"
         @delete="deleteTag(tag.id)"
@@ -129,8 +129,9 @@ export default {
 
   data() {
     return {
-      editValue: '',
-      tagId: null
+      editAfterCreation: false,
+      editTagId: null,
+      editValue: ''
     }
   },
 
@@ -160,14 +161,19 @@ export default {
   methods: {
     addTag() {
       const itemType = this.$t('components.vocabularyDialogList.types.tag')
-      this.tagId = this.undoableStore.vocabularyAdd(
+      this.editTagId = this.undoableStore.vocabularyAdd(
         this.item.id,
         this.$t('components.vocabularyDialogList.new', { itemType })
       )
+      this.editAfterCreation = true
     },
 
     cancelEdit() {
-      this.tagId = null
+      if (this.editAfterCreation) {
+        this.deleteTag(this.editTagId)
+      }
+      this.editTagId = null
+      this.editAfterCreation = false
     },
 
     deleteTag(id) {
@@ -175,14 +181,15 @@ export default {
     },
 
     saveEdit(newName) {
-      if (this.tagId) {
-        this.undoableStore.vocabularyRename(this.tagId, newName)
+      if (this.editTagId) {
+        this.undoableStore.vocabularyRename(this.editTagId, newName)
       }
+      this.editAfterCreation = false
       this.cancelEdit()
     },
 
     startEdit(id) {
-      this.tagId = id
+      this.editTagId = id
     }
   }
 }

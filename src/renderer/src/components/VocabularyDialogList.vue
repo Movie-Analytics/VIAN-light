@@ -7,7 +7,7 @@
             v-for="item in items"
             :key="item.id"
             :item="item"
-            :is-editing="item.id === vocabularyId"
+            :is-editing="item.id === editVocabularyId"
             :is-selected="item.id === selectedVocabularyId"
             show-export
             @edit="startEdit('vocabulary', item.id)"
@@ -36,7 +36,7 @@
             v-for="item in selectedVocabulary.categories"
             :key="item.id"
             :item="item"
-            :is-editing="item.id === categoryId"
+            :is-editing="item.id === editCategoryId"
             :is-selected="item.id === selectedCategoryId"
             @edit="startEdit('category', item.id)"
             @save="saveEdit"
@@ -80,12 +80,13 @@ export default {
 
   data() {
     return {
-      categoryId: null,
+      editAfterCreation: false,
+      editCategoryId: null,
+      editVocabularyId: null,
       selectedCategory: null,
       selectedCategoryId: null,
       selectedVocabulary: null,
-      selectedVocabularyId: null,
-      vocabularyId: null
+      selectedVocabularyId: null
     }
   },
 
@@ -96,23 +97,31 @@ export default {
   methods: {
     addCategory() {
       const itemType = this.$t('components.vocabularyDialogList.types.category')
-      this.categoryId = this.undoableStore.vocabularyAdd(
+      this.editCategoryId = this.undoableStore.vocabularyAdd(
         this.selectedVocabularyId,
         this.$t('components.vocabularyDialogList.new', { itemType })
       )
+      this.editAfterCreation = true
     },
 
     addVocabulary() {
       const itemType = this.$t('components.vocabularyDialogList.types.vocabulary')
-      this.vocabularyId = this.undoableStore.vocabularyAdd(
+      this.editVocabularyId = this.undoableStore.vocabularyAdd(
         this.id,
         this.$t('components.vocabularyDialogList.new', { itemType })
       )
+      this.editAfterCreation = true
     },
 
     cancelEdit() {
-      this.vocabularyId = null
-      this.categoryId = null
+      if (this.editVocabularyId && this.editAfterCreation) {
+        this.deleteVocabulary(this.editVocabularyId)
+      } else if (this.editCategoryId && this.editAfterCreation) {
+        this.deleteCategory(this.editCategoryId)
+      }
+      this.editVocabularyId = null
+      this.editCategoryId = null
+      this.editAfterCreation = false
     },
 
     deleteCategory(id) {
@@ -132,11 +141,12 @@ export default {
     },
 
     saveEdit(newName) {
-      if (this.vocabularyId) {
-        this.undoableStore.vocabularyRename(this.vocabularyId, newName)
-      } else if (this.categoryId) {
-        this.undoableStore.vocabularyRename(this.categoryId, newName)
+      if (this.editVocabularyId) {
+        this.undoableStore.vocabularyRename(this.editVocabularyId, newName)
+      } else if (this.editCategoryId) {
+        this.undoableStore.vocabularyRename(this.editCategoryId, newName)
       }
+      this.editAfterCreation = false
       this.cancelEdit()
     },
 
@@ -152,9 +162,9 @@ export default {
 
     startEdit(itemType, id) {
       if (itemType === 'vocabulary') {
-        this.vocabularyId = id
+        this.editVocabularyId = id
       } else if (itemType === 'category') {
-        this.categoryId = id
+        this.editCategoryId = id
       }
     }
   }
