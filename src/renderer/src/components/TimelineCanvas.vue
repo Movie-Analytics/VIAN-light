@@ -471,7 +471,7 @@ export default {
                 this.numTimelines += 1
                 //TODO: reduce nesting and complexity here
                 /* eslint-disable max-depth */
-                for (const [shotIndex, shot] of timeline.data.entries()) {
+                for (const shot of timeline.data) {
                   let color = this.numTimelines % 2 === 0 ? '#cccccc' : '#999999'
                   if (shot.vocabAnnotation.includes(tag.id)) color = '#aa5555'
 
