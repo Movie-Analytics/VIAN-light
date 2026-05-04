@@ -141,8 +141,7 @@ export default {
     },
 
     selectedTimelineId() {
-      if (this.tempStore.selectedSegments.size === 0) return null
-      return this.tempStore.selectedSegments.values().next().value
+      return this.tempStore.selectedTimelineId
     }
   },
 
@@ -174,6 +173,10 @@ export default {
     },
 
     'tempStore.playPosition'() {
+      this.requestDraw()
+    },
+
+    'tempStore.selectedTimelineId'() {
       this.requestDraw()
     },
 

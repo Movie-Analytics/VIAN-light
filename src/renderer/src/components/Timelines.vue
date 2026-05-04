@@ -78,6 +78,7 @@
                   class="pr-2"
                   :class="[{ 'active-track': id === selectedTimelineId }]"
                   draggable="true"
+                  @click.stop="selectTimeline(id)"
                   @dragstart="dragStart($event, id)"
                   @dragend="dragEnd"
                   @dragover="dragOver"
@@ -335,8 +336,7 @@ export default {
     },
 
     selectedTimelineId() {
-      if (this.tempStore.selectedSegments.size === 0) return null
-      return this.tempStore.selectedSegments.values().next().value
+      return this.tempStore.selectedTimelineId
     },
 
     shotTimelinesExists() {
@@ -510,6 +510,11 @@ export default {
         Math.round(this.tempStore.playPosition * this.mainStore.fps)
       )
       this.tempStore.selectedSegments = new Map()
+    },
+
+    selectTimeline(id) {
+      this.tempStore.selectedSegments = new Map()
+      this.tempStore.selectedTimelineId = id
     },
 
     toggleTimelineLock(id) {
