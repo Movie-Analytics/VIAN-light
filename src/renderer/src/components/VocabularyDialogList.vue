@@ -1,6 +1,6 @@
 <template>
-  <v-container>
-    <v-row>
+  <SplitterContainer :inital-panel1-percent="33">
+    <template #panel1>
       <v-col class="list-column">
         <v-list active-class="v-list-item--active">
           <VocabularyDialogListItem
@@ -29,7 +29,9 @@
           />
         </v-list>
       </v-col>
+    </template>
 
+    <template #panel2>
       <v-col v-if="selectedVocabularyId" class="list-column">
         <v-list active-class="v-list-item--active">
           <VocabularyDialogListItem
@@ -58,8 +60,8 @@
       </v-col>
 
       <v-spacer v-else></v-spacer>
-    </v-row>
-  </v-container>
+    </template>
+  </SplitterContainer>
 </template>
 
 <script>
@@ -67,11 +69,12 @@ import { exportVocabJson } from '@renderer/importexport'
 import { mapStores } from 'pinia'
 import { useUndoableStore } from '@renderer/stores/undoable'
 
+import SplitterContainer from '@renderer/components/SplitterContainer.vue'
 import VocabularyDialogListItem from '@renderer/components/VocabularyDialogListItem.vue'
 
 export default {
   name: 'VocabularyDialogList',
-  components: { VocabularyDialogListItem },
+  components: { SplitterContainer, VocabularyDialogListItem },
 
   props: {
     id: { type: [String, null], required: true },
@@ -176,8 +179,5 @@ export default {
   max-height: calc(90vh - 148px);
   overflow-y: auto;
   padding: 4px;
-}
-.list-column:first-child {
-  max-width: 34%;
 }
 </style>
