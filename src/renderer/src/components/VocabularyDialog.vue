@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialogShown" persistent max-width="1000">
+  <v-dialog v-model="dialogShown" persistent max-width="1000" max-height="90vh">
     <v-card>
       <v-card-title>{{ $t('components.vocabularyDialog.title') }}</v-card-title>
 

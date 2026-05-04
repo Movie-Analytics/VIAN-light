@@ -173,7 +173,10 @@ export default {
 
 <style scoped>
 .list-column {
-  max-height: 80vh;
+  max-height: calc(90vh - 148px);
   overflow-y: auto;
+}
+.list-column:first-child {
+  max-width: 34%;
 }
 </style>
