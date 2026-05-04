@@ -1,5 +1,9 @@
 <template>
-  <v-list-item :active="isSelected" @click="$emit('select')">
+  <v-list-item
+    :active="isSelected"
+    :class="{ 'category-container': item.tags }"
+    @click="$emit('select')"
+  >
     <v-list-item-title v-if="isEditing">
       <v-text-field
         ref="name"
@@ -203,7 +207,15 @@ export default {
   padding: 0;
 }
 .tag-container {
-  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   padding: 0 12px !important;
+  margin-bottom: 8px;
+  border-radius: 0 0 4px 4px !important;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-top: 0;
+}
+.category-container {
+  border-radius: 4px 4px 0 0 !important;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-bottom: 0;
 }
 </style>

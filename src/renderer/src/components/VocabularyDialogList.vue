@@ -175,6 +175,7 @@ export default {
 .list-column {
   max-height: calc(90vh - 148px);
   overflow-y: auto;
+  padding: 4px;
 }
 .list-column:first-child {
   max-width: 34%;
