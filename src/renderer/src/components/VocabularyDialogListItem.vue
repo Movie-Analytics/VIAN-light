@@ -200,6 +200,6 @@ export default {
   display: none;
 }
 .tag-container {
-  border-bottom: 1px solid black;
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 </style>
