@@ -5,7 +5,7 @@
         ref="name"
         v-model="editValue"
         density="compact"
-        min-width="100"
+        min-width="250"
         class="tag-input"
         @click.stop=""
         @keydown.stop=""
@@ -39,7 +39,10 @@
     </template>
 
     <template v-else>
-      {{ item.name }}
+      <div class="tag-name">
+        {{ item.name }}
+      </div>
+
       <v-menu>
         <template #activator="{ props }">
           <v-btn variant="text" density="compact" icon v-bind="props">
@@ -116,11 +119,20 @@ export default {
 
 <style scoped>
 .editable-chip .v-text-field :deep(.v-field__input) {
-  padding: 0 !important;
-  height: auto !important;
-  text-align: center;
+  padding: 0;
 }
 .editable-chip .v-text-field :deep(.v-input__details) {
   display: none;
+}
+.editable-chip {
+  max-width: calc(100% - 20px);
+}
+:deep(.v-chip__content) {
+  max-width: 100%;
+}
+.editable-chip .tag-name {
+  max-width: calc(100%-28px);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

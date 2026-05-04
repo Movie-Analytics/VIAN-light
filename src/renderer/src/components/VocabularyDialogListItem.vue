@@ -199,7 +199,11 @@ export default {
 .v-text-field :deep(.v-input__details) {
   display: none;
 }
+.v-text-field :deep(.v-field__input) {
+  padding: 0;
+}
 .tag-container {
   border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  padding: 0 12px !important;
 }
 </style>
