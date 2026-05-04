@@ -484,6 +484,7 @@ export default {
       this.undoableStore.renameTimeline(this.selectedTimeline, this.timelineName)
       this.renameDialog = false
       this.createTimelineFolds()
+      this.checkTrackNameOverflow()
     },
 
     segmentDelete() {
