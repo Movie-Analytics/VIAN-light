@@ -83,7 +83,7 @@
         @edit="startEdit(tag.id)"
         @save="saveEdit"
         @delete="deleteTag(tag.id)"
-        @cancel="cancelEdit(tag.id)"
+        @cancel="cancelEdit"
       ></VocabularyDialogTag>
 
       <v-chip variant="outlined" prepend-icon="mdi-plus" class="ma-1" @click="addTag">
