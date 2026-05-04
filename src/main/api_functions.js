@@ -111,7 +111,7 @@ export const selectFile = (filters) => {
 }
 
 export const openVideoDialog = () => {
-  const video = selectFile([{ extensions: ['mp4'], name: 'Videos' }])
+  const video = selectFile([{ extensions: ['mp4', 'mov'], name: 'Videos' }])
   if (!video) return null
   return {
     location: `app://${video}`,

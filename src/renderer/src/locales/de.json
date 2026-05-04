@@ -213,12 +213,14 @@
         "mergeSelectedSegments": "Ausgewählte Segmente zusammenführen",
         "showCategories": "Kategorien anzeigen",
         "hideCategories": "Kategorien ausblenden",
+        "lockTrack": "Track sperren/entsperren",
         "timelineOptions": "Timeline-Optionen"
       }
     },
 
     "timelineCanvas": {
-      "annotations": "Annotationen"
+      "annotations": "Annotation",
+      "moveWarning": "Segment kann hier nicht verschoben werden, da es sich mit einem anderen Segment überschneiden würde."
     }
   }
 }

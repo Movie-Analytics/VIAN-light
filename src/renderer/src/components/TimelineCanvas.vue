@@ -6,25 +6,75 @@
 
     <canvas ref="canvas" height="0"></canvas>
 
-    <v-overlay v-model="overlayInput" contained>
-      <v-textarea
-        ref="overlayTextfield"
-        v-model="overlayInputModel"
-        auto-grow
-        rows="1"
-        max-rows="3"
-        :label="$t('components.timelineCanvas.annotations')"
-        min-width="200"
-        hide-details="true"
-        variant="solo"
-        density="compact"
-        class="bg-blue-grey-lighten-5 position-absolute"
-        @change="overlayInputChange"
-        @keydown.enter.prevent="overlayInputChange"
-      ></v-textarea>
+    <v-overlay v-model="overlayInput" persistent scrim="false" @keydown.esc="overlayInput = false">
+      <v-card
+        :class="{
+          'cursor-grabbing': isDragging
+        }"
+        class="overlay-card position-absolute"
+        elevation="10"
+        :style="{
+          left: overlayPosX + 'px',
+          top: overlayPosY + 'px'
+        }"
+      >
+        <v-card-title class="align-center cursor-move d-flex pa-2" @mousedown="startDrag">
+          <span class="text-subtitle-1">{{ $t('components.timelineCanvas.annotations') }}</span>
+
+          <v-spacer></v-spacer>
+
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            density="compact"
+            @click="overlayInput = false"
+          ></v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-2">
+          <v-textarea
+            ref="overlayTextfield"
+            v-model="overlayInputModel"
+            auto-grow
+            rows="3"
+            max-rows="5"
+            hide-details="true"
+            variant="outlined"
+            density="comfortable"
+            @keydown.enter.exact.prevent="overlayInputChange"
+          ></v-textarea>
+        </v-card-text>
+
+        <v-card-actions class="pa-2">
+          <v-spacer></v-spacer>
+
+          <v-btn color="warning" @click="overlayInput = false">
+            {{ $t('common.cancel') }}
+          </v-btn>
+
+          <v-btn color="primary" @click="overlayInputChange">
+            {{ $t('common.save') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
     </v-overlay>
 
     <canvas ref="hiddenCanvas" height="0" class="d-none"></canvas>
+
+    <v-snackbar v-model="moveWarning" color="warning" timeout="3000" location="top">
+      {{ $t('components.timelineCanvas.moveWarning') }}
+    </v-snackbar>
+
+    <input
+      v-if="transform.k > 1"
+      type="range"
+      class="timeline-scrollbar"
+      min="0"
+      :max="scrollMax"
+      :value="scrollBarValue"
+      :style="{ '--thumb-width': scrollThumbWidth + 'px' }"
+      @input="onScroll(Number($event.target.value))"
+    />
   </div>
 </template>
 
@@ -51,15 +101,23 @@ export default {
       ctx: null,
       data: [],
       dpr: window.devicePixelRatio || 1,
+      dragStartX: 0,
+      dragStartY: 0,
       hCtx: null,
+      isDragging: false,
       isDrawingScheduled: false,
       lastClick: Date.now(),
+      lockedRows: [],
+      moveWarning: false,
       numTimelines: 0,
       overlayInput: false,
       overlayInputEntry: null,
       overlayInputModel: '',
+      overlayPosX: 0,
+      overlayPosY: 0,
       resizeoberserver: null,
       scale: null,
+      scrollBarValue: 0,
       tCtx: null,
       transform: d3.zoomIdentity,
       unloadedImages: 0,
@@ -68,7 +126,24 @@ export default {
   },
 
   computed: {
-    ...mapStores(useMainStore, useTempStore, useUndoableStore)
+    ...mapStores(useMainStore, useTempStore, useUndoableStore),
+
+    scrollMax() {
+      return Math.max(0, Math.round(this.canvasWidth * (this.transform.k - 1)))
+    },
+
+    scrollThumbWidth() {
+      return Math.max(20, Math.round(this.canvasWidth / this.transform.k))
+    },
+
+    scrollValue() {
+      return Math.round(-this.transform.x)
+    },
+
+    selectedTimelineId() {
+      if (this.tempStore.selectedSegments.size === 0) return null
+      return this.tempStore.selectedSegments.values().next().value
+    }
   },
 
   watch: {
@@ -92,6 +167,10 @@ export default {
         this.drawSetup()
         this.requestDraw()
       }
+    },
+
+    scrollValue(val) {
+      this.scrollBarValue = val
     },
 
     'tempStore.playPosition'() {
@@ -125,7 +204,6 @@ export default {
     d3.select(this.$refs.canvas).on('mousedown', (e) => this.mousedown(e))
     d3.select(this.$refs.canvas).on('mouseleave', (e) => this.mouseleave(e))
     d3.select(this.$refs.canvas).on('mousemove', (e) => this.mousemove(e))
-    d3.select(this.$refs.canvas).on('mouseup', (e) => this.mouseup(e))
     d3.select(this.$refs.canvas).on('dblclick', (e) => {
       e.stopImmediatePropagation()
     })
@@ -181,6 +259,23 @@ export default {
         ) {
           // Only allow selection from the same timeline
           this.tempStore.selectedSegments = new Map([[entry.id, entry.timeline]])
+        } else if (event.shiftKey && this.tempStore.selectedSegments.size > 0) {
+          // Range select: select all segments between the current selection anchor and entry
+          const anchorId = [...this.tempStore.selectedSegments.keys()].pop()
+          const timelineSegments = this.data
+            .filter((d) => d.timeline === entry.timeline && d.type !== 'select')
+            .sort((a, b) => a.x - b.x)
+          const ids = timelineSegments.map((d) => d.id)
+          const anchorIdx = ids.indexOf(anchorId)
+          const targetIdx = ids.indexOf(entry.id)
+          if (anchorIdx !== -1 && targetIdx !== -1) {
+            const from = Math.min(anchorIdx, targetIdx)
+            const to = Math.max(anchorIdx, targetIdx)
+            const rangeEntries = timelineSegments.slice(from, to + 1).map((d) => [d.id, d.timeline])
+            this.tempStore.selectedSegments = new Map(rangeEntries)
+          } else {
+            this.tempStore.selectedSegments = new Map([[entry.id, entry.timeline]])
+          }
         } else if (event.metaKey || event.ctrlKey) {
           // Try both key and ctrlKey for macOS
           if (this.tempStore.selectedSegments.has(entry.id)) {
@@ -200,11 +295,21 @@ export default {
     doubleClickPopup(entry) {
       this.overlayInput = true
       this.$nextTick().then(() => {
-        const x = Math.round(this.transform.rescaleX(this.scale)(entry.x))
-        // Stay within canvas
-        const leftPos = Math.min(Math.max(x, 0), this.$refs.canvas.offsetWidth - 200)
-        this.$refs.overlayTextfield.$el.style.left = leftPos + 'px'
-        this.$refs.overlayTextfield.$el.style.top = entry.y + 2 + 'px'
+        const rect = this.$refs.canvas.getBoundingClientRect()
+        const x = Math.round(this.transform.rescaleX(this.scale)(entry.x)) + rect.left
+        const maxWidth = 500
+
+        // Stay within viewport horizontally
+        this.overlayPosX = Math.min(Math.max(x, 0), window.innerWidth - maxWidth)
+
+        // Try to position below segment
+        let topPos = entry.y + 46 + rect.top
+        // If it goes off-viewport at bottom, position above segment
+        if (topPos + 300 > window.innerHeight) {
+          topPos = Math.max(0, entry.y + rect.top - 300)
+        }
+        this.overlayPosY = topPos
+
         this.overlayInputEntry = this.undoableStore.getSegmentForId(entry.timeline, entry.id)
         this.overlayInputModel = this.overlayInputEntry.annotation
         this.$refs.overlayTextfield.focus()
@@ -295,21 +400,21 @@ export default {
 
     drawSetup() {
       const data = []
+      const lockedRows = []
 
       this.numTimelines = 0
       for (const timeline of this.undoableStore.timelines) {
         for (const [shotIndex, shot] of timeline.data.entries()) {
           if (timeline.type === 'shots') {
-            let color = '#aaaaaa'
-            if (shotIndex % 2 === 0) color = '#cccccc'
-            if (shot.locked) color = '#eeeeee'
-            const annotation = shotIndex + 1 + ': ' + (shot.annotation || '').slice(0, 40)
+            const effectiveLocked = [timeline.locked, shot.locked].some(Boolean)
+            const color = this.numTimelines % 2 === 0 ? '#cccccc' : '#999999'
+            const annotation = shotIndex + 1 + ': ' + (shot.annotation ?? '').slice(0, 40)
             data.push({
               annotation,
               fill: color,
               height: 44,
               id: shot.id,
-              locked: shot.locked,
+              locked: effectiveLocked,
               selected: this.tempStore.selectedSegments.has(shot.id),
               timeline: timeline.id,
               type: 'shot',
@@ -366,9 +471,8 @@ export default {
                 this.numTimelines += 1
                 //TODO: reduce nesting and complexity here
                 /* eslint-disable max-depth */
-                for (const [shotIndex, shot] of timeline.data.entries()) {
-                  let color = '#aaaaaa'
-                  if (shotIndex % 2 === 0) color = '#cccccc'
+                for (const shot of timeline.data) {
+                  let color = this.numTimelines % 2 === 0 ? '#cccccc' : '#999999'
                   if (shot.vocabAnnotation.includes(tag.id)) color = '#aa5555'
 
                   data.push({
@@ -388,9 +492,11 @@ export default {
             }
           }
         }
+        if (timeline.locked) lockedRows.push(this.numTimelines * TIMELINE_HEIGHT)
         this.numTimelines += 1
       }
 
+      this.lockedRows = lockedRows
       this.zoom = d3
         .zoom()
         .wheelDelta((event) => {
@@ -474,28 +580,21 @@ export default {
           if (xwidth - x > 20) {
             ctx.save()
             ctx.rect(x, d.y, xwidth - x, d.height)
-            ctx.fillStyle = 'black'
+            ctx.fillStyle = d.locked ? '#666' : 'black'
             ctx.clip()
             ctx.fillText(d.annotation, x + 10, d.y + 15)
             ctx.restore()
           }
+          ctx.strokeStyle = 'black'
+          ctx.lineWidth = 1
+          ctx.strokeRect(x, d.y, xwidth - x, d.height)
           hCtx.fillRect(x, d.y, xwidth - x, d.height)
-
-          // Draw handles for grabbing
-          ctx.globalAlpha = 0.1
-          ctx.fillStyle = 'black'
-          const resizeWidth = Math.round(rescale(d.x + Math.min(d.width * 0.2, 20)) - x)
-          ctx.fillRect(x, d.y, resizeWidth, 20)
-          ctx.fillRect(xwidth - resizeWidth, d.y, resizeWidth, 20)
-          ctx.globalAlpha = 1.0
-
-          hCtx.fillStyle = d.hiddenLeftHandle
-          hCtx.fillRect(x, d.y, resizeWidth, 20)
-          hCtx.fillStyle = d.hiddenRightHandle
-          hCtx.fillRect(xwidth - resizeWidth, d.y, resizeWidth, 20)
         } else if (d.type === 'select') {
           ctx.fillStyle = d.fill
           ctx.fillRect(x, d.y, xwidth - x, d.height)
+          ctx.strokeStyle = 'black'
+          ctx.lineWidth = 1
+          ctx.strokeRect(x, d.y, xwidth - x, d.height)
           hCtx.fillRect(x, d.y, xwidth - x, d.height)
         } else if (d.type === 'screenshot') {
           const image = imageCache.get(d.uri)
@@ -521,17 +620,56 @@ export default {
           ctx.stroke()
         }
       }
+
+      ctx.strokeStyle = 'rgba(0,0,0,0.22)'
+      ctx.lineWidth = 4
+      const step = 16
+      for (const y of this.lockedRows) {
+        ctx.save()
+        ctx.beginPath()
+        ctx.rect(0, y, this.canvasWidth, TIMELINE_HEIGHT - 5)
+        ctx.clip()
+        for (let xi = -TIMELINE_HEIGHT; xi < this.canvasWidth + step; xi += step) {
+          ctx.beginPath()
+          ctx.moveTo(xi, y)
+          ctx.lineTo(xi + TIMELINE_HEIGHT, y + TIMELINE_HEIGHT)
+          ctx.stroke()
+        }
+        ctx.restore()
+      }
+
+      if (this.selectedTimelineId) {
+        const activeEntry = data.find((d) => d.timeline === this.selectedTimelineId)
+        if (activeEntry) {
+          const y = activeEntry.y
+          const bottom = y + TIMELINE_HEIGHT - 5
+          ctx.save()
+          ctx.strokeStyle = '#2196f3'
+          ctx.lineWidth = 2
+          ctx.beginPath()
+          ctx.moveTo(0, y)
+          ctx.lineTo(this.canvasWidth, y)
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.moveTo(0, bottom)
+          ctx.lineTo(this.canvasWidth, bottom)
+          ctx.stroke()
+          ctx.restore()
+        }
+      }
     },
 
     drawTmpShot(rescale) {
       if (this.tempStore.tmpShot === null) return
-      this.ctx.fillStyle = 'yellow'
+      this.ctx.globalAlpha = this.tempStore.tmpShot.invalid ? 0.4 : 1
+      this.ctx.fillStyle = this.tempStore.tmpShot.invalid ? '#ffcccc' : 'yellow'
       this.ctx.fillRect(
         rescale(this.tempStore.tmpShot.start),
         this.tempStore.tmpShot.y,
         rescale(this.tempStore.tmpShot.end + 1) - rescale(this.tempStore.tmpShot.start),
         this.tempStore.tmpShot.height
       )
+      this.ctx.globalAlpha = 1
 
       if (this.tempStore.adjacentShot === null) return
       this.ctx.fillStyle = 'orange'
@@ -541,6 +679,53 @@ export default {
         rescale(this.tempStore.adjacentShot.end + 1) - rescale(this.tempStore.adjacentShot.start),
         this.tempStore.adjacentShot.height
       )
+    },
+
+    findEdgeAt(coordX, coordY) {
+      const EDGE_ZONE = 8
+      const JOINT_ZONE = 2
+      const rescale = this.transform.rescaleX(this.scale)
+      let best = null
+      let bestScore = -1
+
+      for (let i = 0; i < this.data.length; i += 1) {
+        const d = this.data[i]
+        if (d.type === 'shot' && coordY >= d.y && coordY <= d.y + d.height) {
+          const rightEdgeX = rescale(d.x + d.width)
+          const distRight = Math.abs(coordX - rightEdgeX)
+          if (distRight <= EDGE_ZONE) {
+            const score = (EDGE_ZONE - distRight) * (coordX <= rightEdgeX ? 2 : 1)
+            if (score > bestScore) {
+              bestScore = score
+              const next = this.data[i + 1]
+              const touching =
+                next &&
+                next.type === 'shot' &&
+                next.timeline === d.timeline &&
+                d.x + d.width === next.x
+              best = { entry: d, joint: touching && distRight <= JOINT_ZONE, leftSide: false }
+            }
+          }
+
+          const leftEdgeX = rescale(d.x)
+          const distLeft = Math.abs(coordX - leftEdgeX)
+          if (distLeft <= EDGE_ZONE) {
+            const score = (EDGE_ZONE - distLeft) * (coordX >= leftEdgeX ? 2 : 1)
+            if (score > bestScore) {
+              bestScore = score
+              const prev = this.data[i - 1]
+              const touching =
+                prev &&
+                prev.type === 'shot' &&
+                prev.timeline === d.timeline &&
+                prev.x + prev.width === d.x
+              best = { entry: d, joint: touching && distLeft <= JOINT_ZONE, leftSide: true }
+            }
+          }
+        }
+      }
+
+      return best
     },
 
     getTimelineForCoordinate(y) {
@@ -576,13 +761,37 @@ export default {
       const coordX = e.clientX - rect.left
       const coordY = e.clientY - rect.top
 
-      // New timeline segment
+      // New timeline segment or move existing segment
       if (e.altKey) {
-        const nTimeline = this.getTimelineForCoordinate(coordY)
-        if (this.undoableStore.timelines[nTimeline].type !== 'shots') return
+        const timelineIndex = this.getTimelineForCoordinate(coordY)
+        if (this.undoableStore.timelines[timelineIndex].type !== 'shots') return
+
+        // Check if clicking on an existing segment body
+        const colorData = this.hCtx.getImageData(x, y, 1, 1).data
+        const color = this.rgbToHex(colorData[0], colorData[1], colorData[2])
+        const segmentEntries = this.data.filter((d) => d.hiddenColor === color)
+        if (segmentEntries.length > 0 && !segmentEntries[0].locked) {
+          const entry = segmentEntries[0]
+          const xNew = Math.round(this.transform.rescaleX(this.scale).invert(coordX))
+          window.addEventListener('mouseup', this.mouseup)
+          this.tempStore.tmpShot = {
+            dragOffset: xNew - entry.x,
+            end: entry.x + entry.width - 1,
+            height: 44,
+            max: this.mainStore.numFrames,
+            min: 0,
+            moving: true,
+            originalShot: entry,
+            segmentWidth: entry.width - 1,
+            start: entry.x,
+            y: entry.y
+          }
+          return
+        }
 
         const height = coordY - (coordY % TIMELINE_HEIGHT)
         const start = this.transform.rescaleX(this.scale).invert(coordX)
+        window.addEventListener('mouseup', this.mouseup)
         this.tempStore.tmpShot = {
           end: start,
           height: 44,
@@ -591,38 +800,34 @@ export default {
           origin: start,
           originalShot: null,
           start,
+          timelineIndex,
           y: height
         }
         return
       }
 
       // Move boundary of existing segment
-      const colorData = this.hCtx.getImageData(x, y, 1, 1).data
-      const color = this.rgbToHex(colorData[0], colorData[1], colorData[2])
-      if (color === '#000000') return
-      const entries = this.data.filter(
-        (d) => d.hiddenLeftHandle === color || d.hiddenRightHandle === color
-      )
-      if (entries.length === 0) return
+      const edgeHit = this.findEdgeAt(coordX, coordY)
+      if (!edgeHit) return
       e.stopImmediatePropagation()
-      const [entry] = entries
+      const { entry, leftSide } = edgeHit
 
       if (entry.locked) {
         return
       }
 
+      window.addEventListener('mouseup', this.mouseup)
       this.tempStore.tmpShot = {
         end: entry.x + entry.width - 1,
         height: 44,
         max: this.mainStore.numFrames,
         min: 0,
-        origin: entry.hiddenLeftHandle === color ? entry.x + entry.width - 1 : entry.x,
+        origin: leftSide ? entry.x + entry.width - 1 : entry.x,
         originalShot: entry,
         start: entry.x,
         y: entry.y
       }
       const currentIndex = this.data.indexOf(entry)
-      const leftSide = entry.hiddenLeftHandle === color
       const adjacent = leftSide ? this.data[currentIndex - 1] : this.data[currentIndex + 1]
 
       if (adjacent?.timeline === entry.timeline) {
@@ -632,9 +837,9 @@ export default {
           : this.tempStore.tmpShot.start
         this.tempStore.tmpShot.max = leftSide ? this.tempStore.tmpShot.end : adjacent.x - 1
 
-        if (e.shiftKey && adjacent.locked) {
+        if (edgeHit.joint && adjacent.locked) {
           this.tempStore.tmpShot = null
-        } else if (e.shiftKey) {
+        } else if (edgeHit.joint) {
           this.tempStore.adjacentShot = {
             diff: leftSide
               ? entry.x - (adjacent.x + adjacent.width - 1)
@@ -651,7 +856,9 @@ export default {
       }
     },
 
-    mouseleave() {
+    mouseleave(e) {
+      if (e.buttons === 1) return
+      this.$refs.canvas.style.cursor = 'default'
       if (this.tempStore.tmpShot !== null) {
         this.tempStore.tmpShot = null
         this.tempStore.adjacentShot = null
@@ -664,13 +871,29 @@ export default {
       const coordX = e.clientX - rect.left
       const xNew = Math.round(this.transform.rescaleX(this.scale).invert(coordX))
 
+      if (e.buttons !== 1) {
+        const coordY = e.clientY - rect.top
+        const edge = this.findEdgeAt(coordX, coordY)
+        if (edge) {
+          if (edge.joint) {
+            this.$refs.canvas.style.cursor = 'ew-resize'
+          } else if (edge.leftSide) {
+            this.$refs.canvas.style.cursor = 'e-resize'
+          } else {
+            this.$refs.canvas.style.cursor = 'w-resize'
+          }
+        } else {
+          this.$refs.canvas.style.cursor = 'default'
+        }
+      }
+
       if (e.buttons !== 1 || this.tempStore.tmpShot === null) return
-      if (e.altKey || e.shiftKey) e.stopImmediatePropagation()
+      if (e.altKey || this.tempStore.adjacentShot) e.stopImmediatePropagation()
 
       // Limit the bounds so that no overlapping or inverted segments (end before start) get created
       const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
       const { tmpShot, adjacentShot } = { ...this.tempStore }
-      if (e.shiftKey && adjacentShot) {
+      if (adjacentShot) {
         if (adjacentShot.leftSide) {
           tmpShot.start = clamp(xNew, adjacentShot.start + adjacentShot.diff + 1, tmpShot.origin)
           tmpShot.end = clamp(xNew, tmpShot.end, tmpShot.origin + 1)
@@ -680,9 +903,26 @@ export default {
           tmpShot.end = clamp(xNew, tmpShot.origin + 1, adjacentShot.end - adjacentShot.diff - 1)
           adjacentShot.start = tmpShot.end + adjacentShot.diff
         }
+      } else if (tmpShot.moving) {
+        const newStart = clamp(
+          xNew - tmpShot.dragOffset,
+          tmpShot.min,
+          tmpShot.max - tmpShot.segmentWidth
+        )
+        tmpShot.start = newStart
+        tmpShot.end = newStart + tmpShot.segmentWidth
+        const timeline = this.undoableStore.timelines.find(
+          (t) => t.id === tmpShot.originalShot.timeline
+        )
+        tmpShot.invalid = timeline.data.some(
+          (s) => s.id !== tmpShot.originalShot.id && newStart <= s.end && tmpShot.end >= s.start
+        )
       } else {
         tmpShot.start = clamp(xNew, tmpShot.min, tmpShot.origin)
         tmpShot.end = clamp(xNew, tmpShot.origin, tmpShot.max)
+        const timeline = this.undoableStore.timelines[tmpShot.timelineIndex]
+        tmpShot.invalid =
+          timeline?.data.some((s) => tmpShot.start <= s.end && tmpShot.end >= s.start) ?? false
       }
 
       this.requestDraw()
@@ -691,14 +931,27 @@ export default {
 
     mouseup(e) {
       if (this.tempStore.tmpShot === null) return
+      window.removeEventListener('mouseup', this.mouseup)
       e.stopImmediatePropagation()
-      const coord = d3.pointer(e, this.$refs.canvas)
-      if (this.tempStore.tmpShot.originalShot === null) {
-        this.undoableStore.addShotToNth(
-          this.getTimelineForCoordinate(coord[1]),
-          this.tempStore.tmpShot.start,
-          this.tempStore.tmpShot.end
+      if (this.tempStore.tmpShot.moving) {
+        const { start, end, originalShot } = this.tempStore.tmpShot
+        const timeline = this.undoableStore.timelines.find((t) => t.id === originalShot.timeline)
+        const overlaps = timeline.data.some(
+          (s) => s.id !== originalShot.id && start <= s.end && end >= s.start
         )
+        if (overlaps) {
+          this.moveWarning = true
+        } else {
+          this.undoableStore.changeShotBoundaries(originalShot.id, start, end)
+        }
+      } else if (this.tempStore.tmpShot.originalShot === null) {
+        if (!this.tempStore.tmpShot.invalid) {
+          this.undoableStore.addShotToNth(
+            this.tempStore.tmpShot.timelineIndex,
+            this.tempStore.tmpShot.start,
+            this.tempStore.tmpShot.end
+          )
+        }
       } else {
         this.undoableStore.changeShotBoundaries(
           this.tempStore.tmpShot.originalShot.id,
@@ -706,7 +959,7 @@ export default {
           this.tempStore.tmpShot.end
         )
 
-        if (e.shiftKey && this.tempStore.adjacentShot) {
+        if (this.tempStore.adjacentShot) {
           this.undoableStore.changeShotBoundaries(
             this.tempStore.adjacentShot.originalShot.id,
             this.tempStore.adjacentShot.start,
@@ -716,6 +969,7 @@ export default {
       }
       this.tempStore.tmpShot = null
       this.tempStore.adjacentShot = null
+      this.$refs.canvas.style.cursor = 'default'
     },
 
     onCanvasResize() {
@@ -724,6 +978,17 @@ export default {
       this.resize()
       this.requestDraw()
       this.overlayInput = false
+    },
+
+    onDrag(e) {
+      if (!this.isDragging) return
+      this.overlayPosX = e.clientX - this.dragStartX
+      this.overlayPosY = e.clientY - this.dragStartY
+    },
+
+    onScroll(value) {
+      const target = d3.zoomIdentity.translate(-value, 0).scale(this.transform.k)
+      d3.select(this.$refs.canvas).call(this.zoom.transform, target)
     },
 
     overlayInputChange() {
@@ -786,6 +1051,20 @@ export default {
       return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1).toLowerCase()
     },
 
+    startDrag(e) {
+      this.isDragging = true
+      this.dragStartX = e.clientX - this.overlayPosX
+      this.dragStartY = e.clientY - this.overlayPosY
+      window.addEventListener('mousemove', this.onDrag)
+      window.addEventListener('mouseup', this.stopDrag)
+    },
+
+    stopDrag() {
+      this.isDragging = false
+      window.removeEventListener('mousemove', this.onDrag)
+      window.removeEventListener('mouseup', this.stopDrag)
+    },
+
     timeAxisClickHandler(e) {
       const coordX = e.clientX - this.$refs.timeCanvas.getBoundingClientRect().left
       const timePosition = this.transform.rescaleX(this.scale).invert(coordX) / this.mainStore.fps
@@ -804,5 +1083,37 @@ export default {
 <style scoped>
 canvas {
   width: 100%;
+}
+
+.timeline-scrollbar {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  height: 8px;
+  margin: 2px 0 0;
+  width: 100%;
+}
+
+.timeline-scrollbar::-webkit-slider-runnable-track {
+  background: #e0e0e0;
+  border-radius: 4px;
+  height: 8px;
+}
+
+.timeline-scrollbar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #aaaaaa;
+  border-radius: 4px;
+  cursor: pointer;
+  height: 8px;
+  margin-top: 0;
+  width: var(--thumb-width, 40px);
+}
+
+.overlay-card {
+  min-width: 400px;
+  max-width: 500px;
 }
 </style>

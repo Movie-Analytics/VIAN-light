@@ -42,7 +42,8 @@ export const useMainStore = defineStore('main', {
       this.id = id
       undoableStore.id = id
       this.video = video
-      if (this.fps === null && this.video !== null) {
+
+      if (this.video !== null) {
         api.getVideoInfo(this.video)
       }
     },

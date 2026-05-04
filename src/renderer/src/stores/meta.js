@@ -11,6 +11,15 @@ export const useMetaStore = defineStore('meta', {
   }),
   /* eslint-disable-next-line vue/sort-keys */
   actions: {
+    async chooseNewVideo() {
+      const videoInfo = await api.openVideo((p) => {
+        this.uploadProgress = p
+      })
+
+      if (!videoInfo) return null
+
+      return videoInfo.location
+    },
     deleteProject(projectId) {
       this.projects = this.projects.filter((project) => project.id !== projectId)
     },
@@ -27,15 +36,18 @@ export const useMetaStore = defineStore('meta', {
 
       api.onImportProject(this.onImportProject)
     },
+
     async loadStore() {
       const state = await api.loadStore('meta')
       if (state !== null) {
         this.$patch(state)
       }
     },
+
     onImportProject(project) {
       this.projects.push(project)
     },
+
     async openVideo() {
       const videoInfo = await api.openVideo((p) => {
         this.uploadProgress = p

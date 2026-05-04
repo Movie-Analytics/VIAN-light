@@ -7,6 +7,7 @@
         crossorigin="anonymous"
         @durationchange="durationChange"
         @timeupdate="videoTimeUpdate"
+        @error="videoError"
       >
         <source v-if="mainStore.video !== null" :src="mainStore.video" type="video/mp4" />
 
@@ -17,6 +18,25 @@
           default
         />
       </video>
+
+      <v-dialog v-model="missingVideoDialog" persistent max-width="500">
+        <v-card>
+          <v-card-title>Video file not found</v-card-title>
+
+          <v-card-text>
+            The video could not be loaded. It may have been moved or deleted. You can ignore this or
+            choose a new video location.
+          </v-card-text>
+
+          <v-card-actions>
+            <v-btn color="warning" @click="missingVideoDialog = false"> Ignore </v-btn>
+
+            <v-btn color="primary" @click="chooseNewVideoLocation">
+              Choose new video location
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
 
       <div class="d-flex flex-0-0 flex-column">
         <div class="d-flex justify-space-between min-wide-control px-2">
@@ -232,6 +252,7 @@ import api from '@renderer/api'
 import { mapStores } from 'pinia'
 import shortcuts from '@renderer/shortcuts'
 import { useMainStore } from '@renderer/stores/main'
+import { useMetaStore } from '@renderer/stores/meta'
 import { useTempStore } from '@renderer/stores/temp'
 import { useUndoableStore } from '@renderer/stores/undoable'
 
@@ -240,6 +261,7 @@ export default {
 
   data() {
     return {
+      missingVideoDialog: false,
       playbackRate: 1,
       playingState: false,
       showVolumeSlider: false,
@@ -257,14 +279,24 @@ export default {
       return this.mainStore.timeReadableSec(this.tempStore.playPosition, true)
     },
 
-    ...mapStores(useMainStore, useTempStore, useUndoableStore)
+    ...mapStores(useMainStore, useMetaStore, useTempStore, useUndoableStore)
   },
 
   watch: {
-    'tempStore.playJumpPosition'(newValue) {
-      // Use a proxy value because updating currentTime based on playPosition
-      // directly is prone to timing issues
+    'mainStore.video'() {
+      return this.$nextTick().then(() => {
+        const video = this.$refs.video
+        video?.load()
 
+        setTimeout(() => {
+          if (!video || !video.duration || isNaN(video.duration)) {
+            this.videoError()
+          }
+        }, 1000)
+      })
+    },
+
+    'tempStore.playJumpPosition'(newValue) {
       if (newValue !== null) {
         this.$refs.video.currentTime = newValue
         this.tempStore.playPosition = newValue
@@ -302,6 +334,22 @@ export default {
   methods: {
     backwardClicked() {
       this.$refs.video.currentTime -= 1 / this.mainStore.fps
+    },
+
+    async chooseNewVideoLocation() {
+      const newVideoLocation = await this.metaStore.chooseNewVideo()
+
+      if (!newVideoLocation) {
+        this.missingVideoDialog = false
+        return
+      }
+
+      this.missingVideoDialog = false
+      this.mainStore.openVideo(this.mainStore.id, newVideoLocation)
+
+      this.$nextTick().then(() => {
+        this.$refs.video?.load()
+      })
     },
 
     durationChange(event) {
@@ -379,12 +427,17 @@ export default {
       this.playingState = true
     },
 
-    playPauseClicked() {
+    async playPauseClicked() {
       if (this.playingState) {
         this.stopPlayback()
       } else {
-        this.$refs.video.play()
-        this.playingState = true
+        try {
+          await this.$refs.video.play()
+          this.playingState = true
+        } catch (error) {
+          console.error('Video playback failed:', error)
+          this.videoError()
+        }
       }
     },
 
@@ -417,6 +470,14 @@ export default {
     updateVolume(value) {
       if (this.$refs.video) {
         this.$refs.video.volume = value / 100
+      }
+    },
+
+    videoError() {
+      this.stopPlayback()
+
+      if (!this.missingVideoDialog) {
+        this.missingVideoDialog = true
       }
     },
 

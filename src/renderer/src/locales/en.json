@@ -211,12 +211,14 @@
         "mergeSelectedSegments": "Merge selected segments",
         "showCategories": "Show categories",
         "hideCategories": "Hide categories",
+        "lockTrack": "Lock/unlock track",
         "timelineOptions": "Timeline options"
       }
     },
 
     "timelineCanvas": {
-      "annotations": "Annotations"
+      "annotations": "Annotation",
+      "moveWarning": "Segment cannot be moved here as it would overlap with another segment."
     }
   }
 }

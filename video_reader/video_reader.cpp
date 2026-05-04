@@ -208,7 +208,7 @@ std::vector<std::vector<int>> VideoReader::DetectShots(const std::string& onnx_m
         // ONNX Runtime setup
         Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "shot_detection");
         Ort::SessionOptions session_options;
-        session_options.SetIntraOpNumThreads(1);
+        // session_options.SetIntraOpNumThreads(1);
         #ifdef _WIN32
             std::wstring wide_path(onnx_model_path.begin(), onnx_model_path.end());
             Ort::Session session(env, wide_path.c_str(), session_options);

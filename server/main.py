@@ -171,10 +171,10 @@ async def upload_video(
     current_account: auth.AccountDep,
     file: Annotated[UploadFile, File(...)],
 ) -> dict:
-    if not file.content_type.startswith('video/mp4'):  # type: ignore
+    if file.content_type not in ('video/mp4', 'video/quicktime'):  # type: ignore
         raise HTTPException(
             status_code=400,
-            detail='Invalid file type. Please upload a mp4 video.'
+            detail='Invalid file type. Please upload a mp4 or mov video.'
         )
 
     unique_filename = f'{uuid.uuid4()}.mp4'
@@ -395,7 +395,7 @@ async def import_project(
     session: db.SessionDep,
     current_account: auth.AccountDep
 ) -> dict:
-    if not video.content_type.startswith('video/mp4'):  # type: ignore
+    if video.content_type not in ('video/mp4', 'video/quicktime'):  # type: ignore
         raise HTTPException(
             status_code=400,
             detail='Invalid file type. Please upload a video file.'

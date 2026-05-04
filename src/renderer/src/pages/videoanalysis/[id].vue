@@ -2,7 +2,6 @@
   <v-app-bar density="compact">
     <v-app-bar-title>
       {{ $t('app.title') }}
-      <span class="text-body-2 text-medium-emphasis">{{ mainStore.video }}</span>
     </v-app-bar-title>
 
     <v-btn v-tooltip="$t('pages.video.tooltips.undo')" :disabled="!isUndoable" icon @click="undo">
@@ -408,6 +407,9 @@ export default {
     shortcuts.clear('z', true, true)
     shortcuts.clear('z', true, false, true)
     shortcuts.clear('z', false, false, true)
+    this.tempStore.jobs
+      .filter((j) => j.status === 'RUNNING')
+      .forEach((j) => this.tempStore.terminateJob(j.id))
     api.unregisterVideoViewCallbacks()
   },
 

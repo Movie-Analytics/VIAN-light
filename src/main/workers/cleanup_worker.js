@@ -17,6 +17,7 @@ const cleanProjects = (vianPath, projects) => {
 }
 
 const cleanScreenshots = (projectPath) => {
+  if (!fs.existsSync(path.join(projectPath, 'undoable.json'))) return
   const content = fs.readFileSync(path.join(projectPath, 'undoable.json'), 'utf8')
   const { timelines } = JSON.parse(content)
   const referencedImgs = new Set()

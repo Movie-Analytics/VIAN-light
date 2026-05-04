@@ -115,7 +115,7 @@ class RemoteApi {
     return new Promise((resolve) => {
       const fileInput = document.createElement('input')
       fileInput.type = 'file'
-      fileInput.accept = 'video/mp4'
+      fileInput.accept = 'video/mp4,video/quicktime'
 
       fileInput.onchange = (event) => {
         const [file] = event.target.files

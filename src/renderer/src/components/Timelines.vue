@@ -75,16 +75,52 @@
             >
               <template #activator>
                 <v-list-item
-                  :title="timeline.name"
                   class="pr-2"
+                  :class="[{ 'active-track': id === selectedTimelineId }]"
                   draggable="true"
                   @dragstart="dragStart($event, id)"
                   @dragend="dragEnd"
                   @dragover="dragOver"
                   @drop="dragDrop($event, id)"
                 >
+                  <template #title>
+                    <div class="track-name-wrap">
+                      <span
+                        :ref="
+                          (el) => {
+                            if (el) trackNameRefs[id] = el
+                          }
+                        "
+                        class="track-name-text"
+                        >{{ timeline.name }}</span
+                      >
+
+                      <div v-if="overflowingTracks[id]" class="track-name-popover">
+                        {{ timeline.name }}
+                      </div>
+                    </div>
+                  </template>
+
                   <template #append>
                     <v-list-item-action start>
+                      <v-btn
+                        v-tooltip="{
+                          text: $t('components.timelines.tooltips.lockTrack'),
+                          location: 'bottom'
+                        }"
+                        icon
+                        variant="text"
+                        density="compact"
+                        :aria-label="$t('components.timelines.tooltips.lockTrack')"
+                        @click.stop="toggleTimelineLock(id)"
+                      >
+                        <v-icon>{{
+                          undoableStore.getTimelineById(id).locked
+                            ? 'mdi-lock'
+                            : 'mdi-lock-open-outline'
+                        }}</v-icon>
+                      </v-btn>
+
                       <v-btn
                         v-if="timeline.categories"
                         v-tooltip="{
@@ -240,10 +276,12 @@ export default {
   data() {
     return {
       linkVocabDialog: false,
+      overflowingTracks: {},
       renameDialog: false,
       selectedTimeline: null,
       selectedVocab: null,
-      timelineName: ''
+      timelineName: '',
+      trackNameRefs: {}
     }
   },
 
@@ -289,8 +327,16 @@ export default {
 
     segmentsLocked() {
       return Array.from(this.tempStore.selectedSegments.entries())
-        .map((shot) => this.undoableStore.getSegmentForId(shot[1], shot[0]).locked)
+        .map(([shotId, timelineId]) => {
+          const timeline = this.undoableStore.getTimelineById(timelineId)
+          return timeline.locked || this.undoableStore.getSegmentForId(timelineId, shotId).locked
+        })
         .some((v) => v)
+    },
+
+    selectedTimelineId() {
+      if (this.tempStore.selectedSegments.size === 0) return null
+      return this.tempStore.selectedSegments.values().next().value
     },
 
     shotTimelinesExists() {
@@ -310,6 +356,7 @@ export default {
     'undoableStore.timelines.length'(newVal, oldVal) {
       if (newVal !== oldVal) {
         this.createTimelineFolds()
+        this.checkTrackNameOverflow()
       }
     },
 
@@ -323,6 +370,7 @@ export default {
   },
 
   mounted() {
+    this.checkTrackNameOverflow()
     // Register shorcuts and menu actions
     shortcuts.register('Delete', this.segmentDelete)
     shortcuts.register('Backspace', this.segmentDelete)
@@ -353,6 +401,16 @@ export default {
         typeof timeline.vocabulary === 'string' ||
         timeline.type !== 'shots'
       )
+    },
+
+    checkTrackNameOverflow() {
+      this.$nextTick().then(() => {
+        const overflowing = {}
+        for (const [id, el] of Object.entries(this.trackNameRefs)) {
+          overflowing[id] = el.scrollWidth > el.offsetWidth
+        }
+        this.overflowingTracks = overflowing
+      })
     },
 
     createTimelineFolds() {
@@ -426,6 +484,7 @@ export default {
       this.undoableStore.renameTimeline(this.selectedTimeline, this.timelineName)
       this.renameDialog = false
       this.createTimelineFolds()
+      this.checkTrackNameOverflow()
     },
 
     segmentDelete() {
@@ -451,6 +510,11 @@ export default {
         Math.round(this.tempStore.playPosition * this.mainStore.fps)
       )
       this.tempStore.selectedSegments = new Map()
+    },
+
+    toggleTimelineLock(id) {
+      const timeline = this.undoableStore.getTimelineById(id)
+      timeline.locked = !timeline.locked
     }
   }
 }
@@ -459,5 +523,49 @@ export default {
 <style scoped>
 #timeline-list {
   padding-top: 30px;
+}
+
+:deep(.active-track) {
+  background-color: rgba(var(--v-theme-primary), 0.15);
+}
+
+:deep(.active-track .v-list-item-title) {
+  font-weight: 600;
+}
+
+#timeline-list :deep(.v-list-item-title),
+#timeline-list :deep(.v-list-item__content) {
+  overflow: visible;
+}
+
+.track-name-wrap {
+  position: relative;
+}
+
+.track-name-text {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.track-name-popover {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  z-index: 100;
+  background-color: rgb(var(--v-theme-surface));
+  white-space: normal;
+  max-width: 240px;
+  padding: 2px 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  line-height: 1.4;
+}
+
+.track-name-wrap:hover .track-name-popover {
+  display: block;
 }
 </style>

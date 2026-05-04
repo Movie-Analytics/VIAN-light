@@ -16,7 +16,7 @@
 
         <v-textarea
           v-model="annotationBuffer"
-          :disabled="selectedTimelineSegment.locked"
+          :disabled="segmentLocked"
           :label="$t('components.shotDetail.annotationsLabel')"
           rows="1"
           max-rows="3"
@@ -36,7 +36,12 @@
           ></v-autocomplete>
         </div>
 
-        <v-checkbox v-model="selectedTimelineSegment.locked">
+        <v-checkbox
+          v-model="selectedTimelineSegment.locked"
+          :disabled="
+            undoableStore.getTimelineById(tempStore.selectedSegments.values().next().value).locked
+          "
+        >
           <template #label>
             <div>
               {{ $t('components.shotDetail.lockSegment') }}
@@ -85,6 +90,15 @@ export default {
 
     currentAnnotation() {
       return this.selectedTimelineSegment?.annotation
+    },
+
+    segmentLocked() {
+      if (this.tempStore.selectedSegments.size !== 1) return false
+      const [shotid, timelineid] = this.tempStore.selectedSegments.entries().next().value
+      const timeline = this.undoableStore.getTimelineById(timelineid)
+      return Boolean(
+        timeline.locked || this.undoableStore.getSegmentForId(timelineid, shotid).locked
+      )
     },
 
     segmentVocabulary() {
