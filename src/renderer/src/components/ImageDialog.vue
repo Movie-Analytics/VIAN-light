@@ -72,7 +72,9 @@ export default {
       const annotations = []
       for (const timeline of this.undoableStore.timelines) {
         const screenshotAnnotations = timeline.data.filter((annotation) => {
-          if (annotation.start <= this.screenshot.frame < annotation.end) return true
+          if (annotation.start <= this.screenshot.frame && this.screenshot.frame < annotation.end) {
+            return true
+          }
           return false
         })
         if (
