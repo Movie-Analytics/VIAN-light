@@ -20,7 +20,7 @@
       </v-card-text>
 
       <v-card-actions>
-        <v-btn :text="$t('common.export')" @click="exportData"></v-btn>
+        <v-btn :text="$t('common.export')" @click="exportScreenshot"></v-btn>
 
         <v-spacer></v-spacer>
 
@@ -31,7 +31,7 @@
 </template>
 
 <script>
-import { exportScreenshot } from '../importexport'
+import api from '@renderer/api'
 import { mapStores } from 'pinia'
 import { useMainStore } from '@renderer/stores/main'
 import { useUndoableStore } from '@renderer/stores/undoable'
@@ -64,8 +64,10 @@ export default {
       this.isOpen = false
     },
 
-    exportData() {
-      exportScreenshot(this.screenshot)
+    exportScreenshot() {
+      const screenshot = JSON.parse(JSON.stringify(this.screenshot))
+      const associatedAnnotations = JSON.parse(JSON.stringify(this.associatedAnnotations))
+      api.exportScreenshot(this.mainStore.id, screenshot, associatedAnnotations)
     },
 
     getAssociatedAnnotations() {
