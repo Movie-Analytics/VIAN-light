@@ -248,13 +248,10 @@ export default {
       const rect = this.$refs.canvas.getBoundingClientRect()
       const x = (event.clientX - rect.left) * this.dpr
       const y = (event.clientY - rect.top) * this.dpr
-      const colorData = this.hCtx.getImageData(x, y, 1, 1).data
-      const color = this.rgbToHex(colorData[0], colorData[1], colorData[2])
-      const entries = this.data.filter((d) => d.hiddenColor === color)
+      const entry = this.getEntryAtPosition(x, y)
 
-      if (entries.length > 0) {
+      if (entry) {
         // Select shots
-        const [entry] = entries
         if (entry.type === 'select') {
           this.undoableStore.addVocabAnnotation(entry.id, entry.tag)
         } else if (Date.now() - this.lastClick < 500 && !entry.locked) {
@@ -745,6 +742,12 @@ export default {
       return best
     },
 
+    getEntryAtPosition(x, y) {
+      const colorData = this.hCtx.getImageData(x, y, 1, 1).data
+      const color = this.rgbToHex(colorData[0], colorData[1], colorData[2])
+      return this.data.find((d) => d.hiddenColor === color) ?? null
+    },
+
     getTimelineForCoordinate(y) {
       let index = 0
       let offset = 0
@@ -831,11 +834,8 @@ export default {
       }
 
       // Move existing segment
-      const colorData = this.hCtx.getImageData(x, y, 1, 1).data
-      const color = this.rgbToHex(colorData[0], colorData[1], colorData[2])
-      const segmentEntries = this.data.filter((d) => d.hiddenColor === color)
-      if (segmentEntries.length > 0 && !segmentEntries[0].locked) {
-        const entry = segmentEntries[0]
+      const entry = this.getEntryAtPosition(x, y)
+      if (entry && !entry.locked) {
         const xNew = Math.round(this.transform.rescaleX(this.scale).invert(coordX))
         window.addEventListener('mouseup', this.mouseup)
         this.tempStore.tmpShot = {
