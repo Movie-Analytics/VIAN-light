@@ -588,14 +588,14 @@ export default {
             ctx.fillText(d.annotation, x + 10, d.y + 15)
             ctx.restore()
           }
-          ctx.strokeStyle = 'black'
+          ctx.strokeStyle = '#666666'
           ctx.lineWidth = 1
           ctx.strokeRect(x, d.y, xwidth - x, d.height)
           hCtx.fillRect(x, d.y, xwidth - x, d.height)
         } else if (d.type === 'select') {
           ctx.fillStyle = this.segmentFill(d, selectedSegments)
           ctx.fillRect(x, d.y, xwidth - x, d.height)
-          ctx.strokeStyle = 'black'
+          ctx.strokeStyle = '#666666'
           ctx.lineWidth = 1
           ctx.strokeRect(x, d.y, xwidth - x, d.height)
           hCtx.fillRect(x, d.y, xwidth - x, d.height)
