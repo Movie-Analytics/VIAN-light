@@ -152,21 +152,37 @@
 
                         <v-list class="pb-0 pt-0">
                           <v-list-item
+                            v-tooltip="{
+                              text: $t('components.timelines.tooltips.duplicateTrack'),
+                              location: 'right'
+                            }"
                             :title="$t('pages.video.timelines.duplicate')"
                             @click="duplicateTimeline(id)"
                           ></v-list-item>
 
                           <v-list-item
+                            v-tooltip="{
+                              text: $t('components.timelines.tooltips.deleteTrack'),
+                              location: 'right'
+                            }"
                             :title="$t('pages.video.timelines.delete')"
                             @click="deleteTimeline(id)"
                           ></v-list-item>
 
                           <v-list-item
+                            v-tooltip="{
+                              text: $t('components.timelines.tooltips.renameTrack'),
+                              location: 'right'
+                            }"
                             :title="$t('pages.video.timelines.rename')"
                             @click="renameDialogOpen(id)"
                           ></v-list-item>
 
                           <v-list-item
+                            v-tooltip="{
+                              text: $t('components.timelines.tooltips.linkVocabularyToTrack'),
+                              location: 'right'
+                            }"
                             :title="$t('pages.video.timelines.linkVocabulary')"
                             :disabled="!canLinkVocabulary(id)"
                             @click="linkVocabDialogOpen(id)"
