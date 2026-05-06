@@ -2,6 +2,9 @@
   <v-app-bar density="compact">
     <v-app-bar-title>
       {{ $t('app.title') }}
+      <span v-if="mainStore.video" class="text-body-2 text-medium-emphasis">{{
+        mainStore.video.split(/[\\/]/).pop()
+      }}</span>
     </v-app-bar-title>
 
     <v-btn v-tooltip="$t('pages.video.tooltips.undo')" :disabled="!isUndoable" icon @click="undo">
