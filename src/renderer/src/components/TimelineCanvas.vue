@@ -921,18 +921,11 @@ export default {
         )
         tmpShot.start = newStart
         tmpShot.end = newStart + tmpShot.segmentWidth
-        const timeline = this.undoableStore.timelines.find(
-          (t) => t.id === tmpShot.originalShot.timeline
-        )
-        tmpShot.invalid = timeline.data.some(
-          (s) => s.id !== tmpShot.originalShot.id && newStart <= s.end && tmpShot.end >= s.start
-        )
+        tmpShot.invalid = this.shotOverlaps(tmpShot)
       } else {
         tmpShot.start = clamp(xNew, tmpShot.min, tmpShot.origin)
         tmpShot.end = clamp(xNew, tmpShot.origin, tmpShot.max)
-        const timeline = this.undoableStore.timelines[tmpShot.timelineIndex]
-        tmpShot.invalid =
-          timeline?.data.some((s) => tmpShot.start <= s.end && tmpShot.end >= s.start) ?? false
+        tmpShot.invalid = this.shotOverlaps(tmpShot)
       }
 
       this.requestDraw()
@@ -943,37 +936,30 @@ export default {
       if (this.tempStore.tmpShot === null) return
       window.removeEventListener('mouseup', this.mouseup)
       e.stopImmediatePropagation()
-      if (this.tempStore.tmpShot.moving) {
-        const { start, end, originalShot } = this.tempStore.tmpShot
-        const timeline = this.undoableStore.timelines.find((t) => t.id === originalShot.timeline)
-        const overlaps = timeline.data.some(
-          (s) => s.id !== originalShot.id && start <= s.end && end >= s.start
-        )
-        if (overlaps) {
+      const { tmpShot } = this.tempStore
+      if (tmpShot.moving) {
+        if (tmpShot.invalid) {
           this.moveWarning = true
         } else {
-          this.undoableStore.changeShotBoundaries(originalShot.id, start, end)
-        }
-      } else if (this.tempStore.tmpShot.originalShot === null) {
-        if (!this.tempStore.tmpShot.invalid) {
-          this.undoableStore.addShotToNth(
-            this.tempStore.tmpShot.timelineIndex,
-            this.tempStore.tmpShot.start,
-            this.tempStore.tmpShot.end
+          this.undoableStore.changeShotBoundaries(
+            tmpShot.originalShot.id,
+            tmpShot.start,
+            tmpShot.end
           )
         }
+      } else if (tmpShot.originalShot === null) {
+        if (!tmpShot.invalid) {
+          this.undoableStore.addShotToNth(tmpShot.timelineIndex, tmpShot.start, tmpShot.end)
+        }
       } else {
-        this.undoableStore.changeShotBoundaries(
-          this.tempStore.tmpShot.originalShot.id,
-          this.tempStore.tmpShot.start,
-          this.tempStore.tmpShot.end
-        )
+        this.undoableStore.changeShotBoundaries(tmpShot.originalShot.id, tmpShot.start, tmpShot.end)
 
         if (this.tempStore.adjacentShot) {
+          const { adjacentShot } = this.tempStore
           this.undoableStore.changeShotBoundaries(
-            this.tempStore.adjacentShot.originalShot.id,
-            this.tempStore.adjacentShot.start,
-            this.tempStore.adjacentShot.end
+            adjacentShot.originalShot.id,
+            adjacentShot.start,
+            adjacentShot.end
           )
         }
       }
@@ -1065,6 +1051,17 @@ export default {
       if (selectedSegments.has(d.id)) return 'yellow'
       if (d.timeline === this.selectedTimelineId && d.fill !== '#aa5555') return '#e0e0e0'
       return d.fill
+    },
+
+    shotOverlaps(shot) {
+      const timeline = shot.originalShot
+        ? this.undoableStore.timelines.find((t) => t.id === shot.originalShot.timeline)
+        : this.undoableStore.timelines[shot.timelineIndex]
+      return (
+        timeline?.data.some(
+          (s) => s.id !== shot.originalShot?.id && shot.start <= s.end && shot.end >= s.start
+        ) ?? false
+      )
     },
 
     startDrag(e) {
