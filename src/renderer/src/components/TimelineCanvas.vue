@@ -573,7 +573,11 @@ export default {
       ctx.font = '15px Arial'
       ctx.textBaseline = 'top'
 
-      for (const d of data) {
+      const movingId = this.tempStore.tmpShot?.moving
+        ? this.tempStore.tmpShot.originalShot?.id
+        : null
+      const visibleData = movingId === null ? data : data.filter((d) => d.id !== movingId)
+      for (const d of visibleData) {
         const x = Math.round(rescale(d.x))
         const xwidth = Math.round(rescale(d.x + d.width))
         if (xwidth < 0 || x > this.canvasWidth || (xwidth - x <= 0 && d.type !== 'screenshot'))
