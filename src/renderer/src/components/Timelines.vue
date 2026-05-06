@@ -105,24 +105,6 @@
                   <template #append>
                     <v-list-item-action start>
                       <v-btn
-                        v-tooltip="{
-                          text: $t('components.timelines.tooltips.lockTrack'),
-                          location: 'bottom'
-                        }"
-                        icon
-                        variant="text"
-                        density="compact"
-                        :aria-label="$t('components.timelines.tooltips.lockTrack')"
-                        @click.stop="toggleTimelineLock(id)"
-                      >
-                        <v-icon size="x-small">{{
-                          undoableStore.getTimelineById(id).locked
-                            ? 'mdi-lock'
-                            : 'mdi-lock-open-outline'
-                        }}</v-icon>
-                      </v-btn>
-
-                      <v-btn
                         v-if="timeline.categories"
                         v-tooltip="{
                           text: timeline.visible
@@ -141,6 +123,24 @@
                         @click="timeline.visible = !timeline.visible"
                       >
                         <v-icon>mdi-expand-all</v-icon>
+                      </v-btn>
+
+                      <v-btn
+                        v-tooltip="{
+                          text: $t('components.timelines.tooltips.lockTrack'),
+                          location: 'bottom'
+                        }"
+                        icon
+                        variant="text"
+                        density="compact"
+                        :aria-label="$t('components.timelines.tooltips.lockTrack')"
+                        @click.stop="toggleTimelineLock(id)"
+                      >
+                        <v-icon size="x-small">{{
+                          undoableStore.getTimelineById(id).locked
+                            ? 'mdi-lock'
+                            : 'mdi-lock-open-outline'
+                        }}</v-icon>
                       </v-btn>
 
                       <v-menu>
