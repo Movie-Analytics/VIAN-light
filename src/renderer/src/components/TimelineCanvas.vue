@@ -774,98 +774,95 @@ export default {
       const coordX = e.clientX - rect.left
       const coordY = e.clientY - rect.top
 
-      // New timeline segment or move existing segment
-      if (e.altKey) {
-        const timelineIndex = this.getTimelineForCoordinate(coordY)
-        if (this.undoableStore.timelines[timelineIndex].type !== 'shots') return
+      if (!e.altKey) return
 
-        // Check if clicking on an existing segment body
-        const colorData = this.hCtx.getImageData(x, y, 1, 1).data
-        const color = this.rgbToHex(colorData[0], colorData[1], colorData[2])
-        const segmentEntries = this.data.filter((d) => d.hiddenColor === color)
-        if (segmentEntries.length > 0 && !segmentEntries[0].locked) {
-          const entry = segmentEntries[0]
-          const xNew = Math.round(this.transform.rescaleX(this.scale).invert(coordX))
-          window.addEventListener('mouseup', this.mouseup)
-          this.tempStore.tmpShot = {
-            dragOffset: xNew - entry.x,
-            end: entry.x + entry.width - 1,
-            height: 44,
-            max: this.mainStore.numFrames,
-            min: 0,
-            moving: true,
-            originalShot: entry,
-            segmentWidth: entry.width - 1,
-            start: entry.x,
-            y: entry.y
-          }
-          return
-        }
+      const timelineIndex = this.getTimelineForCoordinate(coordY)
+      if (this.undoableStore.timelines[timelineIndex].type !== 'shots') return
 
-        const height = coordY - (coordY % TIMELINE_HEIGHT)
-        const start = this.transform.rescaleX(this.scale).invert(coordX)
+      // Resize segment boundary
+      const edgeHit = this.findEdgeAt(coordX, coordY)
+      if (edgeHit) {
+        e.stopImmediatePropagation()
+        const { entry, leftSide } = edgeHit
+        if (entry.locked) return
+
         window.addEventListener('mouseup', this.mouseup)
         this.tempStore.tmpShot = {
-          end: start,
+          end: entry.x + entry.width - 1,
           height: 44,
           max: this.mainStore.numFrames,
           min: 0,
-          origin: start,
-          originalShot: null,
-          start,
-          timelineIndex,
-          y: height
+          origin: leftSide ? entry.x + entry.width - 1 : entry.x,
+          originalShot: entry,
+          start: entry.x,
+          y: entry.y
+        }
+        const currentIndex = this.data.indexOf(entry)
+        const adjacent = leftSide ? this.data[currentIndex - 1] : this.data[currentIndex + 1]
+
+        if (adjacent?.timeline === entry.timeline) {
+          this.tempStore.tmpShot.min = leftSide
+            ? adjacent.x + adjacent.width
+            : this.tempStore.tmpShot.start
+          this.tempStore.tmpShot.max = leftSide ? this.tempStore.tmpShot.end : adjacent.x - 1
+
+          if (edgeHit.joint && adjacent.locked) {
+            this.tempStore.tmpShot = null
+          } else if (edgeHit.joint) {
+            this.tempStore.adjacentShot = {
+              diff: leftSide
+                ? entry.x - (adjacent.x + adjacent.width - 1)
+                : adjacent.x - (entry.x + entry.width - 1),
+
+              end: adjacent.x + adjacent.width - 1,
+              height: 44,
+              leftSide,
+              originalShot: adjacent,
+              start: adjacent.x,
+              y: adjacent.y
+            }
+          }
         }
         return
       }
 
-      // Move boundary of existing segment
-      const edgeHit = this.findEdgeAt(coordX, coordY)
-      if (!edgeHit) return
-      e.stopImmediatePropagation()
-      const { entry, leftSide } = edgeHit
-
-      if (entry.locked) {
+      // Move existing segment
+      const colorData = this.hCtx.getImageData(x, y, 1, 1).data
+      const color = this.rgbToHex(colorData[0], colorData[1], colorData[2])
+      const segmentEntries = this.data.filter((d) => d.hiddenColor === color)
+      if (segmentEntries.length > 0 && !segmentEntries[0].locked) {
+        const entry = segmentEntries[0]
+        const xNew = Math.round(this.transform.rescaleX(this.scale).invert(coordX))
+        window.addEventListener('mouseup', this.mouseup)
+        this.tempStore.tmpShot = {
+          dragOffset: xNew - entry.x,
+          end: entry.x + entry.width - 1,
+          height: 44,
+          max: this.mainStore.numFrames,
+          min: 0,
+          moving: true,
+          originalShot: entry,
+          segmentWidth: entry.width - 1,
+          start: entry.x,
+          y: entry.y
+        }
         return
       }
 
+      // Create new segment
+      const height = coordY - (coordY % TIMELINE_HEIGHT)
+      const start = this.transform.rescaleX(this.scale).invert(coordX)
       window.addEventListener('mouseup', this.mouseup)
       this.tempStore.tmpShot = {
-        end: entry.x + entry.width - 1,
+        end: start,
         height: 44,
         max: this.mainStore.numFrames,
         min: 0,
-        origin: leftSide ? entry.x + entry.width - 1 : entry.x,
-        originalShot: entry,
-        start: entry.x,
-        y: entry.y
-      }
-      const currentIndex = this.data.indexOf(entry)
-      const adjacent = leftSide ? this.data[currentIndex - 1] : this.data[currentIndex + 1]
-
-      if (adjacent?.timeline === entry.timeline) {
-        // Prevent overlapping segments
-        this.tempStore.tmpShot.min = leftSide
-          ? adjacent.x + adjacent.width
-          : this.tempStore.tmpShot.start
-        this.tempStore.tmpShot.max = leftSide ? this.tempStore.tmpShot.end : adjacent.x - 1
-
-        if (edgeHit.joint && adjacent.locked) {
-          this.tempStore.tmpShot = null
-        } else if (edgeHit.joint) {
-          this.tempStore.adjacentShot = {
-            diff: leftSide
-              ? entry.x - (adjacent.x + adjacent.width - 1)
-              : adjacent.x - (entry.x + entry.width - 1),
-
-            end: adjacent.x + adjacent.width - 1,
-            height: 44,
-            leftSide,
-            originalShot: adjacent,
-            start: adjacent.x,
-            y: adjacent.y
-          }
-        }
+        origin: start,
+        originalShot: null,
+        start,
+        timelineIndex,
+        y: height
       }
     },
 
@@ -886,7 +883,7 @@ export default {
 
       if (e.buttons !== 1) {
         const coordY = e.clientY - rect.top
-        const edge = this.findEdgeAt(coordX, coordY)
+        const edge = e.altKey ? this.findEdgeAt(coordX, coordY) : null
         if (edge) {
           if (edge.joint) {
             this.$refs.canvas.style.cursor = 'ew-resize'
