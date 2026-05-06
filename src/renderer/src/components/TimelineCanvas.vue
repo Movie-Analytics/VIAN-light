@@ -65,7 +65,7 @@
 
     <canvas ref="hiddenCanvas" height="0" class="d-none"></canvas>
 
-    <v-snackbar v-model="moveWarning" color="warning" timeout="3000" location="top">
+    <v-snackbar v-model="moveWarning" color="warning" timeout="6000" location="top">
       {{ $t('components.timelineCanvas.moveWarning') }}
     </v-snackbar>
 
