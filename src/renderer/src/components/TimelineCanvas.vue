@@ -410,7 +410,7 @@ export default {
         for (const [shotIndex, shot] of timeline.data.entries()) {
           if (timeline.type === 'shots') {
             const effectiveLocked = [timeline.locked, shot.locked].some(Boolean)
-            const color = this.numTimelines % 2 === 0 ? '#cccccc' : '#999999'
+            const color = '#aaaaaa'
             const annotation = shotIndex + 1 + ': ' + (shot.annotation ?? '').slice(0, 40)
             data.push({
               annotation,
@@ -475,7 +475,7 @@ export default {
                 //TODO: reduce nesting and complexity here
                 /* eslint-disable max-depth */
                 for (const shot of timeline.data) {
-                  let color = this.numTimelines % 2 === 0 ? '#cccccc' : '#999999'
+                  let color = '#aaaaaa'
                   if (shot.vocabAnnotation.includes(tag.id)) color = '#aa5555'
 
                   data.push({
@@ -578,7 +578,7 @@ export default {
 
         hCtx.fillStyle = d.hiddenColor
         if (d.type === 'shot') {
-          ctx.fillStyle = selectedSegments.has(d.id) ? 'yellow' : d.fill
+          ctx.fillStyle = this.segmentFill(d, selectedSegments)
           ctx.fillRect(x, d.y, xwidth - x, d.height)
           if (xwidth - x > 20) {
             ctx.save()
@@ -593,7 +593,7 @@ export default {
           ctx.strokeRect(x, d.y, xwidth - x, d.height)
           hCtx.fillRect(x, d.y, xwidth - x, d.height)
         } else if (d.type === 'select') {
-          ctx.fillStyle = d.fill
+          ctx.fillStyle = this.segmentFill(d, selectedSegments)
           ctx.fillRect(x, d.y, xwidth - x, d.height)
           ctx.strokeStyle = 'black'
           ctx.lineWidth = 1
@@ -1052,6 +1052,12 @@ export default {
     rgbToHex(r, g, b) {
       // eslint-disable-next-line
       return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1).toLowerCase()
+    },
+
+    segmentFill(d, selectedSegments) {
+      if (selectedSegments.has(d.id)) return 'yellow'
+      if (d.timeline === this.selectedTimelineId && d.fill !== '#aa5555') return '#e0e0e0'
+      return d.fill
     },
 
     startDrag(e) {
