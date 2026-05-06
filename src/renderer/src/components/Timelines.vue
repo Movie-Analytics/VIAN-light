@@ -115,7 +115,7 @@
                         :aria-label="$t('components.timelines.tooltips.lockTrack')"
                         @click.stop="toggleTimelineLock(id)"
                       >
-                        <v-icon>{{
+                        <v-icon size="small">{{
                           undoableStore.getTimelineById(id).locked
                             ? 'mdi-lock'
                             : 'mdi-lock-open-outline'
