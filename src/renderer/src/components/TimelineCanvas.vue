@@ -600,10 +600,6 @@ export default {
       for (const d of data) {
         d.hiddenColor = '#' + colorI.toString(16).padStart(6, '0')
         colorI += 20
-        d.hiddenLeftHandle = '#' + colorI.toString(16).padStart(6, '0')
-        colorI += 20
-        d.hiddenRightHandle = '#' + colorI.toString(16).padStart(6, '0')
-        colorI += 20
       }
       // Modify data first and then access property because property access is slow
       this.data = markRaw(data)
