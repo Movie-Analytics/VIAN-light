@@ -546,6 +546,20 @@ export default {
   padding-top: 30px;
 }
 
+#timelineSplitter::-webkit-scrollbar {
+  width: 8px;
+}
+
+#timelineSplitter::-webkit-scrollbar-track {
+  background: #e0e0e0;
+  border-radius: 4px;
+}
+
+#timelineSplitter::-webkit-scrollbar-thumb {
+  background: #aaaaaa;
+  border-radius: 4px;
+}
+
 :deep(.active-track) {
   background-color: rgba(var(--v-theme-primary), 0.15);
 }
