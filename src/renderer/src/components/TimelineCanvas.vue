@@ -405,6 +405,57 @@ export default {
       this.tCtx.stroke()
     },
 
+    drawSegment(d, x, xwidth, selectedSegments, imageCache, rescale) {
+      const { hCtx, ctx } = this
+      hCtx.fillStyle = d.hiddenColor
+      if (d.type === 'shot') {
+        ctx.fillStyle = this.segmentFill(d, selectedSegments)
+        ctx.fillRect(x, d.y, xwidth - x, d.height)
+        if (xwidth - x > 20) {
+          ctx.save()
+          ctx.beginPath()
+          ctx.rect(x, d.y, xwidth - x, d.height)
+          ctx.clip()
+          ctx.fillStyle = d.locked ? '#666' : 'black'
+          const label = this.truncateText(ctx, d.annotation, xwidth - x - 20)
+          ctx.fillText(label, x + 10, d.y + 15)
+          ctx.restore()
+        }
+        ctx.strokeStyle = '#666666'
+        ctx.lineWidth = 1
+        ctx.strokeRect(x, d.y, xwidth - x, d.height)
+        hCtx.fillRect(x, d.y, xwidth - x, d.height)
+      } else if (d.type === 'select') {
+        ctx.fillStyle = this.segmentFill(d, selectedSegments)
+        ctx.fillRect(x, d.y, xwidth - x, d.height)
+        ctx.strokeStyle = '#666666'
+        ctx.lineWidth = 1
+        ctx.strokeRect(x, d.y, xwidth - x, d.height)
+        hCtx.fillRect(x, d.y, xwidth - x, d.height)
+      } else if (d.type === 'screenshot') {
+        const image = imageCache.get(d.uri)
+        if (!image) return
+        if (selectedSegments.has(d.id)) {
+          ctx.fillStyle = 'yellow'
+          ctx.fillRect(x, d.y, d.width, d.height)
+          ctx.globalAlpha = 0.5
+        }
+        ctx.drawImage(image, x, d.y, d.width, d.height)
+        ctx.globalAlpha = 1.0
+        hCtx.fillRect(x, d.y, d.width, d.height)
+      } else if (d.type === 'scalar') {
+        ctx.beginPath()
+        ctx.lineWidth = '1'
+        ctx.strokeStyle = 'DimGray'
+        ctx.moveTo(rescale(0), d.data[0])
+        const mainFps = this.mainStore.fps
+        d.data.forEach((p, i) => {
+          ctx.lineTo(rescale((i / d.fps) * mainFps), p)
+        })
+        ctx.stroke()
+      }
+    },
+
     drawSetup() {
       const data = []
       const lockedRows = []
@@ -584,54 +635,7 @@ export default {
           // eslint-disable-next-line no-continue
           continue
 
-        hCtx.fillStyle = d.hiddenColor
-        if (d.type === 'shot') {
-          ctx.fillStyle = this.segmentFill(d, selectedSegments)
-          ctx.fillRect(x, d.y, xwidth - x, d.height)
-          if (xwidth - x > 20) {
-            ctx.save()
-            ctx.beginPath()
-            ctx.rect(x, d.y, xwidth - x, d.height)
-            ctx.clip()
-            ctx.fillStyle = d.locked ? '#666' : 'black'
-            const label = this.truncateText(ctx, d.annotation, xwidth - x - 20)
-            ctx.fillText(label, x + 10, d.y + 15)
-            ctx.restore()
-          }
-          ctx.strokeStyle = '#666666'
-          ctx.lineWidth = 1
-          ctx.strokeRect(x, d.y, xwidth - x, d.height)
-          hCtx.fillRect(x, d.y, xwidth - x, d.height)
-        } else if (d.type === 'select') {
-          ctx.fillStyle = this.segmentFill(d, selectedSegments)
-          ctx.fillRect(x, d.y, xwidth - x, d.height)
-          ctx.strokeStyle = '#666666'
-          ctx.lineWidth = 1
-          ctx.strokeRect(x, d.y, xwidth - x, d.height)
-          hCtx.fillRect(x, d.y, xwidth - x, d.height)
-        } else if (d.type === 'screenshot') {
-          const image = imageCache.get(d.uri)
-          // eslint-disable-next-line no-continue
-          if (!image) continue
-          if (selectedSegments.has(d.id)) {
-            ctx.fillStyle = 'yellow'
-            ctx.fillRect(x, d.y, d.width, d.height)
-            ctx.globalAlpha = 0.5
-          }
-          ctx.drawImage(image, x, d.y, d.width, d.height)
-          ctx.globalAlpha = 1.0
-          hCtx.fillRect(x, d.y, d.width, d.height)
-        } else if (d.type === 'scalar') {
-          ctx.beginPath()
-          ctx.lineWidth = '1'
-          ctx.strokeStyle = 'DimGray'
-          ctx.moveTo(rescale(0), d.data[0])
-          const mainFps = this.mainStore.fps
-          d.data.forEach((p, i) => {
-            ctx.lineTo(rescale((i / d.fps) * mainFps), p)
-          })
-          ctx.stroke()
-        }
+        this.drawSegment(d, x, xwidth, selectedSegments, imageCache, rescale)
       }
 
       ctx.strokeStyle = 'rgba(0,0,0,0.22)'
