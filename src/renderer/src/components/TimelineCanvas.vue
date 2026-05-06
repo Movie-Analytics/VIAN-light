@@ -6,7 +6,12 @@
 
     <canvas ref="canvas" height="0"></canvas>
 
-    <v-overlay v-model="overlayInput" persistent scrim="false" @keydown.esc="overlayInput = false">
+    <v-overlay
+      v-model="overlayInput"
+      scrim="false"
+      @keydown.esc="overlayInput = false"
+      @click:outside="overlayInput = false"
+    >
       <v-card
         :class="{
           'cursor-grabbing': isDragging
@@ -35,12 +40,11 @@
           <v-textarea
             ref="overlayTextfield"
             v-model="overlayInputModel"
-            auto-grow
-            rows="3"
-            max-rows="5"
+            rows="5"
             hide-details="true"
             variant="outlined"
             density="comfortable"
+            class="annotation-textarea"
             @keydown.enter.exact.prevent="overlayInputChange"
           ></v-textarea>
         </v-card-text>
@@ -582,10 +586,12 @@ export default {
           ctx.fillRect(x, d.y, xwidth - x, d.height)
           if (xwidth - x > 20) {
             ctx.save()
+            ctx.beginPath()
             ctx.rect(x, d.y, xwidth - x, d.height)
-            ctx.fillStyle = d.locked ? '#666' : 'black'
             ctx.clip()
-            ctx.fillText(d.annotation, x + 10, d.y + 15)
+            ctx.fillStyle = d.locked ? '#666' : 'black'
+            const label = this.truncateText(ctx, d.annotation, xwidth - x - 20)
+            ctx.fillText(label, x + 10, d.y + 15)
             ctx.restore()
           }
           ctx.strokeStyle = '#666666'
@@ -1084,6 +1090,13 @@ export default {
       const x = d3.pointer(e, this.$refs.timeCanvas)[0]
       const timePosition = this.transform.rescaleX(this.scale).invert(x) / this.mainStore.fps
       this.tempStore.playJumpPosition = timePosition
+    },
+
+    truncateText(ctx, text, maxWidth) {
+      if (ctx.measureText(text).width <= maxWidth) return text
+      let t = text
+      while (t.length > 0 && ctx.measureText(t + '…').width > maxWidth) t = t.slice(0, -1)
+      return t + '…'
     }
   }
 }
@@ -1122,7 +1135,33 @@ canvas {
 }
 
 .overlay-card {
-  min-width: 400px;
-  max-width: 500px;
+  min-width: min-content;
+  resize: both;
+  overflow: hidden;
+  display: flex !important;
+  flex-direction: column;
+}
+
+.overlay-card :deep(.v-card-text) {
+  flex: 1;
+  overflow: hidden;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+}
+
+.annotation-textarea,
+.annotation-textarea :deep(.v-input__control),
+.annotation-textarea :deep(.v-field),
+.annotation-textarea :deep(.v-field__field),
+.annotation-textarea :deep(.v-field__input) {
+  flex: 1;
+  min-height: 0;
+}
+
+.annotation-textarea :deep(textarea) {
+  resize: none;
+  height: 100%;
+  overflow: auto;
 }
 </style>
